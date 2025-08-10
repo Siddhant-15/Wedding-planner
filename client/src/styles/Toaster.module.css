@@ -1,0 +1,5 @@
+.toastContent {
+    display: grid;
+    gap: 0.25rem; /* Tailwind gap-1 */
+  }
+  
