@@ -1,9 +1,9 @@
 import styles from "../styles/ServicesSection.module.css";
-import venue from "@/assets/blog.jpg";
-import dj from "@/assets/blog.jpg";
-import mgmt from "@/assets/blog.jpg";
-import catering from "@/assets/blog.jpg";
-import photo from "@/assets/blog.jpg";
+import venue from "@/assets/venue.jpg";
+import dj from "@/assets/dj.jpg";
+import mgmt from "@/assets/event-management.jpg";
+import catering from "@/assets/catering.jpg";
+import photo from "@/assets/photo.jpg";
 
 const services = [
   { title: "Wedding Venues", img: venue },

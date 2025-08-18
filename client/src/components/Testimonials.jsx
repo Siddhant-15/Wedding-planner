@@ -1,8 +1,8 @@
 import styles from "../styles/Testimonials.module.css"
-import t1 from "@/assets/blog.jpg";
-import t2 from "@/assets/blog.jpg";
-import t3 from "@/assets/blog.jpg";
-import t4 from "@/assets/blog.jpg";
+import t1 from "@/assets/t-1.jpg";
+import t2 from "@/assets/t-2.jpg";
+import t3 from "@/assets/t-3.jpg";
+import t4 from "@/assets/t-4.jpg";
 
 const data = [
   { img: t1, name: "Aarav & Meera", text: "Mangalam made our big day seamless and magical. Every detail was perfect!", rating: 5 },

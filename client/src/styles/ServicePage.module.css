@@ -1,0 +1,215 @@
+.container {
+    min-height: 100vh;
+  }
+  
+  .pageWrapper {
+    padding-top: 80px;
+  }
+  
+  .hero {
+    background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--secondary)) 50%, hsl(var(--accent)) 100%);
+    color: white;
+    text-align: center;
+    padding: 80px 20px;
+    margin-bottom: 60px;
+  }
+  
+  .title {
+    font-size: 3.5rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    font-family: var(--font-serif);
+  }
+  
+  .subtitle {
+    font-size: 1.25rem;
+    opacity: 0.9;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+  
+  .content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+  }
+  
+  .contentWithFilters {
+    display: flex;
+    gap: 30px;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 40px 20px;
+  }
+  
+  .mainContent {
+    flex: 1;
+  }
+  
+  .filterToggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    background: hsl(var(--primary));
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 500;
+    margin-bottom: 20px;
+    transition: all 0.2s ease;
+  }
+  
+  .filterToggle:hover {
+    background: hsl(var(--primary) / 0.9);
+    transform: translateY(-1px);
+  }
+  
+  .resultsHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 30px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid hsl(var(--border));
+  }
+  
+  .resultsCount {
+    color: hsl(var(--muted-foreground));
+    font-size: 0.95rem;
+  }
+  
+  .sortSelect {
+    padding: 8px 12px;
+    border: 1px solid hsl(var(--border));
+    border-radius: 6px;
+    background: white;
+    cursor: pointer;
+    transition: border-color 0.2s ease;
+  }
+  
+  .sortSelect:focus {
+    outline: none;
+    border-color: hsl(var(--primary));
+  }
+  
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 30px;
+    margin-bottom: 80px;
+  }
+  
+  .card {
+    background: white;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  
+  .card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+  }
+  
+  .imageWrapper {
+    position: relative;
+    height: 250px;
+    overflow: hidden;
+  }
+  
+  .cardImage {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+  }
+  
+  .card:hover .cardImage {
+    transform: scale(1.05);
+  }
+  
+  .cardBadge {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: hsl(var(--primary));
+    color: white;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  
+  .cardContent {
+    padding: 25px;
+  }
+  
+  .cardTitle {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: hsl(var(--foreground));
+    font-family: var(--font-serif);
+  }
+  
+  .cardLocation {
+    color: hsl(var(--muted-foreground));
+    margin-bottom: 12px;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  
+  .cardCapacity {
+    color: hsl(var(--muted-foreground));
+    margin-bottom: 8px;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  
+  .cardPrice {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: hsl(var(--primary));
+    margin-bottom: 20px;
+  }
+  
+  .cardButton {
+    width: 100%;
+    background: hsl(var(--primary));
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .cardButton:hover {
+    background: hsl(var(--primary) / 0.9);
+  }
+  
+  @media (max-width: 768px) {
+    .title {
+      font-size: 2.5rem;
+    }
+    
+    .hero {
+      padding: 60px 20px;
+    }
+    
+    .grid {
+      grid-template-columns: 1fr;
+      gap: 20px;
+    }
+  }

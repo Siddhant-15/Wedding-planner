@@ -1,14 +1,15 @@
 import useEmblaCarousel from "embla-carousel-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import styles from "../styles/HeroSlider.module.css"
-import h1 from "@/assets/slide-1.jpg";
-import h2 from "@/assets/slide-2.jpg";
-import h3 from "@/assets/slide-3.jpg";
+// Use imagetools picture export (generates sources and fallback img)
+import h1Picture from "@/assets/slide-1.jpg?w=1920;2560;3840&format=webp;jpg&as=picture";
+import h2Picture from "@/assets/slide-2.jpg?w=1920;2560;3840&format=webp;jpg&as=picture";
+import h3Picture from "@/assets/slide-3.jpg?w=1920;2560;3840&format=webp;jpg&as=picture";
 
 const slides = [
-  { src: h1, alt: "Romantic outdoor wedding ceremony" },
-  { src: h2, alt: "Elegant indoor wedding reception" },
-  { src: h3, alt: "Sunset beachfront wedding mandap" },
+  { picture: h1Picture, alt: "Romantic outdoor wedding ceremony" },
+  { picture: h2Picture, alt: "Elegant indoor wedding reception" },
+  { picture: h3Picture, alt: "Sunset beachfront wedding mandap" },
 ];
 
 export default function HeroSlider() {
@@ -46,12 +47,28 @@ export default function HeroSlider() {
         <div className={styles.emblaContainer}>
           {slides.map((s, i) => (
             <div className={styles.emblaSlide} key={i}>
-              <img
-                src={s.src}
-                alt={s.alt}
-                className={styles.slideImg}
-                loading={i === 0 ? "eager" : "lazy"}
-              />
+              <picture>
+                {Array.isArray(s.picture.sources)
+                  ? s.picture.sources.map((source) => (
+                      <source
+                        key={source.type || source.srcset}
+                        type={source.type}
+                        srcSet={source.srcset}
+                        sizes="100vw"
+                      />
+                    ))
+                  : Object.entries(s.picture.sources).map(([format, srcset]) => (
+                      <source key={format} type={`image/${format}`} srcSet={srcset} sizes="100vw" />
+                    ))}
+                <img
+                  src={s.picture.img.src}
+                  alt={s.alt}
+                  className={styles.slideImg}
+                  loading={i === 0 ? "eager" : "lazy"}
+                  fetchpriority={i === 0 ? "high" : undefined}
+                  decoding="async"
+                />
+              </picture>
               <div className={styles.overlay} />
             </div>
           ))}

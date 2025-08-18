@@ -1,20 +1,20 @@
 import useEmblaCarousel from "embla-carousel-react";
 import { useEffect } from "react";
 import styles from "../styles/VenuesCarousel.module.css";
-import v1 from "@/assets/blog.jpg";
-import v2 from "@/assets/blog.jpg";
-import v3 from "@/assets/blog.jpg";
-import v4 from "@/assets/blog.jpg";
-import v5 from "@/assets/blog.jpg";
-import v6 from "@/assets/blog.jpg";
+import v1 from "@/assets/venue-1.jpg?w=300;600;900&format=webp;jpg&as=picture";
+import v2 from "@/assets/venue-2.jpg?w=300;600;900&format=webp;jpg&as=picture";
+import v3 from "@/assets/venue-3.jpg?w=300;600;900&format=webp;jpg&as=picture";
+import v4 from "@/assets/venue-4.jpg?w=300;600;900&format=webp;jpg&as=picture";
+import v5 from "@/assets/venue-5.jpg?w=300;600;900&format=webp;jpg&as=picture";
+import v6 from "@/assets/venue-6.jpg?w=300;600;900&format=webp;jpg&as=picture";
 
 const venues = [
-  { img: v1, name: "The Royale Grand", location: "Mumbai", price: "₹2.5L+", rating: 4.8 },
-  { img: v2, name: "Rajmahal Courtyard", location: "Jaipur", price: "₹3.0L+", rating: 4.9 },
-  { img: v3, name: "Skyline Rooftop", location: "Bengaluru", price: "₹1.8L+", rating: 4.6 },
-  { img: v4, name: "Seabreeze Mandap", location: "Goa", price: "₹2.2L+", rating: 4.7 },
-  { img: v5, name: "Gardenia Meadows", location: "Pune", price: "₹1.5L+", rating: 4.5 },
-  { img: v6, name: "Haveli Heritage", location: "Udaipur", price: "₹3.5L+", rating: 4.9 },
+  { pic: v1, name: "The Royale Grand", location: "Mumbai", price: "₹2.5L+", rating: 4.8 },
+  { pic: v2, name: "Rajmahal Courtyard", location: "Jaipur", price: "₹3.0L+", rating: 4.9 },
+  { pic: v3, name: "Skyline Rooftop", location: "Bengaluru", price: "₹1.8L+", rating: 4.6 },
+  { pic: v4, name: "Seabreeze Mandap", location: "Goa", price: "₹2.2L+", rating: 4.7 },
+  { pic: v5, name: "Gardenia Meadows", location: "Pune", price: "₹1.5L+", rating: 4.5 },
+  { pic: v6, name: "Haveli Heritage", location: "Udaipur", price: "₹3.5L+", rating: 4.9 },
 ];
 
 export default function VenuesCarousel() {
@@ -33,11 +33,21 @@ export default function VenuesCarousel() {
             {venues.map((v) => (
               <article key={v.name} className={styles.card}>
                 <div className={styles.imgWrap}>
-                  <img
-                    src={v.img}
-                    alt={`${v.name} venue in ${v.location}`}
-                    loading="lazy"
-                  />
+                  <picture>
+                    {Array.isArray(v.pic.sources)
+                      ? v.pic.sources.map((source) => (
+                          <source key={source.type || source.srcset} type={source.type} srcSet={source.srcset} sizes="300px" />
+                        ))
+                      : Object.entries(v.pic.sources).map(([format, srcset]) => (
+                          <source key={format} type={`image/${format}`} srcSet={srcset} sizes="300px" />
+                        ))}
+                    <img
+                      src={v.pic.img.src}
+                      alt={`${v.name} venue in ${v.location}`}
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  </picture>
                 </div>
                 <div className={styles.body}>
                   <div>
