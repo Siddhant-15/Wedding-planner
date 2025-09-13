@@ -2,7 +2,7 @@ import toast from 'react-hot-toast';
 
 // Default toast configuration
 const defaultConfig = {
-  duration: 4000,
+  duration: 2000,
   position: 'top-right',
 };
 

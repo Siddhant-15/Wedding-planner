@@ -1,14 +1,22 @@
-from sqlalchemy import Integer, ForeignKey, Date, Boolean, UniqueConstraint
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy import Column, ForeignKey, Date, Time, Boolean, DateTime
+from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import relationship
+from sqlalchemy.sql import func
+import uuid
 from app.database import Base
 
 class Availability(Base):
-    __tablename__ = "availabilities"
-    __table_args__ = (UniqueConstraint("venue_id", "date", name="uq_venue_date"),)
+    __tablename__ = "availability"
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    venue_id: Mapped[int] = mapped_column(ForeignKey("venues.id", ondelete="CASCADE"), nullable=False)
-    date: Mapped["Date"] = mapped_column(Date, nullable=False)
-    is_available: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    vendor_id = Column(UUID(as_uuid=True), ForeignKey("vendors.id", ondelete="CASCADE"), nullable=True)
+    venue_id = Column(UUID(as_uuid=True), ForeignKey("venues.id", ondelete="CASCADE"), nullable=True)
+    service_id = Column(UUID(as_uuid=True), ForeignKey("services.id", ondelete="CASCADE"), nullable=True)
+    available_date = Column(Date, nullable=False)
+    available_time = Column(Time, nullable=True)
+    is_available = Column(Boolean, default=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
 
-    venue = relationship("Venue", back_populates="availabilities")
+    vendor = relationship("Vendor")
+    venue = relationship("Venue")
+    service = relationship("Service")

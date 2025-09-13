@@ -1,18 +1,22 @@
-from sqlalchemy import Integer, ForeignKey, Text
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy import Column, String, Integer, ForeignKey, Text, DateTime
+from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import relationship
+from sqlalchemy.sql import func
+import uuid
 from app.database import Base
 
 class Review(Base):
     __tablename__ = "reviews"
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
-    venue_id: Mapped[int | None] = mapped_column(ForeignKey("venues.id"))
-    service_id: Mapped[int | None] = mapped_column(ForeignKey("services.id"))
-    rating: Mapped[int] = mapped_column(Integer, nullable=False)  # 1..5
-    title: Mapped[str | None] = mapped_column(Text())
-    body: Mapped[str | None] = mapped_column(Text())
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    customer_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"))
+    vendor_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"))
+    service_id = Column(UUID(as_uuid=True), ForeignKey("services.id", ondelete="CASCADE"))
+    rating = Column(Integer, nullable=False)
+    comment = Column(Text)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
 
-    user = relationship("User", back_populates="reviews")
-    venue = relationship("Venue", back_populates="reviews")
+    # relationships
+    customer = relationship("User", foreign_keys=[customer_id], back_populates="customer_reviews")
+    vendor = relationship("User", foreign_keys=[vendor_id], back_populates="vendor_reviews")
     service = relationship("Service", back_populates="reviews")

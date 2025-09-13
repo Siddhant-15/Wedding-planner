@@ -1,61 +1,62 @@
-# app/routes/payments.py
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
-from typing import List
+# from fastapi import APIRouter, Depends, HTTPException, status
+# from sqlalchemy.orm import Session
+# from typing import List
+# import uuid
 
-from app.database import get_db
-from app.models.payment import Payment, PaymentStatus
-from app.schemas.payment import PaymentIntentCreate, PaymentOut
+# from app.database import get_db
+# from app.models.payment import Payment
+# from app.schemas.payment import PaymentCreate, PaymentResponse
+# from pydantic import BaseModel
 
-router = APIRouter(prefix="/payments", tags=["Payments"])
+# router = APIRouter(prefix="/payments", tags=["Payments"])
 
-# CREATE Payment Intent
-@router.post("/", response_model=PaymentOut, status_code=status.HTTP_201_CREATED)
-def create_payment_intent(payload: PaymentIntentCreate, db: Session = Depends(get_db)):
-    # Optional: validate booking exists and isn't already paid
-    existing_payment = db.query(Payment).filter(Payment.booking_id == payload.booking_id).first()
-    if existing_payment:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Payment for this booking already exists"
-        )
 
-    new_payment = Payment(
-        booking_id=payload.booking_id,
-        amount=payload.amount,
-        currency=payload.currency.value,
-        provider=payload.provider,
-        status=PaymentStatus.PENDING
-    )
-    db.add(new_payment)
-    db.commit()
-    db.refresh(new_payment)
-    return new_payment
+# @router.post("/", response_model=PaymentResponse, status_code=status.HTTP_201_CREATED)
+# def create_payment(payload: PaymentCreate, db: Session = Depends(get_db)):
+#     new_payment = Payment(
+#         appointment_id=uuid.UUID(payload.appointment_id),
+#         amount=payload.amount,
+#         payment_method=payload.payment_method,
+#         status=payload.status or "pending",
+#     )
+#     db.add(new_payment)
+#     db.commit()
+#     db.refresh(new_payment)
+#     return new_payment
 
-# GET Payment by ID
-@router.get("/{payment_id}", response_model=PaymentOut)
-def get_payment(payment_id: int, db: Session = Depends(get_db)):
-    payment = db.query(Payment).filter(Payment.id == payment_id).first()
-    if not payment:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Payment not found")
-    return payment
 
-# UPDATE Payment Status
-@router.patch("/{payment_id}/status", response_model=PaymentOut)
-def update_payment_status(payment_id: int, status_update: PaymentStatus, db: Session = Depends(get_db)):
-    payment = db.query(Payment).filter(Payment.id == payment_id).first()
-    if not payment:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Payment not found")
+# @router.get("/{payment_id}", response_model=PaymentResponse)
+# def get_payment(payment_id: str, db: Session = Depends(get_db)):
+#     try:
+#         pid = uuid.UUID(payment_id)
+#     except ValueError:
+#         raise HTTPException(status_code=400, detail="Invalid payment ID")
+#     payment = db.query(Payment).filter(Payment.id == pid).first()
+#     if not payment:
+#         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Payment not found")
+#     return payment
 
-    payment.status = status_update
-    if status_update == PaymentStatus.SUCCEEDED:
-        from datetime import datetime
-        payment.paid_at = datetime.utcnow()
-    db.commit()
-    db.refresh(payment)
-    return payment
 
-# LIST All Payments (optional)
-@router.get("/", response_model=List[PaymentOut])
-def list_payments(db: Session = Depends(get_db)):
-    return db.query(Payment).all()
+# class PaymentStatusUpdate(BaseModel):
+#     status: str
+
+
+# @router.patch("/{payment_id}/status", response_model=PaymentResponse)
+# def update_payment_status(payment_id: str, status_update: PaymentStatusUpdate, db: Session = Depends(get_db)):
+#     try:
+#         pid = uuid.UUID(payment_id)
+#     except ValueError:
+#         raise HTTPException(status_code=400, detail="Invalid payment ID")
+#     payment = db.query(Payment).filter(Payment.id == pid).first()
+#     if not payment:
+#         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Payment not found")
+
+#     payment.status = status_update.status
+#     db.commit()
+#     db.refresh(payment)
+#     return payment
+
+
+# @router.get("/", response_model=List[PaymentResponse])
+# def list_payments(db: Session = Depends(get_db)):
+#     return db.query(Payment).all()

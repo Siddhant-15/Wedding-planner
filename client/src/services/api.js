@@ -1,7 +1,6 @@
 import axios from "axios";
 
-// const API_BASE_URL = import.meta.env.VITE_API_URL;
-const API_BASE_URL = "http://127.0.0.1:8000";
+const API_BASE_URL = import.meta.env.VITE_API_URL ?? "/api"; // Use Vite proxy by default
 
 // Create axios instance
 const api = axios.create({
@@ -11,11 +10,14 @@ const api = axios.create({
   },
 });
 
-// Interceptor to add token if available
+// Interceptor to add token if available (skip auth endpoints)
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("access_token");
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+  const isAuthEndpoint = config.url?.startsWith("/auth");
+  if (!isAuthEndpoint) {
+    const token = localStorage.getItem("access_token");
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
   }
   return config;
 });
@@ -28,6 +30,15 @@ export const authAPI = {
     return api.post("/auth/login", data);
   },
   refresh: (data) => api.post("/auth/refresh", data),
+};
+
+// ----------- SERVICES ----------- //
+export const serviceAPI = {
+  getAll: (params = {}) => api.get("/services/get-all", { params }), 
+  getByUser: (userId, params = {}) => api.get("/services/get-by-user", { params: { user_id: userId, ...params } }),
+  create: (data) => api.post("/services/create", data),
+  update: (id, data) => api.put(`/services/update/${id}`, data),
+  delete: (id) => api.delete(`/services/delete/${id}`),
 };
 
 // ----------- VENUES ----------- //
@@ -75,6 +86,44 @@ export const reviewAPI = {
 
 // ----------- AVAILABILITY ----------- //
 export const availabilityAPI = {
-  check: (params) => api.get("/availability", { params }),
-  update: (data) => api.post("/availability", data),
+  // Get availability for a specific venue
+  getByVenue: (venueId) => api.get(`/availability/${venueId}`),
+  // Bulk upsert availability slots
+  bulkUpsert: (data) => api.post("/availability/bulk-upsert", data),
+  // Delete availability for a venue by date (YYYY-MM-DD)
+  removeForDate: (venueId, slotDate) => api.delete(`/availability/${venueId}/${slotDate}`),
+};
+
+// ----------- IMAGES ----------- //
+export const imageAPI = {
+  // Upload an image
+  upload: (file, venueId = null, serviceId = null) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    if (venueId) formData.append('venue_id', venueId);
+    if (serviceId) formData.append('service_id', serviceId);
+    
+    return api.post("/images/upload", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+  },
+  
+  // Get transformed image URL
+  getTransformedUrl: (path, width = null, height = null, quality = null) => {
+    const params = new URLSearchParams();
+    params.append('path', path);
+    if (width) params.append('w', width);
+    if (height) params.append('h', height);
+    if (quality) params.append('q', quality);
+    
+    return api.get(`/images/img-url?${params.toString()}`);
+  },
+  
+  // Get images for a venue
+  getByVenue: (venueId) => api.get(`/images/venue/${venueId}`),
+  
+  // Get images for a service
+  getByService: (serviceId) => api.get(`/images/service/${serviceId}`),
 };

@@ -1,16 +1,26 @@
-from datetime import date
-from typing import List
 from pydantic import BaseModel
-from .base import StrictModel
+from typing import Optional, List
+from datetime import date, time, datetime
 
-class AvailabilitySlot(StrictModel):
+
+class AvailabilitySlot(BaseModel):
     date: date
+    time: Optional[time] = None
     is_available: bool = True
 
-class BulkAvailabilityUpsertRequest(StrictModel):
-    venue_id: int
+
+class BulkAvailabilityUpsertRequest(BaseModel):
+    venue_id: Optional[str] = None
+    vendor_id: Optional[str] = None
+    service_id: Optional[str] = None
     slots: List[AvailabilitySlot]
 
-class AvailabilityOut(StrictModel):
-    venue_id: int
+
+class AvailabilityOut(BaseModel):
+    venue_id: Optional[str] = None
+    vendor_id: Optional[str] = None
+    service_id: Optional[str] = None
     slots: List[AvailabilitySlot]
+
+    class Config:
+        from_attributes = True

@@ -1,0 +1,50 @@
+.tabsList {
+    display: inline-flex;
+    height: 40px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    background: var(--muted, #f3f3f3);
+    padding: 4px;
+    color: var(--muted-foreground, #666);
+  }
+  
+  .tabsTrigger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+    border-radius: 4px;
+    padding: 6px 12px;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    background: transparent;
+    cursor: pointer;
+  }
+  
+  .tabsTrigger:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--ring, #2684ff);
+  }
+  
+  .tabsTrigger:disabled {
+    pointer-events: none;
+    opacity: 0.5;
+  }
+  
+  .tabsTrigger[data-state="active"] {
+    background: var(--background, #fff);
+    color: var(--foreground, #000);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  }
+  
+  .tabsContent {
+    margin-top: 8px;
+  }
+  
+  .tabsContent:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--ring, #2684ff);
+  }
+  

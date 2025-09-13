@@ -1,10 +1,12 @@
+// App.jsx
 import React from "react";
 import { ToastProvider } from "@/components/ui/Toast";
 import { Toaster as Sonner } from "@/components/ui/Sonner";
 import { TooltipProvider } from "@/components/ui/Tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { AuthProvider } from "@/context/AuthContext"
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider, useAuth } from "@/context/AuthContext";
+
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
@@ -14,32 +16,114 @@ import DJs from "./pages/services/DJs";
 import EventManagement from "./pages/services/EventManagement";
 import Catering from "./pages/services/Catering";
 import Photography from "./pages/services/Photography";
+import ImageTest from "./pages/ImageTest";
+import MyBookings from "./pages/MyBookings";
+
+// dashboards
+import VendorDashboard from "./pages/dashboards/VendorDashboard";
+import AdminDashboard from "./pages/dashboards/AdminDashboard";
+import CustomerDashboard from "./pages/dashboards/CustomerDashboard";
 
 const queryClient = new QueryClient();
+
+// 🔑 Role-based router wrapper
+function RoleBasedRoutes() {
+  const { user, isAuthenticated } = useAuth();
+
+  // const getDashboardComponent = () => {
+  //   if (!isAuthenticated || !user) return <Index />;
+
+  //   switch (user.type) {
+  //     case "vendor":
+  //       return <VendorDashboard />;
+  //     case "admin":
+  //       return <AdminDashboard />;
+  //     case "customer":
+  //     default:
+  //       return <CustomerDashboard />;
+  //   }
+  // };
+
+  return (
+    <Routes>
+      {/* Root route: Redirect based on user role or show Index for unauthenticated users */}
+      <Route
+        path="/"
+        element={
+          isAuthenticated && user ? (
+            <Navigate
+              to={
+                user.type === "vendor"
+                  ? "/vendor/dashboard"
+                  : user.type === "admin"
+                  ? "/admin/dashboard"
+                  : "/customer/dashboard"
+              }
+              replace
+            />
+          ) : (
+            <Index />
+          )
+        }
+      />
+      
+      {/* Dashboard routes: Only accessible if authenticated and role matches */}
+      <Route
+        path="/vendor/dashboard"
+        element={
+          isAuthenticated && user?.type === "vendor" ? (
+            <VendorDashboard />
+          ) : (
+            <Navigate to="/login" replace />
+          )
+        }
+      />
+      <Route
+        path="/admin/dashboard"
+        element={
+          isAuthenticated && user?.type === "admin" ? (
+            <AdminDashboard />
+          ) : (
+            <Navigate to="/login" replace />
+          )
+        }
+      />
+      <Route
+        path="/customer/dashboard"
+        element={
+          isAuthenticated && user?.type === "customer" ? (
+            <CustomerDashboard />
+          ) : (
+            <Navigate to="/login" replace />
+          )
+        }
+      />
+      <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
+      <Route path="/services/wedding-venues" element={<WeddingVenues />} />
+      <Route path="/services/djs" element={<DJs />} />
+      <Route path="/services/event-management" element={<EventManagement />} />
+      <Route path="/services/catering" element={<Catering />} />
+      <Route path="/services/photography" element={<Photography />} />
+      <Route path="/image-test" element={<ImageTest />} />
+      <Route path="/my-bookings" element={<MyBookings />} />
+      <Route path="*" element={<NotFound />} />
+    </Routes>
+  );
+}
 
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-      <TooltipProvider>
-        <ToastProvider />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/services/wedding-venues" element={<WeddingVenues />} />
-            <Route path="/services/djs" element={<DJs />} />
-            <Route path="/services/event-management" element={<EventManagement />} />
-            <Route path="/services/catering" element={<Catering />} />
-            <Route path="/services/photography" element={<Photography />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
-    </AuthProvider>
+        <TooltipProvider>
+          <ToastProvider />
+          <Sonner />
+          <BrowserRouter>
+            <RoleBasedRoutes />
+          </BrowserRouter>
+        </TooltipProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }

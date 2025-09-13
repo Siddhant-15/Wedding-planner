@@ -17,6 +17,7 @@ class LoginRequest(StrictModel):
     # email: EmailStr
     email: str
     password: Password
+    role: Role = Role.CUSTOMER
 
 class TokenPair(StrictModel):
     access_token: str
@@ -36,4 +37,5 @@ class PasswordResetConfirmRequest(StrictModel):
 
 class TokenPayload(StrictModel):
     sub: Optional[str] = None  # User ID or email
+    role: Optional[str] = None
     exp: Optional[int] = None  # Expiration timestamp

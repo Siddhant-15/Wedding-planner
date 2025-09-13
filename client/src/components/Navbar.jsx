@@ -4,13 +4,29 @@ import { Menu, X, Search, User, ChevronDown } from "lucide-react";
 import { useAuth } from "@/context/AuthContext"
 import styles from "../styles/Navbar.module.css";
 import logo from "@/assets/logo.png";
+import { HiOutlineLogout } from "react-icons/hi";
+
 
 const NAV_LINKS = [
   { label: "Home", href: "/" },
   { label: "Venues", href: "#venues" },
-  { label: "Vendors", href: "#vendors" },
   { label: "Gallery", href: "#gallery" },
   { label: "Contact Us", href: "#contact" },
+];
+
+const VENDOR_NAV_LINKS = [
+  { label: "Dashboard", href: "/" },
+  { label: "My Services", href: "/my-services" },
+  { label: "Bookings", href: "/my-bookings" },
+  { label: "Analytics", href: "/analytics" },
+];
+
+const ADMIN_NAV_LINKS = [
+  { label: "Dashboard", href: "/" },
+  { label: "Vendors", href: "/vendors" },
+  { label: "Services", href: "/services" },
+  { label: "Moderation", href: "/moderation" },
+  { label: "Analytics", href: "/analytics" },
 ];
 
 const SERVICE_LINKS = [
@@ -19,6 +35,7 @@ const SERVICE_LINKS = [
   { label: "Event Management", href: "/services/event-management" },
   { label: "Catering", href: "/services/catering" },
   { label: "Photography", href: "/services/photography" },
+  { label: "Image Test", href: "/image-test" },
 ];
 
 function Navbar() {
@@ -32,8 +49,9 @@ function Navbar() {
   const [searchQuery, setSearchQuery] = useState("");
 
   const { isAuthenticated, user, logout } = useAuth();
-  
+
   const loginDropdownRef = useRef(null);
+  const servicesDropdownRef = useRef(null);
   const profileDropdownRef = useRef(null);
 
   useEffect(() => {
@@ -83,10 +101,14 @@ function Navbar() {
       if (profileDropdownRef.current && !profileDropdownRef.current.contains(event.target)) {
         setProfileDropdownOpen(false);
       }
-      // Close search overlay when clicking outside
-      if (searchOpen) {
-        setSearchOpen(false);
+      if (servicesDropdownRef.current && !servicesDropdownRef.current.contains(event.target)) {
+        setServicesDropdownOpen(false);
       }
+      // Close search overlay when clicking outside
+      const searchContainer = document.querySelector(`.${styles.searchContainer}`);
+    if (searchOpen && searchContainer && !searchContainer.contains(event.target)) {
+      setSearchOpen(false);
+    }
     };
 
     document.addEventListener('mousedown', handleClickOutside);
@@ -131,57 +153,127 @@ function Navbar() {
         </div>
 
         {!isMobile && (
-  <nav className={styles.navCenter} aria-label="Primary">
-    {NAV_LINKS.map((l) => (
-      <a key={l.label} href={l.href} className={styles.navLink}>
-        {l.label}
-      </a>
-    ))}
+          <nav className={styles.navCenter} aria-label="Primary" aria-hidden={isMobile}
+            hidden={isMobile}>
+            {(() => {
+            if (isAuthenticated && user) {
+              switch (user.type) {
+                case "vendor":
+                  return VENDOR_NAV_LINKS.map((l) => (
+                    <Link key={l.label} to={l.href} className={styles.navLink}>
+                      {l.label}
+                    </Link>
+                  ));
+                case "admin":
+                  return ADMIN_NAV_LINKS.map((l) => (
+                    <Link key={l.label} to={l.href} className={styles.navLink}>
+                      {l.label}
+                    </Link>
+                  ));
+                case "customer":
+                default:
+                  return (
+                    <>
+                      {NAV_LINKS.map((l) => (
+                        <a key={l.label} href={l.href} className={styles.navLink}>
+                          {l.label}
+                        </a>
+                      ))}
+                      <div
+                        className={styles.dropdown}
+                        onClick={() => {
+                          setServicesDropdownOpen(!servicesDropdownOpen);
+                          setLoginDropdownOpen(false);
+                          setProfileDropdownOpen(false);
+                        }}
+                      >
+                        <button className={styles.navLink}>
+                          Services <ChevronDown size={16} />
+                        </button>
+                        {servicesDropdownOpen && (
+                          <div className={styles.dropdownMenu}>
+                            {SERVICE_LINKS.map((service) => (
+                              <Link
+                                key={service.label}
+                                to={service.href}
+                                className={styles.dropdownItem}
+                              >
+                                {service.label}
+                              </Link>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </>
+                  );
+              }
+            } else {
+              return (
+                <>
+                  {NAV_LINKS.map((l) => (
+                    <a key={l.label} href={l.href} className={styles.navLink}>
+                      {l.label}
+                    </a>
+                  ))}
+                  <div
+                    className={styles.dropdown}
+                    onClick={() => {
+                      setServicesDropdownOpen(!servicesDropdownOpen);
+                      setLoginDropdownOpen(false);
+                      setProfileDropdownOpen(false);
+                    }}
+                  >
+                    <button className={styles.navLink}>
+                      Services <ChevronDown size={16} />
+                    </button>
+                    {servicesDropdownOpen && (
+                      <div className={styles.dropdownMenu}>
+                        {SERVICE_LINKS.map((service) => (
+                          <Link
+                            key={service.label}
+                            to={service.href}
+                            className={styles.dropdownItem}
+                          >
+                            {service.label}
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </>
+              );
+            }
+          })()}
 
-<div
-            className={styles.dropdown}
-            onMouseEnter={() => setServicesDropdownOpen(true)}
-            onMouseLeave={() => setServicesDropdownOpen(false)}
-          >
-            <button className={styles.navLink}>
-              Services <ChevronDown size={16} />
-            </button>
-            {servicesDropdownOpen && (
-              <div className={styles.dropdownMenu}>
-                {SERVICE_LINKS.map((service) => (
-                  <Link key={service.label} to={service.href} className={styles.dropdownItem}>
-                    {service.label}
-                  </Link>
-                ))}
+
+            {!isAuthenticated && (
+              <div
+                ref={loginDropdownRef}
+                className={styles.dropdown}
+              >
+                <button
+                  className={`${styles.navLink} ${styles.dropdownToggle}`}
+                  onClick={toggleLoginDropdown}
+                >
+                  Login/Register <ChevronDown size={16} className={loginDropdownOpen ? styles.chevronRotated : ''} />
+                </button>
+                {loginDropdownOpen && (
+                  <div className={styles.dropdownMenu}>
+                    <Link to="/login?type=customer" className={styles.dropdownItem} onClick={closeAllDropdowns}>
+                      Login/Register as Customer
+                    </Link>
+                    <Link to="/login?type=vendor" className={styles.dropdownItem} onClick={closeAllDropdowns}>
+                      Login/Register as Vendor
+                    </Link>
+                    <Link to="/login?type=admin" className={styles.dropdownItem} onClick={closeAllDropdowns}>
+                      Login as Admin
+                    </Link>
+                  </div>
+                )}
               </div>
             )}
-            </div>
-
-    {!isAuthenticated && (
-      <div
-        ref={loginDropdownRef}
-        className={styles.dropdown}
-      >
-        <button 
-          className={`${styles.navLink} ${styles.dropdownToggle}`}
-          onClick={toggleLoginDropdown}
-        >
-          Login/Register <ChevronDown size={16} className={loginDropdownOpen ? styles.chevronRotated : ''} />
-        </button>
-        {loginDropdownOpen && (
-          <div className={styles.dropdownMenu}>
-            <Link to="/login?type=customer" className={styles.dropdownItem} onClick={closeAllDropdowns}>
-              Login/Register as Customer
-            </Link>
-            <Link to="/login?type=vendor" className={styles.dropdownItem} onClick={closeAllDropdowns}>
-              Login/Register as Vendor
-            </Link>
-          </div>
+          </nav>
         )}
-      </div>
-    )}
-  </nav>
-)}
 
 
         <div className={styles.right}>
@@ -198,8 +290,8 @@ function Navbar() {
                 ref={profileDropdownRef}
                 className={styles.dropdown}
               >
-                <button 
-                  className={`${styles.iconBtn} ${styles.dropdownToggle}`} 
+                <button
+                  className={`${styles.iconBtn} ${styles.dropdownToggle}`}
                   aria-label="User Profile"
                   onClick={toggleProfileDropdown}
                 >
@@ -210,7 +302,7 @@ function Navbar() {
                     className={styles.dropdownMenu}
                     style={{ right: 0, left: "auto" }}
                   >
-                    <Link to="/bookings" className={styles.dropdownItem} onClick={closeAllDropdowns}>
+                    <Link to="/my-bookings" className={styles.dropdownItem} onClick={closeAllDropdowns}>
                       My Bookings
                     </Link>
                     <Link to="/payments" className={styles.dropdownItem} onClick={closeAllDropdowns}>
@@ -230,9 +322,11 @@ function Navbar() {
                         textAlign: "left",
                         border: "none",
                         background: "none",
+                        cursor: "pointer",
+                        color: "red"
                       }}
                     >
-                      Logout
+                      <HiOutlineLogout /> Logout
                     </button>
                   </div>
                 )}
@@ -244,88 +338,199 @@ function Navbar() {
 
       {/* Mobile Drawer */}
       {isMobile && (
-  <div
-    className={`${styles.drawer} ${open ? styles.drawerOpen : ""}`}
-    role="dialog"
-    aria-modal="true"
-    aria-label="Mobile menu"
-  >
+        <div
+          className={`${styles.drawer} ${open ? styles.drawerOpen : ""}`}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Mobile menu"
+        >
 
-        <div className={styles.drawerHeader}>
-          <div className={styles.brandMini}>
-            <img src={logo} alt="Mangalam logo" className={styles.logoMini} />
-            <span className={styles.brandText}>Mangalam</span>
+          <div className={styles.drawerHeader}>
+            <div className={styles.brandMini}>
+              <img src={logo} alt="Mangalam logo" className={styles.logoMini} />
+              <span className={styles.brandText}>Mangalam</span>
+            </div>
+            <button
+              className={styles.closeBtn}
+              aria-label="Close menu"
+              onClick={() => setOpen(false)}
+            >
+              <X size={24} />
+            </button>
           </div>
-          <button
-            className={styles.closeBtn}
-            aria-label="Close menu"
-            onClick={() => setOpen(false)}
-          >
-            <X size={24} />
-          </button>
+          <nav id="mobile-primary-nav" className={styles.drawerNav} aria-label="Mobile">
+          {(() => {
+            if (isAuthenticated && user) {
+              switch (user.type) {
+                case "vendor":
+                  return VENDOR_NAV_LINKS.map((l) => (
+                    <Link
+                      key={l.label}
+                      to={l.href}
+                      className={styles.drawerLink}
+                      onClick={() => setOpen(false)}
+                    >
+                      {l.label}
+                    </Link>
+                  ));
+                case "admin":
+                  return ADMIN_NAV_LINKS.map((l) => (
+                    <Link
+                      key={l.label}
+                      to={l.href}
+                      className={styles.drawerLink}
+                      onClick={() => setOpen(false)}
+                    >
+                      {l.label}
+                    </Link>
+                  ));
+                case "customer":
+                default:
+                  return NAV_LINKS.map((l) => (
+                    <a
+                      key={l.label}
+                      href={l.href}
+                      className={styles.drawerLink}
+                      onClick={() => setOpen(false)}
+                    >
+                      {l.label}
+                    </a>
+                  ));
+              }
+            } else {
+              return NAV_LINKS.map((l) => (
+                <a
+                  key={l.label}
+                  href={l.href}
+                  className={styles.drawerLink}
+                  onClick={() => setOpen(false)}
+                >
+                  {l.label}
+                </a>
+              ));
+            }
+          })()}
+          {(!isAuthenticated || (isAuthenticated && user && user.type === "customer")) && (
+            <div className={styles.drawerDropdown}>
+              <span className={styles.drawerLinkTitle}>Services</span>
+              {SERVICE_LINKS.map((service) => (
+                <Link
+                  key={service.label}
+                  to={service.href}
+                  className={styles.drawerLink}
+                  onClick={() => setOpen(false)}
+                >
+                  {service.label}
+                </Link>
+              ))}
+            </div>
+          )}
+          {!isAuthenticated ? (
+            <div className={styles.drawerDropdown}>
+              <span className={styles.drawerLinkTitle}>Login/Register</span>
+              <Link
+                to="/login?type=customer"
+                className={styles.drawerLink}
+                onClick={() => setOpen(false)}
+              >
+                Login/Register as Customer
+              </Link>
+              <Link
+                to="/login?type=vendor"
+                className={styles.drawerLink}
+                onClick={() => setOpen(false)}
+              >
+                Login/Register as Vendor
+              </Link>
+              <Link
+                to="/login?type=admin"
+                className={styles.drawerLink}
+                onClick={() => setOpen(false)}
+              >
+                Login/Register as Admin
+              </Link>
+            </div>
+          ) : (
+            <div className={styles.drawerDropdown}>
+              <span className={styles.drawerLinkTitle}>Account</span>
+              <Link
+                to="/my-bookings"
+                className={styles.drawerLink}
+                onClick={() => setOpen(false)}
+              >
+                My Bookings
+              </Link>
+              <Link
+                to="/payments"
+                className={styles.drawerLink}
+                onClick={() => setOpen(false)}
+              >
+                Payments
+              </Link>
+              <Link
+                to="/profile"
+                className={styles.drawerLink}
+                onClick={() => setOpen(false)}
+              >
+                Profile Settings
+              </Link>
+              <button
+                onClick={() => {
+                  logout();
+                  setOpen(false);
+                }}
+                className={styles.drawerLink}
+                style={{
+                  width: "100%",
+                  textAlign: "left",
+                  border: "none",
+                  background: "none",
+                }}
+              >
+                Logout
+              </button>
+            </div>
+          )}
+          </nav>
         </div>
-        <nav id="mobile-primary-nav" className={styles.drawerNav} aria-label="Mobile">
-          {NAV_LINKS.map((l) => (
-            <a
-              key={l.label}
-              href={l.href}
-              className={styles.drawerLink}
-              onClick={() => setOpen(false)}
-            >
-              {l.label}
-            </a>
-          ))}
-          <div className={styles.drawerDropdown}>
-            <span className={styles.drawerLinkTitle}>Login/Register</span>
-            <Link
-              to="/login?type=customer"
-              className={styles.drawerLink}
-              onClick={() => setOpen(false)}
-            >
-              Login/Register as Customer
-            </Link>
-            <Link
-              to="/login?type=vendor"
-              className={styles.drawerLink}
-              onClick={() => setOpen(false)}
-            >
-              Login/Register as Vendor
-            </Link>
-          </div>
-        </nav>
-      </div>
+
+      
       )}
+
+
+      
 
       {/* Backdrop */}
       {isMobile && (
         <div
-          className={`${styles.backdrop} ${open ? styles.backdropShow : ""}`}
-          onClick={() => setOpen(false)}
-          aria-hidden={!open}
-        />
+        className={`${styles.backdrop} ${open ? styles.backdropShow : ""}`}
+        onClick={() => setOpen(false)}
+        aria-hidden={!open}
+        hidden={!isMobile}
+      />
       )}
-      
+
       {/* Search Overlay */}
       {searchOpen && (
-        <div className={styles.searchOverlay}>
-          <div className={styles.searchContainer}>
-            <input
-              type="text"
-              placeholder="Search for venues, vendors, services..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className={styles.searchInput}
-              autoFocus
-            />
-            <button
-              className={styles.searchClose}
-              onClick={() => setSearchOpen(false)}
-              aria-label="Close search"
-            >
-              <X size={20} />
-            </button>
-          </div>
+        <div className={`${styles.searchOverlay} ${searchOpen ? styles.searchOverlayOpen : ""}`}>
+        <div className={styles.searchContainer}>
+          <input
+            type="text"
+            placeholder="Search venues, vendors, services..."
+            className={styles.searchInput}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            autoFocus
+          />
+          <button
+            className={styles.searchClose}
+            onClick={() => setSearchOpen(false)}
+            aria-label="Close search"
+          >
+            <X size={20} />
+          </button>
         </div>
+      </div>
       )}
     </header>
   );

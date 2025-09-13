@@ -1,39 +1,62 @@
+from pydantic import BaseModel
 from typing import Optional, List
-from pydantic import constr, confloat
-from .base import StrictModel
-from .common import Currency
+import uuid
+from decimal import Decimal
+from datetime import datetime
 from enum import Enum
 
 class ServiceType(str, Enum):
-    CATERING = "catering"
-    DJ = "dj"
-    PHOTOGRAPHY = "photography"
-    DECOR = "decor"
-    MAKEUP = "makeup"
-    OTHER = "other"
+    WEDDING_VENUES = "Wedding Venue"
+    DJS = "DJ"
+    EVENT_MANAGEMENT = "Event Management"
+    CATERING = "Catering"
+    PHOTOGRAPHY = "Photography"
 
-class ServiceCreate(StrictModel):
-    vendor_id: int
-    name: constr(min_length=2, max_length=150)
-    service_type: ServiceType
-    description: Optional[constr(max_length=2000)] = None
-    base_price: confloat(ge=0) = 0
-    unit: constr(min_length=1, max_length=20) = "day"
-    images: List[str] = []
+class ServiceImageResponse(BaseModel):
+    id: uuid.UUID
+    image_url: str
 
-class ServiceUpdate(StrictModel):
-    name: Optional[constr(min_length=2, max_length=150)] = None
-    description: Optional[constr(max_length=2000)] = None
-    base_price: Optional[confloat(ge=0)] = None
-    unit: Optional[constr(min_length=1, max_length=20)] = None
-    images: Optional[List[str]] = None
+    class Config:
+        from_attributes = True
 
-class ServiceOut(StrictModel):
-    id: int
-    vendor_id: int
+
+class ServiceBase(BaseModel):
     name: str
-    service_type: ServiceType
-    description: Optional[str]
-    base_price: float
-    unit: str
-    images: List[str]
+    description: Optional[str] = None
+    price: Decimal
+    type: ServiceType
+    country: Optional[str] = None
+    state: Optional[str] = None
+    city: Optional[str] = None
+    venue: Optional[str] = None
+    capacity: Optional[str] = None
+    amenities: Optional[List[str]] = []
+
+
+class ServiceCreate(ServiceBase):
+    # user_id: str
+    images: Optional[List[str]] = []   # ✅ frontend will send Supabase URLs here
+
+
+class ServiceUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    price: Optional[float] = None
+    type: Optional[ServiceType] = None
+    country: Optional[str] = None
+    state: Optional[str] = None
+    city: Optional[str] = None
+    venue: Optional[str] = None
+    capacity: Optional[str] = None
+    amenities: Optional[List[str]] = None
+    images: Optional[List[str]] = None  # ✅ allow replacing image URLs
+
+
+class ServiceResponse(ServiceBase):
+    id: uuid.UUID
+    user_id: uuid.UUID
+    created_at: datetime
+    images: List[ServiceImageResponse] = []  # ✅ nested images
+
+    class Config:
+        from_attributes = True

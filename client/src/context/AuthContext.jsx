@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState } from "react";
 import { authAPI } from "../services/api.js"
+import jwtDecode from "jwt-decode";
 
 const AuthContext = createContext(undefined);
 
@@ -12,12 +13,13 @@ export function AuthProvider({ children }) {
       localStorage.setItem("access_token", res.data.access_token);
       localStorage.setItem("refresh_token", res.data.refresh_token);
 
-      // In a real app, fetch user profile after login
+      // Decode user info from JWT (server encodes { sub, exp })
+      const decoded = jwtDecode(res.data.access_token);
       setUser({
-        id: res.data.user_id || "1", // depends on backend response
-        name: res.data.name || email,
+        id: decoded.sub,
         email,
         type,
+        exp: decoded.exp,
       });
     } catch (err) {
       console.error("Login failed:", err.response?.data || err.message);
@@ -39,11 +41,12 @@ export function AuthProvider({ children }) {
       localStorage.setItem("access_token", res.data.access_token);
       localStorage.setItem("refresh_token", res.data.refresh_token);
 
+      const decoded = jwtDecode(res.data.access_token);
       setUser({
-        id: res.data.user_id || "1",
-        name,
+        id: decoded.sub,
         email,
         type,
+        exp: decoded.exp,
       });
     } catch (err) {
       console.error("Registration failed:", err.response?.data || err.message);

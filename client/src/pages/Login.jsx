@@ -27,17 +27,25 @@ export default function Login() {
     setLoading(true);
 
     try {
-        const res = await authAPI.login(formData);
-    
+        const res = await authAPI.login({
+          ...formData,
+          role: userType
+        });
+
           const { access_token, refresh_token } = res.data;
-    
+
           // Store tokens
           localStorage.setItem("access_token", access_token);
           localStorage.setItem("refresh_token", refresh_token);
-    
-          // Decode user info and update AuthContext
-          const decodedUser = jwtDecode(access_token);
-          setUser(decodedUser);
+
+          // Decode user info and update AuthContext consistently
+          const decoded = jwtDecode(access_token);
+          setUser({
+            id: decoded.sub,
+            email: formData.email,
+            type: decoded.role,
+            exp: decoded.exp,
+          });
       showSuccess('Welcome back!', 'Login Successful');
       navigate('/');
     } catch (error) {

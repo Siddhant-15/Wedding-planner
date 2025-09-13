@@ -22,7 +22,7 @@ def signup(data: SignupRequest, db: Session = Depends(get_db)):
         last_name=data.last_name,
         email=data.email,
         phone=data.phone,
-        hashed_password=hashed_password,
+        password=hashed_password,
         role=data.role
     )
     db.add(new_user)
@@ -43,11 +43,14 @@ def signup(data: SignupRequest, db: Session = Depends(get_db)):
 def login(data: LoginRequest, db: Session = Depends(get_db)):
     print("This is what i get:",data)
     user = db.query(User).filter(User.email == data.email).first()
-    if not user or not security.verify_password(data.password, user.hashed_password):
+    if not user or not security.verify_password(data.password, user.password):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
 
-    access_token = security.create_access_token(user.id)
-    refresh_token = security.create_refresh_token(user.id)
+    if user.role != data.role:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Invalid role for this login")
+
+    access_token = security.create_access_token(user.id, user.role)
+    refresh_token = security.create_refresh_token(user.id, user.role)
 
     print("access_token:",access_token)
 
@@ -63,8 +66,8 @@ def refresh_token(data: RefreshRequest):
     if not payload or not payload.sub:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid refresh token")
 
-    access_token = security.create_access_token(payload.sub)
-    refresh_token = security.create_refresh_token(payload.sub)
+    access_token = security.create_access_token(payload.sub, payload.role)
+    refresh_token = security.create_refresh_token(payload.sub, payload.role)
 
     return TokenPair(
         access_token=access_token,

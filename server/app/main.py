@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.database import engine, Base
-from app.routers import auth, venue, vendors, booking, payment, review, availability
+from app.routers import auth, appointment, payment, review, availability, images, service
 
 Base.metadata.create_all(bind=engine)
 
@@ -16,7 +16,7 @@ origins = [
 # CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # change in production
+    allow_origins=["*"], 
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -24,12 +24,12 @@ app.add_middleware(
 
 # Routers
 app.include_router(auth.router, prefix="/auth", tags=["Authentication"])
-app.include_router(venue.router, prefix="/venues", tags=["Venues"])
-app.include_router(vendors.router, prefix="/vendors", tags=["Vendors"])
-app.include_router(booking.router, prefix="/bookings", tags=["Bookings"])
-app.include_router(payment.router, prefix="/payments", tags=["Payments"])
-app.include_router(review.router, prefix="/reviews", tags=["Reviews"])
-app.include_router(availability.router, prefix="/availability", tags=["Availability"])
+# app.include_router(appointment.router, prefix="/appointments", tags=["Appointments"])
+# app.include_router(payment.router)
+# app.include_router(review.router, prefix="/reviews", tags=["Reviews"])
+# app.include_router(availability.router, prefix="/availability", tags=["Availability"])
+app.include_router(images.router, prefix="/images", tags=["Images"]) 
+app.include_router(service.router)
 
 @app.get("/")
 def root():
