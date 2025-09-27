@@ -1,7 +1,9 @@
 import React, { useEffect, useState, useRef } from "react";
 import { Link } from "react-router-dom";
-import { Menu, X, Search, User, ChevronDown } from "lucide-react";
+import { Menu, X, Search, User, ChevronDown, Heart, ShoppingCart } from "lucide-react";
 import { useAuth } from "@/context/AuthContext"
+import { useCart } from "@/context/CartContext";
+import { useWishlist } from "@/context/WishlistContext";
 import styles from "../styles/Navbar.module.css";
 import logo from "@/assets/logo.png";
 import { HiOutlineLogout } from "react-icons/hi";
@@ -16,9 +18,9 @@ const NAV_LINKS = [
 
 const VENDOR_NAV_LINKS = [
   { label: "Dashboard", href: "/" },
-  { label: "My Services", href: "/my-services" },
+  { label: "My Services", href: "/vendor/my-services" },
   { label: "Bookings", href: "/my-bookings" },
-  { label: "Analytics", href: "/analytics" },
+  { label: "Analytics", href: "/vendor/analytics" },
 ];
 
 const ADMIN_NAV_LINKS = [
@@ -35,7 +37,6 @@ const SERVICE_LINKS = [
   { label: "Event Management", href: "/services/event-management" },
   { label: "Catering", href: "/services/catering" },
   { label: "Photography", href: "/services/photography" },
-  { label: "Image Test", href: "/image-test" },
 ];
 
 function Navbar() {
@@ -49,7 +50,8 @@ function Navbar() {
   const [searchQuery, setSearchQuery] = useState("");
 
   const { isAuthenticated, user, logout } = useAuth();
-
+  const { getTotalItems } = useCart();
+  const { items: wishlistItems } = useWishlist();
   const loginDropdownRef = useRef(null);
   const servicesDropdownRef = useRef(null);
   const profileDropdownRef = useRef(null);
@@ -106,30 +108,39 @@ function Navbar() {
       }
       // Close search overlay when clicking outside
       const searchContainer = document.querySelector(`.${styles.searchContainer}`);
-    if (searchOpen && searchContainer && !searchContainer.contains(event.target)) {
-      setSearchOpen(false);
-    }
+      if (searchOpen && searchContainer && !searchContainer.contains(event.target)) {
+        setSearchOpen(false);
+      }
     };
 
     document.addEventListener('mousedown', handleClickOutside);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [searchOpen]);
+  }, [searchOpen, servicesDropdownOpen]); // Added servicesDropdownOpen to dependencies
 
   const toggleLoginDropdown = () => {
     setLoginDropdownOpen(!loginDropdownOpen);
     setProfileDropdownOpen(false);
+    setServicesDropdownOpen(false); // Close services dropdown when opening login
   };
 
   const toggleProfileDropdown = () => {
     setProfileDropdownOpen(!profileDropdownOpen);
     setLoginDropdownOpen(false);
+    setServicesDropdownOpen(false); // Close services dropdown when opening profile
+  };
+
+  const toggleServicesDropdown = () => {
+    setServicesDropdownOpen(!servicesDropdownOpen);
+    setLoginDropdownOpen(false);
+    setProfileDropdownOpen(false);
   };
 
   const closeAllDropdowns = () => {
     setLoginDropdownOpen(false);
     setProfileDropdownOpen(false);
+    setServicesDropdownOpen(false);
     setSearchOpen(false);
   };
 
@@ -156,95 +167,94 @@ function Navbar() {
           <nav className={styles.navCenter} aria-label="Primary" aria-hidden={isMobile}
             hidden={isMobile}>
             {(() => {
-            if (isAuthenticated && user) {
-              switch (user.type) {
-                case "vendor":
-                  return VENDOR_NAV_LINKS.map((l) => (
-                    <Link key={l.label} to={l.href} className={styles.navLink}>
-                      {l.label}
-                    </Link>
-                  ));
-                case "admin":
-                  return ADMIN_NAV_LINKS.map((l) => (
-                    <Link key={l.label} to={l.href} className={styles.navLink}>
-                      {l.label}
-                    </Link>
-                  ));
-                case "customer":
-                default:
-                  return (
-                    <>
-                      {NAV_LINKS.map((l) => (
-                        <a key={l.label} href={l.href} className={styles.navLink}>
-                          {l.label}
-                        </a>
-                      ))}
-                      <div
-                        className={styles.dropdown}
-                        onClick={() => {
-                          setServicesDropdownOpen(!servicesDropdownOpen);
-                          setLoginDropdownOpen(false);
-                          setProfileDropdownOpen(false);
-                        }}
-                      >
-                        <button className={styles.navLink}>
-                          Services <ChevronDown size={16} />
-                        </button>
-                        {servicesDropdownOpen && (
-                          <div className={styles.dropdownMenu}>
-                            {SERVICE_LINKS.map((service) => (
-                              <Link
-                                key={service.label}
-                                to={service.href}
-                                className={styles.dropdownItem}
-                              >
-                                {service.label}
-                              </Link>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    </>
-                  );
-              }
-            } else {
-              return (
-                <>
-                  {NAV_LINKS.map((l) => (
-                    <a key={l.label} href={l.href} className={styles.navLink}>
-                      {l.label}
-                    </a>
-                  ))}
-                  <div
-                    className={styles.dropdown}
-                    onClick={() => {
-                      setServicesDropdownOpen(!servicesDropdownOpen);
-                      setLoginDropdownOpen(false);
-                      setProfileDropdownOpen(false);
-                    }}
-                  >
-                    <button className={styles.navLink}>
-                      Services <ChevronDown size={16} />
-                    </button>
-                    {servicesDropdownOpen && (
-                      <div className={styles.dropdownMenu}>
-                        {SERVICE_LINKS.map((service) => (
-                          <Link
-                            key={service.label}
-                            to={service.href}
-                            className={styles.dropdownItem}
-                          >
-                            {service.label}
-                          </Link>
+              if (isAuthenticated && user) {
+                switch (user.type) {
+                  case "vendor":
+                    return VENDOR_NAV_LINKS.map((l) => (
+                      <Link key={l.label} to={l.href} className={styles.navLink}>
+                        {l.label}
+                      </Link>
+                    ));
+                  case "admin":
+                    return ADMIN_NAV_LINKS.map((l) => (
+                      <Link key={l.label} to={l.href} className={styles.navLink}>
+                        {l.label}
+                      </Link>
+                    ));
+                  case "customer":
+                  default:
+                    return (
+                      <>
+                        {NAV_LINKS.map((l) => (
+                          <a key={l.label} href={l.href} className={styles.navLink}>
+                            {l.label}
+                          </a>
                         ))}
-                      </div>
-                    )}
-                  </div>
-                </>
-              );
-            }
-          })()}
-
+                        <div
+                          ref={servicesDropdownRef}
+                          className={styles.dropdown}
+                        >
+                          <button 
+                            className={styles.navLink} 
+                            onClick={toggleServicesDropdown}
+                          >
+                            Services <ChevronDown size={16} className={servicesDropdownOpen ? styles.chevronRotated : ''} />
+                          </button>
+                          {servicesDropdownOpen && (
+                            <div className={styles.dropdownMenu}>
+                              {SERVICE_LINKS.map((service) => (
+                                <Link
+                                  key={service.label}
+                                  to={service.href}
+                                  className={styles.dropdownItem}
+                                  onClick={() => setServicesDropdownOpen(false)}
+                                >
+                                  {service.label}
+                                </Link>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </>
+                    );
+                }
+              } else {
+                return (
+                  <>
+                    {NAV_LINKS.map((l) => (
+                      <a key={l.label} href={l.href} className={styles.navLink}>
+                        {l.label}
+                      </a>
+                    ))}
+                    <div
+                      ref={servicesDropdownRef}
+                      className={styles.dropdown}
+                    >
+                      <button 
+                        className={styles.navLink}
+                        onClick={toggleServicesDropdown}
+                      >
+                        Services <ChevronDown size={16} className={servicesDropdownOpen ? styles.chevronRotated : ''} />
+                      </button>
+                      {servicesDropdownOpen && (
+                        <div className={styles.dropdownMenu}>
+                          {SERVICE_LINKS.map((service) => (
+                            <Link
+                              key={service.label}
+                              to={service.href}
+                              className={styles.dropdownItem}
+                              onClick={() => setServicesDropdownOpen(false)}
+                            >
+                              {service.label}
+                            </Link>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </>
+                );
+              }
+            })()}
 
             {!isAuthenticated && (
               <div
@@ -275,7 +285,6 @@ function Navbar() {
           </nav>
         )}
 
-
         <div className={styles.right}>
           {isAuthenticated && (
             <>
@@ -286,6 +295,22 @@ function Navbar() {
               >
                 <Search size={22} />
               </button>
+              <Link to="/wishlist" className={styles.iconBtn} aria-label="Wishlist">
+                <div className={styles.iconWrapper}>
+                  <Heart size={22} />
+                  {wishlistItems.length > 0 && (
+                    <span className={styles.badge}>{wishlistItems.length}</span>
+                  )}
+                </div>
+              </Link>
+              <Link to="/cart" className={styles.iconBtn} aria-label="Shopping Cart">
+                <div className={styles.iconWrapper}>
+                  <ShoppingCart size={22} />
+                  {getTotalItems() > 0 && (
+                    <span className={styles.badge}>{getTotalItems()}</span>
+                  )}
+                </div>
+              </Link>
               <div
                 ref={profileDropdownRef}
                 className={styles.dropdown}
@@ -359,178 +384,194 @@ function Navbar() {
             </button>
           </div>
           <nav id="mobile-primary-nav" className={styles.drawerNav} aria-label="Mobile">
-          {(() => {
-            if (isAuthenticated && user) {
-              switch (user.type) {
-                case "vendor":
-                  return VENDOR_NAV_LINKS.map((l) => (
-                    <Link
-                      key={l.label}
-                      to={l.href}
-                      className={styles.drawerLink}
-                      onClick={() => setOpen(false)}
-                    >
-                      {l.label}
-                    </Link>
-                  ));
-                case "admin":
-                  return ADMIN_NAV_LINKS.map((l) => (
-                    <Link
-                      key={l.label}
-                      to={l.href}
-                      className={styles.drawerLink}
-                      onClick={() => setOpen(false)}
-                    >
-                      {l.label}
-                    </Link>
-                  ));
-                case "customer":
-                default:
-                  return NAV_LINKS.map((l) => (
-                    <a
-                      key={l.label}
-                      href={l.href}
-                      className={styles.drawerLink}
-                      onClick={() => setOpen(false)}
-                    >
-                      {l.label}
-                    </a>
-                  ));
+            {(() => {
+              if (isAuthenticated && user) {
+                switch (user.type) {
+                  case "vendor":
+                    return VENDOR_NAV_LINKS.map((l) => (
+                      <Link
+                        key={l.label}
+                        to={l.href}
+                        className={styles.drawerLink}
+                        onClick={() => setOpen(false)}
+                      >
+                        {l.label}
+                      </Link>
+                    ));
+                  case "admin":
+                    return ADMIN_NAV_LINKS.map((l) => (
+                      <Link
+                        key={l.label}
+                        to={l.href}
+                        className={styles.drawerLink}
+                        onClick={() => setOpen(false)}
+                      >
+                        {l.label}
+                      </Link>
+                    ));
+                  case "customer":
+                  default:
+                    return NAV_LINKS.map((l) => (
+                      <a
+                        key={l.label}
+                        href={l.href}
+                        className={styles.drawerLink}
+                        onClick={() => setOpen(false)}
+                      >
+                        {l.label}
+                      </a>
+                    ));
+                }
+              } else {
+                return NAV_LINKS.map((l) => (
+                  <a
+                    key={l.label}
+                    href={l.href}
+                    className={styles.drawerLink}
+                    onClick={() => setOpen(false)}
+                  >
+                    {l.label}
+                  </a>
+                ));
               }
-            } else {
-              return NAV_LINKS.map((l) => (
-                <a
-                  key={l.label}
-                  href={l.href}
-                  className={styles.drawerLink}
-                  onClick={() => setOpen(false)}
-                >
-                  {l.label}
-                </a>
-              ));
-            }
-          })()}
-          {(!isAuthenticated || (isAuthenticated && user && user.type === "customer")) && (
-            <div className={styles.drawerDropdown}>
-              <span className={styles.drawerLinkTitle}>Services</span>
-              {SERVICE_LINKS.map((service) => (
+            })()}
+            {(!isAuthenticated || (isAuthenticated && user && user.type === "customer")) && (
+              <div className={styles.drawerDropdown}>
+                <span className={styles.drawerLinkTitle}>Services</span>
+                {SERVICE_LINKS.map((service) => (
+                  <Link
+                    key={service.label}
+                    to={service.href}
+                    className={styles.drawerLink}
+                    onClick={() => setOpen(false)}
+                  >
+                    {service.label}
+                  </Link>
+                ))}
+              </div>
+            )}
+
+            {/* Mobile Wishlist and Cart Links */}
+            {isAuthenticated && (
+              <div className={styles.drawerDropdown}>
+                <span className={styles.drawerLinkTitle}>Shopping</span>
                 <Link
-                  key={service.label}
-                  to={service.href}
+                  to="/wishlist"
                   className={styles.drawerLink}
                   onClick={() => setOpen(false)}
                 >
-                  {service.label}
+                  Wishlist ({wishlistItems.length})
                 </Link>
-              ))}
-            </div>
-          )}
-          {!isAuthenticated ? (
-            <div className={styles.drawerDropdown}>
-              <span className={styles.drawerLinkTitle}>Login/Register</span>
-              <Link
-                to="/login?type=customer"
-                className={styles.drawerLink}
-                onClick={() => setOpen(false)}
-              >
-                Login/Register as Customer
-              </Link>
-              <Link
-                to="/login?type=vendor"
-                className={styles.drawerLink}
-                onClick={() => setOpen(false)}
-              >
-                Login/Register as Vendor
-              </Link>
-              <Link
-                to="/login?type=admin"
-                className={styles.drawerLink}
-                onClick={() => setOpen(false)}
-              >
-                Login/Register as Admin
-              </Link>
-            </div>
-          ) : (
-            <div className={styles.drawerDropdown}>
-              <span className={styles.drawerLinkTitle}>Account</span>
-              <Link
-                to="/my-bookings"
-                className={styles.drawerLink}
-                onClick={() => setOpen(false)}
-              >
-                My Bookings
-              </Link>
-              <Link
-                to="/payments"
-                className={styles.drawerLink}
-                onClick={() => setOpen(false)}
-              >
-                Payments
-              </Link>
-              <Link
-                to="/profile"
-                className={styles.drawerLink}
-                onClick={() => setOpen(false)}
-              >
-                Profile Settings
-              </Link>
-              <button
-                onClick={() => {
-                  logout();
-                  setOpen(false);
-                }}
-                className={styles.drawerLink}
-                style={{
-                  width: "100%",
-                  textAlign: "left",
-                  border: "none",
-                  background: "none",
-                }}
-              >
-                Logout
-              </button>
-            </div>
-          )}
+                <Link
+                  to="/cart"
+                  className={styles.drawerLink}
+                  onClick={() => setOpen(false)}
+                >
+                  Cart ({getTotalItems()})
+                </Link>
+              </div>
+            )}
+            {!isAuthenticated ? (
+              <div className={styles.drawerDropdown}>
+                <span className={styles.drawerLinkTitle}>Login/Register</span>
+                <Link
+                  to="/login?type=customer"
+                  className={styles.drawerLink}
+                  onClick={() => setOpen(false)}
+                >
+                  Login/Register as Customer
+                </Link>
+                <Link
+                  to="/login?type=vendor"
+                  className={styles.drawerLink}
+                  onClick={() => setOpen(false)}
+                >
+                  Login/Register as Vendor
+                </Link>
+                <Link
+                  to="/login?type=admin"
+                  className={styles.drawerLink}
+                  onClick={() => setOpen(false)}
+                >
+                  Login/Register as Admin
+                </Link>
+              </div>
+            ) : (
+              <div className={styles.drawerDropdown}>
+                <span className={styles.drawerLinkTitle}>Account</span>
+                <Link
+                  to="/my-bookings"
+                  className={styles.drawerLink}
+                  onClick={() => setOpen(false)}
+                >
+                  My Bookings
+                </Link>
+                <Link
+                  to="/payments"
+                  className={styles.drawerLink}
+                  onClick={() => setOpen(false)}
+                >
+                  Payments
+                </Link>
+                <Link
+                  to="/profile"
+                  className={styles.drawerLink}
+                  onClick={() => setOpen(false)}
+                >
+                  Profile Settings
+                </Link>
+                <button
+                  onClick={() => {
+                    logout();
+                    setOpen(false);
+                  }}
+                  className={styles.drawerLink}
+                  style={{
+                    width: "100%",
+                    textAlign: "left",
+                    border: "none",
+                    background: "none",
+                  }}
+                >
+                  Logout
+                </button>
+              </div>
+            )}
           </nav>
         </div>
-
-      
       )}
-
-
-      
 
       {/* Backdrop */}
       {isMobile && (
         <div
-        className={`${styles.backdrop} ${open ? styles.backdropShow : ""}`}
-        onClick={() => setOpen(false)}
-        aria-hidden={!open}
-        hidden={!isMobile}
-      />
+          className={`${styles.backdrop} ${open ? styles.backdropShow : ""}`}
+          onClick={() => setOpen(false)}
+          aria-hidden={!open}
+          hidden={!isMobile}
+        />
       )}
 
       {/* Search Overlay */}
       {searchOpen && (
         <div className={`${styles.searchOverlay} ${searchOpen ? styles.searchOverlayOpen : ""}`}>
-        <div className={styles.searchContainer}>
-          <input
-            type="text"
-            placeholder="Search venues, vendors, services..."
-            className={styles.searchInput}
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            autoFocus
-          />
-          <button
-            className={styles.searchClose}
-            onClick={() => setSearchOpen(false)}
-            aria-label="Close search"
-          >
-            <X size={20} />
-          </button>
+          <div className={styles.searchContainer}>
+            <input
+              type="text"
+              placeholder="Search venues, vendors, services..."
+              className={styles.searchInput}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              autoFocus
+            />
+            <button
+              className={styles.searchClose}
+              onClick={() => setSearchOpen(false)}
+              aria-label="Close search"
+            >
+              <X size={20} />
+            </button>
+          </div>
         </div>
-      </div>
       )}
     </header>
   );

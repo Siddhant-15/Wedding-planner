@@ -12,10 +12,11 @@ class Settings(BaseSettings):
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
 
     DATABASE_URL: str
-
+    GOOGLE_CLIENT_ID: str
     SUPABASE_URL: str
     SUPABASE_SERVICE_ROLE_KEY: str
     SUPABASE_BUCKET: str
+    SUPABASE_ANON_KEY: str
 
     class Config:
         env_file = ".env"

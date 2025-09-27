@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Optional, List
 import uuid
 from decimal import Decimal
@@ -15,6 +15,7 @@ class ServiceType(str, Enum):
 class ServiceImageResponse(BaseModel):
     id: uuid.UUID
     image_url: str
+    path: str
 
     class Config:
         from_attributes = True
@@ -30,13 +31,12 @@ class ServiceBase(BaseModel):
     city: Optional[str] = None
     venue: Optional[str] = None
     capacity: Optional[str] = None
-    amenities: Optional[List[str]] = []
+    amenities: List[str] = Field(default_factory=list)
 
 
 class ServiceCreate(ServiceBase):
     # user_id: str
-    images: Optional[List[str]] = []   # ✅ frontend will send Supabase URLs here
-
+    images: List[str] = Field(default_factory=list)
 
 class ServiceUpdate(BaseModel):
     name: Optional[str] = None
@@ -49,14 +49,14 @@ class ServiceUpdate(BaseModel):
     venue: Optional[str] = None
     capacity: Optional[str] = None
     amenities: Optional[List[str]] = None
-    images: Optional[List[str]] = None  # ✅ allow replacing image URLs
+    images: Optional[List[str]] = None  
 
 
 class ServiceResponse(ServiceBase):
     id: uuid.UUID
     user_id: uuid.UUID
     created_at: datetime
-    images: List[ServiceImageResponse] = []  # ✅ nested images
+    images: List[ServiceImageResponse] = []
 
     class Config:
         from_attributes = True

@@ -10,7 +10,9 @@ export default function Register() {
   const userType = searchParams.get('type') || 'customer';
   
   const [formData, setFormData] = useState({
-    name: '',
+    firstName: '',
+    lastName: '',
+    phone: '',
     email: '',
     password: '',
     confirmPassword: ''
@@ -32,7 +34,14 @@ export default function Register() {
     setLoading(true);
     
     try {
-      await register(formData.name, formData.email, formData.password, userType);
+      await register(
+        formData.firstName,
+        formData.lastName,
+        formData.email,
+        formData.phone,
+        formData.password,
+        userType
+      );
       showSuccess(`Welcome to Mangalam!`, "Registration Successful");
       navigate('/');
     } catch (error) {
@@ -55,18 +64,46 @@ export default function Register() {
         </div>
 
         <form onSubmit={handleSubmit} className={styles.form}>
+          {/* First Name */}
           <div className={styles.inputGroup}>
-            <label className={styles.label}>Full Name</label>
+            <label className={styles.label}>First Name</label>
             <input
               type="text"
               required
               className={styles.input}
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              placeholder="Enter your full name"
+              value={formData.firstName}
+              onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+              placeholder="Enter your first name"
             />
           </div>
 
+          {/* Last Name */}
+          <div className={styles.inputGroup}>
+            <label className={styles.label}>Last Name</label>
+            <input
+              type="text"
+              required
+              className={styles.input}
+              value={formData.lastName}
+              onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+              placeholder="Enter your last name"
+            />
+          </div>
+
+          {/* Phone */}
+          <div className={styles.inputGroup}>
+            <label className={styles.label}>Phone Number</label>
+            <input
+              type="tel"
+              required
+              className={styles.input}
+              value={formData.phone}
+              onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+              placeholder="Enter your phone number"
+            />
+          </div>
+
+          {/* Email */}
           <div className={styles.inputGroup}>
             <label className={styles.label}>Email</label>
             <input
@@ -79,6 +116,7 @@ export default function Register() {
             />
           </div>
 
+          {/* Password */}
           <div className={styles.inputGroup}>
             <label className={styles.label}>Password</label>
             <div className={styles.passwordInput}>
@@ -100,6 +138,7 @@ export default function Register() {
             </div>
           </div>
 
+          {/* Confirm Password */}
           <div className={styles.inputGroup}>
             <label className={styles.label}>Confirm Password</label>
             <input

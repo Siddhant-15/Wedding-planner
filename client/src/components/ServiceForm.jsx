@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { X, Upload, Trash2, MapPin, DollarSign, Users, Sparkles } from "lucide-react";
-import { supabase } from "../utils/supabaseClient.js"
 import { showSuccess, showError } from '../utils/toast.js';
-import { v4 as uuidv4 } from "uuid";
 import styles from '../styles/ServiceForm.module.css';
 
 const ServiceFormModal  = ({ isOpen, onClose, onSubmit, initialData }) => {
@@ -73,12 +71,17 @@ const ServiceFormModal  = ({ isOpen, onClose, onSubmit, initialData }) => {
   };
 
   const handleFileChange = (e) => {
-    const files = Array.from(e.target.files || []);
-    setFormData((prev) => ({ ...prev, images: [...prev.images, ...files] }));
-
+    const files = Array.from(e.target.files || []); // actual File objects
+    setFormData((prev) => ({
+      ...prev,
+      images: files, // replace previous images or append if you prefer
+    }));
+  
+    // Generate previews
     const newPreviewUrls = files.map((file) => URL.createObjectURL(file));
-    setImagePreviewUrls((prev) => [...prev, ...newPreviewUrls]);
+    setImagePreviewUrls(newPreviewUrls); // replace previous previews
   };
+  
 
   const removeImage = (index) => {
     setFormData((prev) => ({
@@ -108,51 +111,42 @@ const ServiceFormModal  = ({ isOpen, onClose, onSubmit, initialData }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+  
     try {
       setUploading(true);
-      let imageUrls = [];
-
-      for (let img of formData.images) {
-        if (img instanceof File) {
-          // generate unique path
-          const filePath = `services/${uuidv4()}-${img.name}`;
-
-          // upload to supabase
-          const { error } = await supabase.storage
-            .from("service-images")
-            .upload(filePath, img);
-
-          if (error) throw error;
-
-          // get public url
-          const { data: publicData } = supabase.storage
-            .from("service-images")
-            .getPublicUrl(filePath);
-
-          imageUrls.push(publicData.publicUrl);
-        } else {
-          // already a URL
-          imageUrls.push(img);
+  
+      const formDataToSend = new FormData();
+  
+      // append text fields
+      formDataToSend.append("name", formData.name);
+      formDataToSend.append("type", formData.type);
+      formDataToSend.append("description", formData.description);
+      formDataToSend.append("price", formData.price ? Number(formData.price) : "");
+      formDataToSend.append("country", formData.country);
+      formDataToSend.append("state", formData.state || "");
+      formDataToSend.append("city", formData.city || "");
+      formDataToSend.append("venue", formData.venue || "");
+      formData.amenities.forEach((a) => {
+        formDataToSend.append("amenities", a);
+      });
+      // formDataToSend.append("status", formData.status || "active");
+  
+      // append files (if any new ones selected)
+      formData.images.forEach((file) => {
+        if (file instanceof File) {
+          formDataToSend.append("images", file);
         }
-      }
-
-      // prepare payload (replace images with URLs)
-      const payload = {
-        ...formData,
-        price: formData.price ? Number(formData.price) : null,
-        images: imageUrls,
-        // user_id: "b7b7c8b0-e987-4fc9-b076-0fb881b4fdde",
-      };
-
-      await onSubmit(payload); // parent will call backend API
+      });
+  
+      // call parent-provided submit handler (will hit backend API)
+      await onSubmit(formDataToSend);
+  
       showSuccess(
-        'Service Created!',
+        "Service Created!",
         `${formData.name} has been added successfully 🎉`
       );
-
     } catch (err) {
-      console.error("Image upload failed:", err.message);
+      console.error("Service creation failed:", err.message);
       showError(
         err.message || "Something went wrong",
         `Failed to create ${formData.name}. Please try again.`
@@ -161,6 +155,7 @@ const ServiceFormModal  = ({ isOpen, onClose, onSubmit, initialData }) => {
       setUploading(false);
     }
   };
+  
 
   if (!isOpen) return null;
 

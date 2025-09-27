@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL ?? "/api"; // Use Vite proxy by default
+const API_BASE_URL = import.meta.env.VITE_API_URL ?? "/api";
 
 // Create axios instance
 const api = axios.create({
@@ -30,14 +30,19 @@ export const authAPI = {
     return api.post("/auth/login", data);
   },
   refresh: (data) => api.post("/auth/refresh", data),
+  googleLogin: (data) => api.post("/auth/google-login", data),
 };
-
 // ----------- SERVICES ----------- //
 export const serviceAPI = {
   getAll: (params = {}) => api.get("/services/get-all", { params }), 
   getByUser: (userId, params = {}) => api.get("/services/get-by-user", { params: { user_id: userId, ...params } }),
-  create: (data) => api.post("/services/create", data),
-  update: (id, data) => api.put(`/services/update/${id}`, data),
+  getByType: (type, params = {}) => api.get("/services/get-by-type", { params: { type, ...params } }),
+  create: (data) => api.post("/services/create", data,{
+    headers: { "Content-Type": "multipart/form-data" }
+  }),
+  update: (id, data) => api.put(`/services/update/${id}`, data,{
+    headers: { "Content-Type": "multipart/form-data" }
+  }),
   delete: (id) => api.delete(`/services/delete/${id}`),
 };
 

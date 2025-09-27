@@ -27,15 +27,15 @@ export function AuthProvider({ children }) {
     }
   };
 
-  const register = async (name, email, password, type) => {
+  const register = async (firstName, lastName, email, phone, password, type) => {
     try {
       const res = await authAPI.signup({
-        first_name: name.split(" ")[0] || name,
-        last_name: name.split(" ")[1] || "",
+        first_name: firstName,
+        last_name: lastName,
         email,
         password,
-        phone: "", // placeholder, depends on your backend schema
-        role: type, // 'customer' or 'vendor'
+        phone,
+        role: type,
       });
 
       localStorage.setItem("access_token", res.data.access_token);

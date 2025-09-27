@@ -21,6 +21,7 @@ class ServiceImage(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     service_id = Column(UUID(as_uuid=True), ForeignKey("services.id", ondelete="CASCADE"), nullable=False)
     image_url = Column(Text, nullable=False)
+    path = Column(Text, nullable=False)
     created_at = Column(TIMESTAMP(timezone=False), server_default=func.now())
 
     service = relationship("Service", back_populates="images")

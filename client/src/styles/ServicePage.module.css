@@ -1,215 +1,383 @@
+/* =========================
+   PAGE LAYOUT
+========================= */
 .container {
-    min-height: 100vh;
-  }
-  
-  .pageWrapper {
-    padding-top: 80px;
-  }
-  
-  .hero {
-    background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--secondary)) 50%, hsl(var(--accent)) 100%);
-    color: white;
-    text-align: center;
-    padding: 80px 20px;
-    margin-bottom: 60px;
-  }
-  
-  .title {
-    font-size: 3.5rem;
-    font-weight: 700;
-    margin-bottom: 1rem;
-    font-family: var(--font-serif);
-  }
-  
-  .subtitle {
-    font-size: 1.25rem;
-    opacity: 0.9;
-    max-width: 600px;
-    margin: 0 auto;
-  }
-  
-  .content {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 20px;
-  }
-  
-  .contentWithFilters {
-    display: flex;
-    gap: 30px;
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 40px 20px;
-  }
-  
-  .mainContent {
-    flex: 1;
-  }
-  
-  .filterToggle {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 10px 16px;
-    background: hsl(var(--primary));
-    color: white;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: 500;
-    margin-bottom: 20px;
-    transition: all 0.2s ease;
-  }
-  
-  .filterToggle:hover {
-    background: hsl(var(--primary) / 0.9);
-    transform: translateY(-1px);
-  }
-  
-  .resultsHeader {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 30px;
-    padding-bottom: 15px;
-    border-bottom: 1px solid hsl(var(--border));
-  }
-  
-  .resultsCount {
-    color: hsl(var(--muted-foreground));
-    font-size: 0.95rem;
-  }
-  
-  .sortSelect {
-    padding: 8px 12px;
-    border: 1px solid hsl(var(--border));
-    border-radius: 6px;
-    background: white;
-    cursor: pointer;
-    transition: border-color 0.2s ease;
-  }
-  
-  .sortSelect:focus {
-    outline: none;
-    border-color: hsl(var(--primary));
-  }
-  
-  .grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-    gap: 30px;
-    margin-bottom: 80px;
-  }
-  
-  .card {
-    background: white;
-    border-radius: 15px;
-    overflow: hidden;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-  }
-  
-  .card:hover {
-    transform: translateY(-10px);
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
-  }
-  
-  .imageWrapper {
-    position: relative;
-    height: 250px;
-    overflow: hidden;
-  }
-  
-  .cardImage {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transition: transform 0.3s ease;
-  }
-  
-  .card:hover .cardImage {
-    transform: scale(1.05);
-  }
-  
-  .cardBadge {
-    position: absolute;
-    top: 12px;
-    right: 12px;
-    background: hsl(var(--primary));
-    color: white;
-    padding: 4px 8px;
-    border-radius: 12px;
-    font-size: 0.75rem;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-  }
-  
-  .cardContent {
-    padding: 25px;
-  }
-  
-  .cardTitle {
-    font-size: 1.5rem;
-    font-weight: 600;
-    margin-bottom: 8px;
-    color: hsl(var(--foreground));
-    font-family: var(--font-serif);
-  }
-  
-  .cardLocation {
-    color: hsl(var(--muted-foreground));
-    margin-bottom: 12px;
-    font-size: 0.95rem;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-  
-  .cardCapacity {
-    color: hsl(var(--muted-foreground));
-    margin-bottom: 8px;
-    font-size: 0.9rem;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-  
-  .cardPrice {
-    font-size: 1.25rem;
-    font-weight: 700;
-    color: hsl(var(--primary));
-    margin-bottom: 20px;
-  }
-  
-  .cardButton {
-    width: 100%;
-    background: hsl(var(--primary));
-    color: white;
-    border: none;
-    padding: 12px 20px;
-    border-radius: 8px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-  }
-  
-  .cardButton:hover {
-    background: hsl(var(--primary) / 0.9);
-  }
-  
-  @media (max-width: 768px) {
-    .title {
-      font-size: 2.5rem;
-    }
-    
-    .hero {
-      padding: 60px 20px;
-    }
-    
-    .grid {
-      grid-template-columns: 1fr;
-      gap: 20px;
-    }
-  }
+  width: 100%;
+  min-height: 100vh;
+  background-color: #f9f9f9;
+}
+
+.pageWrapper {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.hero {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.title {
+  font-size: 2.5rem;
+  font-weight: bold;
+  margin-bottom: 10px;
+  color: #1d2233;
+}
+
+.subtitle {
+  font-size: 1.2rem;
+  color: #555;
+}
+
+/* =========================
+   FILTERS + CONTENT
+========================= */
+.contentWithFilters {
+  display: flex;
+  gap: 20px;
+}
+
+.mainContent {
+  flex: 1;
+}
+
+.filterToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  font-size: 1rem;
+  cursor: pointer;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  margin-bottom: 20px;
+  transition: all 0.2s ease;
+}
+
+.filterToggle:hover {
+  background-color: #f0f0f0;
+}
+
+.resultsHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.resultsCount {
+  font-weight: 500;
+  font-size: 1rem;
+  color: #333;
+}
+
+.sortSelect {
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  background-color: #fff;
+  font-size: 0.95rem;
+}
+
+/* =========================
+   GRID + CARDS
+========================= */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.card {
+  background: #fff;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 16px hsl(var(--brand) / 0.15);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  min-width: 280px;
+  max-width: 350px;
+  min-height: 420px;
+  max-height: 500px;
+  /* margin: 0 auto; centers when narrower than grid cell */
+}
+
+.card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 8px 24px hsl(var(--brand) / 0.25);
+}
+
+.imageWrapper {
+  position: relative;
+  height: 220px;
+}
+
+/* =========================
+   CAROUSEL
+========================= */
+.carousel {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: 12px 12px 0 0;
+}
+
+.cardImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: opacity 0.3s ease-in-out;
+}
+
+/* Prev/Next Buttons */
+.prevButton,
+.nextButton {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(0, 0, 0, 0.3);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  transition: background 0.3s;
+}
+
+.prevButton:hover,
+.nextButton:hover {
+  background: rgba(0, 0, 0, 0.6);
+}
+
+.prevButton { left: 10px; }
+.nextButton { right: 10px; }
+
+/* Dots */
+.carouselDots {
+  position: absolute;
+  bottom: 10px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.dot.active {
+  width: 12px;
+  height: 12px;
+  background: #fff;
+}
+
+/* =========================
+   CARD CONTENT
+========================= */
+.cardBadge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: hsl(var(--peach));
+  color: hsl(var(--primary));
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.cardContent {
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex-grow: 1;
+}
+
+.cardTitle {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #1d2233;
+}
+
+.cardLocation,
+.cardCapacity {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.cardPrice {
+  font-weight: bold;
+  margin-top: 6px;
+  font-size: 1rem;
+  color: #1d2233;
+}
+
+.cardButton {
+  margin-top: auto; /* stick button to bottom */
+  padding: 10px 14px;
+  font-size: 0.95rem;
+  background: hsl(var(--brand));
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.cardActions {
+  display: flex;
+  gap: 8px;
+  margin-top: auto;
+  align-items: center;
+}
+
+.cardButton {
+  flex: 1;
+  padding: 10px 14px;
+  font-size: 0.95rem;
+  background: hsl(var(--brand));
+  color: hsl(var(--brand-foreground));
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  text-decoration: none;
+  text-align: center;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.cardButton:hover {
+  background: hsl(var(--brand) / 0.9);
+  transform: translateY(-2px);
+}
+
+.cartButton {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  color: hsl(var(--brand));
+  border: 1px solid hsl(var(--brand));
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cartButton:hover {
+  background: hsl(var(--brand));
+  color: hsl(var(--brand-foreground));
+  transform: translateY(-2px);
+}
+
+
+/* Wishlist Heart Button */
+.wishlistButton {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid hsl(var(--border));
+  border-radius: 50%;
+  color: hsl(var(--muted-foreground));
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(8px);
+  z-index: 10;
+}
+
+.wishlistButton:hover {
+  background: rgba(255, 255, 255, 1);
+  color: hsl(var(--brand));
+  transform: scale(1.1);
+}
+
+.wishlistButton.active {
+  background: hsl(var(--brand));
+  color: white;
+  border-color: hsl(var(--brand));
+}
+
+.wishlistButton.active:hover {
+  background: hsl(var(--brand) / 0.9);
+}
+
+/* =========================
+   PAGINATION
+========================= */
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.pageButton {
+  padding: 8px 16px;
+  font-size: 0.95rem;
+  background: hsl(var(--brand));
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.pageButton:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.pageInfo {
+  font-size: 0.95rem;
+  color: #333;
+}
+
+/* =========================
+   RESPONSIVE TWEAKS
+========================= */
+@media (max-width: 768px) {
+  .title { font-size: 2rem; }
+  .subtitle { font-size: 1rem; }
+  .contentWithFilters { flex-direction: column; }
+  .resultsHeader { flex-direction: column; align-items: flex-start; }
+  .card { min-width: 100%; max-width: 100%; min-height: 380px; }
+  .imageWrapper { height: 180px; }
+}
+
+@media (max-width: 480px) {
+  .title { font-size: 1.7rem; }
+  .card { min-height: 350px; }
+  .imageWrapper { height: 160px; }
+}

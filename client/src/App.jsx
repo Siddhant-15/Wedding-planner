@@ -5,7 +5,10 @@ import { Toaster as Sonner } from "@/components/ui/Sonner";
 import { TooltipProvider } from "@/components/ui/Tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+
 import { AuthProvider, useAuth } from "@/context/AuthContext";
+import { CartProvider } from "@/context/CartContext";
+import { WishlistProvider } from "@/context/WishlistContext";
 
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
@@ -23,26 +26,15 @@ import MyBookings from "./pages/MyBookings";
 import VendorDashboard from "./pages/dashboards/VendorDashboard";
 import AdminDashboard from "./pages/dashboards/AdminDashboard";
 import CustomerDashboard from "./pages/dashboards/CustomerDashboard";
+import VendorPage from "./pages/Vendor/VendorPage";
+import Wishlist from "./pages/Wishlist";
+import Cart from "./pages/Cart";
 
 const queryClient = new QueryClient();
 
 // 🔑 Role-based router wrapper
 function RoleBasedRoutes() {
   const { user, isAuthenticated } = useAuth();
-
-  // const getDashboardComponent = () => {
-  //   if (!isAuthenticated || !user) return <Index />;
-
-  //   switch (user.type) {
-  //     case "vendor":
-  //       return <VendorDashboard />;
-  //     case "admin":
-  //       return <AdminDashboard />;
-  //     case "customer":
-  //     default:
-  //       return <CustomerDashboard />;
-  //   }
-  // };
 
   return (
     <Routes>
@@ -66,18 +58,19 @@ function RoleBasedRoutes() {
           )
         }
       />
-      
-      {/* Dashboard routes: Only accessible if authenticated and role matches */}
+
+      {/* Dashboard routes */}
       <Route
-        path="/vendor/dashboard"
+        path="/vendor/*"
         element={
           isAuthenticated && user?.type === "vendor" ? (
-            <VendorDashboard />
+            <VendorPage />
           ) : (
             <Navigate to="/login" replace />
           )
         }
       />
+
       <Route
         path="/admin/dashboard"
         element={
@@ -98,6 +91,8 @@ function RoleBasedRoutes() {
           )
         }
       />
+
+      {/* Public routes */}
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/services/wedding-venues" element={<WeddingVenues />} />
@@ -107,6 +102,8 @@ function RoleBasedRoutes() {
       <Route path="/services/photography" element={<Photography />} />
       <Route path="/image-test" element={<ImageTest />} />
       <Route path="/my-bookings" element={<MyBookings />} />
+      <Route path="/wishlist" element={<Wishlist/>}/>
+      <Route path="/cart" element={<Cart/>}/>
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
@@ -116,13 +113,17 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <TooltipProvider>
-          <ToastProvider />
-          <Sonner />
-          <BrowserRouter>
-            <RoleBasedRoutes />
-          </BrowserRouter>
-        </TooltipProvider>
+        <CartProvider>
+          <WishlistProvider>
+            <TooltipProvider>
+              <ToastProvider />
+              <Sonner />
+              <BrowserRouter>
+                <RoleBasedRoutes />
+              </BrowserRouter>
+            </TooltipProvider>
+          </WishlistProvider>
+        </CartProvider>
       </AuthProvider>
     </QueryClientProvider>
   );

@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.database import engine, Base
-from app.routers import auth, appointment, payment, review, availability, images, service
+from app.routers import auth, appointment, payment, review, availability, images, service, testing
 
 Base.metadata.create_all(bind=engine)
 
@@ -30,6 +30,7 @@ app.include_router(auth.router, prefix="/auth", tags=["Authentication"])
 # app.include_router(availability.router, prefix="/availability", tags=["Availability"])
 app.include_router(images.router, prefix="/images", tags=["Images"]) 
 app.include_router(service.router)
+app.include_router(testing.router)
 
 @app.get("/")
 def root():

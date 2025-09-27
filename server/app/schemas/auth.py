@@ -39,3 +39,7 @@ class TokenPayload(StrictModel):
     sub: Optional[str] = None  # User ID or email
     role: Optional[str] = None
     exp: Optional[int] = None  # Expiration timestamp
+
+class GoogleLoginRequest(StrictModel):
+    id_token: str
+    role: str
