@@ -1,6 +1,5 @@
 from app.schemas.auth import (
-    SignupRequest, LoginRequest, TokenPair, RefreshRequest,
-    PasswordResetRequest, PasswordResetConfirmRequest
+    UserSignup, UserLogin, Token, TokenPayload, UserResponse
 )
 from app.schemas.user import UserBase, UserCreate
 from app.schemas.services import ServiceImageResponse, ServiceBase, ServiceCreate, ServiceUpdate, ServiceResponse

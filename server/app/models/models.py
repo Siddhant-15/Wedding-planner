@@ -1,150 +1,219 @@
-# from sqlalchemy import Column, String, Integer, ForeignKey, Text, Numeric, DateTime, Boolean, CheckConstraint
-# from sqlalchemy.dialects.postgresql import UUID
-# from sqlalchemy.orm import relationship
-# from sqlalchemy.sql import func
-# import uuid
-# from app.database import Base  # your SQLAlchemy Base (from database.py)
+import uuid
+from sqlalchemy import (
+    Column, String, Boolean, ForeignKey, Integer, Text,
+    DateTime, Enum, Numeric, JSON, Date, UniqueConstraint
+)
+from sqlalchemy.dialects.postgresql import UUID, JSONB
+from sqlalchemy.sql import func
+from sqlalchemy.orm import relationship
+from app.database import Base
+
+# ----- ENUMS -----
+from enum import Enum as PyEnum
+
+class ServiceCategory(str, PyEnum):
+    venue = "venue"
+    catering = "catering"
+    dj = "dj"
+    event_management = "event_management"
+    photographer = "photographer"
+
+class PricingType(str, PyEnum):
+    per_day = "per_day"
+    per_hour = "per_hour"
+    per_head = "per_head"
+    package = "package"
+
+class Slot(str, PyEnum):
+    morning = "morning"
+    afternoon = "afternoon"
+    evening = "evening"
+    night = "night"
+
+class BookingStatus(str, PyEnum):
+    pending = "pending"
+    confirmed = "confirmed"
+    canceled = "canceled"
+    completed = "completed"
+
+class EnquiryChannel(str, PyEnum):
+    website = "website"
+    email = "email"
+    phone = "phone"
+    whatsapp = "whatsapp"
+
+class EnquiryStatus(str, PyEnum):
+    pending = "pending"
+    contacted = "contacted"
+    converted = "converted"
+    closed = "closed"
+    spam = "spam"
 
 
-# class User(Base):
-#     __tablename__ = "users"
+# ----- USERS -----
+class User(Base):
+    __tablename__ = "users"
+    __table_args__ = {"extend_existing": True}
 
-#     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-#     first_name = Column(String(50), nullable=False)
-#     last_name = Column(String(50), nullable=False)
-#     email = Column(String(100), unique=True, nullable=False, index=True)
-#     password = Column(String(255), nullable=False)
-#     role = Column(String(20), nullable=False)  # customer, vendor, admin
-#     created_at = Column(DateTime(timezone=True), server_default=func.now())
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    first_name = Column(String(150))
+    last_name = Column(String(150))
+    email = Column(Text, unique=True, nullable=False)
+    phone = Column(Text, unique=True)
+    hashed_password = Column(Text, nullable=False)
+    is_active = Column(Boolean, default=True, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
 
-#     appointments = relationship("Appointment", back_populates="customer")
-#     reviews = relationship("Review", back_populates="customer")
-#     bookings = relationship("Booking", back_populates="customer")
-
-
-# class Vendor(Base):
-#     __tablename__ = "vendors"
-
-#     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-#     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
-#     business_name = Column(String(100), nullable=False)
-#     phone = Column(String(20), nullable=False)
-#     address = Column(Text)
-#     city = Column(String(50))
-#     created_at = Column(DateTime(timezone=True), server_default=func.now())
-
-#     user = relationship("User")
-#     services = relationship("Service", back_populates="vendor")
-#     appointments = relationship("Appointment", back_populates="vendor")
-#     reviews = relationship("Review", back_populates="vendor")
+    roles = relationship("UserRole", back_populates="user")
+    bookings = relationship("Booking", back_populates="user")
+    enquiries = relationship("Enquiry", back_populates="user")
+    reviews = relationship("Review", back_populates="user")
 
 
-# class Venue(Base):
-#     __tablename__ = "venues"
+# ----- ROLES -----
+class Role(Base):
+    __tablename__ = "roles"
+    __table_args__ = {"extend_existing": True}
 
-#     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-#     name = Column(String(100), nullable=False, index=True)
-#     address = Column(Text)
-#     city = Column(String(50), index=True)
-#     capacity = Column(Integer)
-#     price = Column(Numeric(12, 2))
-#     created_at = Column(DateTime(timezone=True), server_default=func.now())
-
-#     appointments = relationship("Appointment", back_populates="venue")
-#     reviews = relationship("Review", back_populates="venue")
-#     bookings = relationship("Booking", back_populates="venue")
+    id = Column(Integer, primary_key=True)
+    name = Column(Text, unique=True, nullable=False)
 
 
-# class Service(Base):
-#     __tablename__ = "services"
+class UserRole(Base):
+    __tablename__ = "user_roles"
+    __table_args__ = {"extend_existing": True}
 
-#     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-#     vendor_id = Column(UUID(as_uuid=True), ForeignKey("vendors.id", ondelete="CASCADE"))
-#     name = Column(String(100), nullable=False)
-#     description = Column(Text)
-#     price = Column(Numeric(12, 2))
-#     created_at = Column(DateTime(timezone=True), server_default=func.now())
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
+    role_id = Column(Integer, ForeignKey("roles.id", ondelete="RESTRICT"), primary_key=True)
+    assigned_at = Column(DateTime(timezone=True), server_default=func.now())
 
-#     vendor = relationship("Vendor", back_populates="services")
-#     appointments = relationship("Appointment", back_populates="service")
-#     reviews = relationship("Review", back_populates="service")
-#     bookings = relationship("Booking", back_populates="service")
+    user = relationship("User", back_populates="roles")
+    role = relationship("Role")
 
 
-# class Appointment(Base):
-#     __tablename__ = "appointments"
+# ----- VENDORS -----
+class Vendor(Base):
+    __tablename__ = "vendors"
+    __table_args__ = {"extend_existing": True}
 
-#     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-#     customer_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"))
-#     vendor_id = Column(UUID(as_uuid=True), ForeignKey("vendors.id", ondelete="CASCADE"))
-#     venue_id = Column(UUID(as_uuid=True), ForeignKey("venues.id", ondelete="CASCADE"))
-#     service_id = Column(UUID(as_uuid=True), ForeignKey("services.id", ondelete="CASCADE"))
-#     appointment_date = Column(DateTime, nullable=False)
-#     status = Column(String(50), default="pending")
-#     created_at = Column(DateTime(timezone=True), server_default=func.now())
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"))
+    business_name = Column(Text, nullable=False)
+    business_description = Column(Text)
+    contact_person = Column(String(200))
+    phone = Column(Text)
+    city = Column(Text)
+    state = Column(Text)
+    country = Column(Text)
+    is_verified = Column(Boolean, default=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
-#     customer = relationship("User", back_populates="appointments")
-#     vendor = relationship("Vendor", back_populates="appointments")
-#     venue = relationship("Venue", back_populates="appointments")
-#     service = relationship("Service", back_populates="appointments")
-#     payments = relationship("Payment", back_populates="appointment")
-
-
-# class Booking(Base):
-#     __tablename__ = "bookings"
-
-#     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-#     customer_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"))
-#     vendor_id = Column(UUID(as_uuid=True), ForeignKey("vendors.id", ondelete="CASCADE"))
-#     venue_id = Column(UUID(as_uuid=True), ForeignKey("venues.id", ondelete="CASCADE"))
-#     service_id = Column(UUID(as_uuid=True), ForeignKey("services.id", ondelete="CASCADE"))
-#     booking_date = Column(DateTime, nullable=False)
-#     status = Column(String(50), default="pending")
-#     created_at = Column(DateTime(timezone=True), server_default=func.now())
-
-#     customer = relationship("User", back_populates="bookings")
-#     venue = relationship("Venue", back_populates="bookings")
-#     service = relationship("Service", back_populates="bookings")
+    services = relationship("Service", back_populates="vendor")
+    enquiries = relationship("Enquiry", back_populates="vendor")
+    bookings = relationship("Booking", back_populates="vendor")
 
 
-# class Payment(Base):
-#     __tablename__ = "payments"
+# ----- SERVICES -----
+class Service(Base):
+    __tablename__ = "services"
+    __table_args__ = (
+    UniqueConstraint("vendor_id", "category", "title", "location", name="unique_vendor_service"),
+    {"extend_existing": True}
+)
 
-#     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-#     appointment_id = Column(UUID(as_uuid=True), ForeignKey("appointments.id", ondelete="CASCADE"))
-#     amount = Column(Numeric(12, 2), nullable=False)
-#     status = Column(String(50), default="pending")
-#     payment_method = Column(String(50), nullable=False)  # upi, card, cash
-#     created_at = Column(DateTime(timezone=True), server_default=func.now())
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    vendor_id = Column(UUID(as_uuid=True), ForeignKey("vendors.id", ondelete="CASCADE"))
+    category = Column(Enum(ServiceCategory), nullable=False)
+    title = Column(Text, nullable=False)
+    description = Column(Text)
+    base_price = Column(Numeric(12, 2), default=0)
+    pricing_type = Column(Enum(PricingType), nullable=False)
+    location = Column(Text)
+    latitude = Column(Numeric(9, 6))
+    longitude = Column(Numeric(9, 6))
+    is_active = Column(Boolean, default=True, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
-#     appointment = relationship("Appointment", back_populates="payments")
-
-
-# class Review(Base):
-#     __tablename__ = "reviews"
-
-#     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-#     customer_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"))
-#     vendor_id = Column(UUID(as_uuid=True), ForeignKey("vendors.id", ondelete="CASCADE"))
-#     venue_id = Column(UUID(as_uuid=True), ForeignKey("venues.id", ondelete="CASCADE"))
-#     service_id = Column(UUID(as_uuid=True), ForeignKey("services.id", ondelete="CASCADE"))
-#     rating = Column(Integer, nullable=False)
-#     comment = Column(Text)
-#     created_at = Column(DateTime(timezone=True), server_default=func.now())
-
-#     customer = relationship("User", back_populates="reviews")
-#     vendor = relationship("Vendor", back_populates="reviews")
-#     venue = relationship("Venue", back_populates="reviews")
-#     service = relationship("Service", back_populates="reviews")
+    vendor = relationship("Vendor", back_populates="services")
+    bookings = relationship("Booking", back_populates="service")
+    enquiries = relationship("Enquiry", back_populates="service")
+    reviews = relationship("Review", back_populates="service")
+    rating_summary = relationship("ServiceRatingSummary", uselist=False, back_populates="service")
 
 
-# class Availability(Base):
-#     __tablename__ = "availability"
+# ----- BOOKINGS -----
+class Booking(Base):
+    __tablename__ = "bookings"
+    __table_args__ = {"extend_existing": True}
 
-#     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-#     vendor_id = Column(UUID(as_uuid=True), ForeignKey("vendors.id", ondelete="CASCADE"))
-#     date = Column(DateTime, nullable=False)
-#     is_available = Column(Boolean, default=True)
-#     created_at = Column(DateTime(timezone=True), server_default=func.now())
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"))
+    vendor_id = Column(UUID(as_uuid=True), ForeignKey("vendors.id", ondelete="SET NULL"))
+    service_id = Column(UUID(as_uuid=True), ForeignKey("services.id", ondelete="RESTRICT"))
+    event_date = Column(DateTime(timezone=True), nullable=False)
+    slot = Column(Enum(Slot), default="evening")
+    guest_count = Column(Integer)
+    status = Column(Enum(BookingStatus), default="pending")
 
-#     vendor = relationship("Vendor")
+    user = relationship("User", back_populates="bookings")
+    vendor = relationship("Vendor", back_populates="bookings")
+    service = relationship("Service", back_populates="bookings")
+    reviews = relationship("Review", back_populates="booking")
+
+
+# ----- REVIEWS -----
+class Review(Base):
+    __tablename__ = "reviews"
+    __table_args__ = {"extend_existing": True}
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    booking_id = Column(UUID(as_uuid=True), ForeignKey("bookings.id", ondelete="SET NULL"))
+    service_id = Column(UUID(as_uuid=True), ForeignKey("services.id", ondelete="CASCADE"))
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"))
+    rating = Column(Integer, nullable=False)
+    review_text = Column(Text)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    booking = relationship("Booking", back_populates="reviews")
+    service = relationship("Service", back_populates="reviews")
+    user = relationship("User", back_populates="reviews")
+
+
+# ----- SERVICE RATING SUMMARY -----
+class ServiceRatingSummary(Base):
+    __tablename__ = "service_rating_summary"
+    __table_args__ = {"extend_existing": True}
+
+    service_id = Column(UUID(as_uuid=True), ForeignKey("services.id", ondelete="CASCADE"), primary_key=True)
+    average_rating = Column(Numeric(3, 2), default=0)
+    total_reviews = Column(Integer, default=0)
+
+    service = relationship("Service", back_populates="rating_summary")
+
+
+# ----- ENQUIRIES -----
+class Enquiry(Base):
+    __tablename__ = "enquiries"
+    __table_args__ = {"extend_existing": True}
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"))
+    service_id = Column(UUID(as_uuid=True), ForeignKey("services.id", ondelete="CASCADE"))
+    vendor_id = Column(UUID(as_uuid=True), ForeignKey("vendors.id", ondelete="CASCADE"))
+    name = Column(String(150))
+    email = Column(Text)
+    phone = Column(Text)
+    preferred_date = Column(Date)
+    guest_count = Column(Integer)
+    message = Column(Text)
+    channel = Column(Enum(EnquiryChannel), default="website")
+    status = Column(Enum(EnquiryStatus), default="pending")
+    booking_id = Column(UUID(as_uuid=True), ForeignKey("bookings.id", ondelete="SET NULL"))
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    user = relationship("User", back_populates="enquiries")
+    service = relationship("Service", back_populates="enquiries")
+    vendor = relationship("Vendor", back_populates="enquiries")

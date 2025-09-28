@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, User, Phone } from 'lucide-react';
 import { useAuth } from "../context/AuthContext"
 import { showSuccess, showError } from '../utils/toast';
-import styles from "../styles/Login.module.css"
+import styles from "../styles/pages/Register.module.css";
+import weddingImage from "../assets/slide-1.jpg";
 
 export default function Register() {
   const [searchParams] = useSearchParams();
@@ -19,6 +20,7 @@ export default function Register() {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   
   const { register } = useAuth();
   const navigate = useNavigate();
@@ -45,7 +47,8 @@ export default function Register() {
       showSuccess(`Welcome to Mangalam!`, "Registration Successful");
       navigate('/');
     } catch (error) {
-      showError("Please try again", "Registration Failed");
+      const errMsg = error.response?.data?.detail || error.message || "An unexpected error occurred";
+      showError(errMsg, "Registration Failed");
     } finally {
       setLoading(false);
     }
@@ -53,129 +56,166 @@ export default function Register() {
 
   return (
     <div className={styles.container}>
-      <div className={styles.card}>
-        <div className={styles.header}>
-          <h1 className={styles.title}>
-            {userType === 'customer' ? 'Customer Registration' : 'Vendor Registration'}
+      {/* Left side */}
+      <div 
+        className={styles.leftPanel} 
+        style={{ backgroundImage: `url(${weddingImage})` }}
+      >
+        <div className={styles.leftOverlay} />
+        <div className={styles.leftContent}>
+          <h1 className={styles.heading}>
+            Start Your Journey
+            <span className={styles.goldText}>To Forever</span>
           </h1>
-          <p className={styles.subtitle}>
-            Create your {userType} account
+          <p className={styles.subHeading}>
+            Create your account and discover the perfect wedding services
           </p>
         </div>
+      </div>
 
-        <form onSubmit={handleSubmit} className={styles.form}>
-          {/* First Name */}
-          <div className={styles.inputGroup}>
-            <label className={styles.label}>First Name</label>
-            <input
-              type="text"
-              required
-              className={styles.input}
-              value={formData.firstName}
-              onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-              placeholder="Enter your first name"
-            />
+      {/* Right side */}
+      <div className={styles.rightPanel}>
+        <div className={styles.formWrapper}>
+          <div className={styles.formHeader}>
+            <h2>Create Account</h2>
+            <p>Join as a {userType}</p>
           </div>
 
-          {/* Last Name */}
-          <div className={styles.inputGroup}>
-            <label className={styles.label}>Last Name</label>
-            <input
-              type="text"
-              required
-              className={styles.input}
-              value={formData.lastName}
-              onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-              placeholder="Enter your last name"
-            />
-          </div>
+          <form onSubmit={handleSubmit} className={styles.form}>
+            {/* Name fields */}
+            <div className={styles.row}>
+              <div className={styles.inputGroup}>
+                <label htmlFor="firstName">First Name</label>
+                <div className={styles.inputIconWrapper}>
+                  <User className={styles.icon} />
+                  <input
+                    id="firstName"
+                    type="text"
+                    required
+                    value={formData.firstName}
+                    onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                    placeholder="First"
+                  />
+                </div>
+              </div>
 
-          {/* Phone */}
-          <div className={styles.inputGroup}>
-            <label className={styles.label}>Phone Number</label>
-            <input
-              type="tel"
-              required
-              className={styles.input}
-              value={formData.phone}
-              onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-              placeholder="Enter your phone number"
-            />
-          </div>
-
-          {/* Email */}
-          <div className={styles.inputGroup}>
-            <label className={styles.label}>Email</label>
-            <input
-              type="email"
-              required
-              className={styles.input}
-              value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              placeholder="Enter your email"
-            />
-          </div>
-
-          {/* Password */}
-          <div className={styles.inputGroup}>
-            <label className={styles.label}>Password</label>
-            <div className={styles.passwordInput}>
-              <input
-                type={showPassword ? 'text' : 'password'}
-                required
-                className={styles.input}
-                value={formData.password}
-                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                placeholder="Enter your password"
-              />
-              <button
-                type="button"
-                className={styles.eyeButton}
-                onClick={() => setShowPassword(!showPassword)}
-              >
-                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-              </button>
+              <div className={styles.inputGroup}>
+                <label htmlFor="lastName">Last Name</label>
+                <div className={styles.inputIconWrapper}>
+                  <User className={styles.icon} />
+                  <input
+                    id="lastName"
+                    type="text"
+                    required
+                    value={formData.lastName}
+                    onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                    placeholder="Last"
+                  />
+                </div>
+              </div>
             </div>
-          </div>
 
-          {/* Confirm Password */}
-          <div className={styles.inputGroup}>
-            <label className={styles.label}>Confirm Password</label>
-            <input
-              type="password"
-              required
-              className={styles.input}
-              value={formData.confirmPassword}
-              onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-              placeholder="Confirm your password"
-            />
-          </div>
+            {/* Phone */}
+            <div className={styles.inputGroup}>
+              <label htmlFor="phone">Phone Number</label>
+              <div className={styles.inputIconWrapper}>
+                <Phone className={styles.icon} />
+                <input
+                  id="phone"
+                  type="tel"
+                  required
+                  value={formData.phone}
+                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  placeholder="Phone number"
+                />
+              </div>
+            </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className={`${styles.button} ${loading ? styles.loading : ''}`}
-          >
-            {loading ? 'Creating Account...' : 'Create Account'}
-          </button>
-        </form>
+            {/* Email */}
+            <div className={styles.inputGroup}>
+              <label htmlFor="email">Email</label>
+              <div className={styles.inputIconWrapper}>
+                <Mail className={styles.icon} />
+                <input
+                  id="email"
+                  type="email"
+                  required
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  placeholder="Email address"
+                />
+              </div>
+            </div>
 
-        <div className={styles.footer}>
-          <p>
-            Already have an account?{' '}
-            <Link 
-              to={`/login?type=${userType}`} 
-              className={styles.link}
+            {/* Password */}
+            <div className={styles.inputGroup}>
+              <label htmlFor="password">Password</label>
+              <div className={styles.inputIconWrapper}>
+                <Lock className={styles.icon} />
+                <input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  required
+                  value={formData.password}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  placeholder="Password"
+                />
+                <button
+                  type="button"
+                  className={styles.toggleBtn}
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? <EyeOff /> : <Eye />}
+                </button>
+              </div>
+            </div>
+
+            {/* Confirm Password */}
+            <div className={styles.inputGroup}>
+              <label htmlFor="confirmPassword">Confirm Password</label>
+              <div className={styles.inputIconWrapper}>
+                <Lock className={styles.icon} />
+                <input
+                  id="confirmPassword"
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  required
+                  value={formData.confirmPassword}
+                  onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                  placeholder="Confirm password"
+                />
+                <button
+                  type="button"
+                  className={styles.toggleBtn}
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                >
+                  {showConfirmPassword ? <EyeOff /> : <Eye />}
+                </button>
+              </div>
+            </div>
+
+            {/* Submit */}
+            <button
+              type="submit"
+              disabled={loading}
+              className={styles.submitBtn}
             >
-              Sign in
-            </Link>
-          </p>
-          <p>
-            {userType === 'customer' ? 
-              <Link to="/register?type=vendor" className={styles.link}>Register as Vendor</Link> :
-              <Link to="/register?type=customer" className={styles.link}>Register as Customer</Link>
-            }
-          </p>
+              {loading ? 'Creating Account...' : 'Create Account'}
+            </button>
+          </form>
+
+          <div className={styles.footer}>
+            <p>
+              Already have an account?{' '}
+              <Link to={`/login?type=${userType}`}>Sign in</Link>
+            </p>
+            <p>
+              {userType === 'customer' ? (
+                <Link to="/register?type=vendor">Register as Vendor</Link>
+              ) : (
+                <Link to="/register?type=customer">Register as Customer</Link>
+              )}
+            </p>
+          </div>
         </div>
       </div>
     </div>

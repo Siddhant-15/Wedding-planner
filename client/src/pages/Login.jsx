@@ -1,12 +1,16 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { authAPI } from '../services/api';
+import { Label } from '../components/ui/Label';
+import { Input } from '../components/ui/Input';
+import { Button } from '../components/ui/Button';
 import { showSuccess, showError } from '../utils/toast';
 import styles from "../styles/Login.module.css";
 import jwtDecode from "jwt-decode";
 import { GoogleLogin } from '@react-oauth/google';
+import weddingImage from "../assets/slide-1.jpg";
 
 // Google logo (official SVG)
 const GoogleIcon = () => (
@@ -93,92 +97,89 @@ export default function Login() {
 
   return (
     <div className={styles.container}>
-      <div className={styles.card}>
-        <div className={styles.header}>
+      {/* Left Image */}
+      <div className={styles.left}>
+        <div 
+          className={styles.image} 
+          style={{ backgroundImage: `url(${weddingImage})` }}
+        />
+        <div className={styles.overlay} />
+        <div className={styles.leftContent}>
           <h1 className={styles.title}>
-            {userType === 'customer' ? 'Customer Login' : 'Vendor Login'}
+            Celebrate Your Perfect
+            <span className={styles.highlight}>Wedding Day</span>
           </h1>
           <p className={styles.subtitle}>
-            Sign in to your {userType} account
+            Join thousands of couples who found their dream wedding through Mangalam
           </p>
         </div>
+      </div>
 
-        {/* Google Sign In Button */}
-        <div className={styles.googleBtn}>
-          <GoogleLogin
-            onSuccess={handleGoogleSuccess}
-            onError={handleGoogleFailure}
-            useOneTap
-          />
-        </div>
+      {/* Right Form */}
+      <div className={styles.right}>
+        <div className={styles.formWrapper}>
+          <div className={styles.card}>
+            <div className={styles.header}>
+              <h2>Welcome Back</h2>
+              <p>Sign in to your {userType} account</p>
+            </div>
 
-        <div className={styles.divider}><span>or</span></div>
+            <GoogleLogin onSuccess={handleGoogleSuccess} onError={handleGoogleFailure} />
 
-        <form onSubmit={handleSubmit} className={styles.form}>
-          {/* Email */}
-          <div className={styles.inputGroup}>
-            <label className={styles.label}>Email</label>
-            <input
-              type="email"
-              required
-              className={styles.input}
-              value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              placeholder="Enter your email"
-            />
-          </div>
+            <div className={styles.divider}>
+              <span>or continue with email</span>
+            </div>
 
-          {/* Password */}
-          <div className={styles.inputGroup}>
-            <label className={styles.label}>Password</label>
-            <div className={styles.passwordInput}>
-              <input
-                type={showPassword ? 'text' : 'password'}
-                required
-                className={styles.input}
-                value={formData.password}
-                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                placeholder="Enter your password"
-              />
-              <button
-                type="button"
-                className={styles.eyeButton}
-                onClick={() => setShowPassword(!showPassword)}
-              >
-                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-              </button>
+            <form onSubmit={handleSubmit} className={styles.form}>
+              <div className={styles.inputGroup}>
+                <Label htmlFor="email">Email address</Label>
+                <div className={styles.inputWrapper}>
+                  <Mail className={styles.icon} />
+                  <Input
+                    id="email"
+                    type="email"
+                    required
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    placeholder="Enter your email"
+                  />
+                </div>
+              </div>
+
+              <div className={styles.inputGroup}>
+                <Label htmlFor="password">Password</Label>
+                <div className={styles.inputWrapper}>
+                  <Lock className={styles.icon} />
+                  <Input
+                    id="password"
+                    type={showPassword ? 'text' : 'password'}
+                    required
+                    value={formData.password}
+                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                    placeholder="Enter your password"
+                  />
+                  <button type="button" className={styles.eyeBtn} onClick={() => setShowPassword(!showPassword)}>
+                    {showPassword ? <EyeOff /> : <Eye />}
+                  </button>
+                </div>
+              </div>
+
+              <Button type="submit" disabled={loading}>{loading ? 'Signing in...' : 'Sign In'}</Button>
+            </form>
+
+            <div className={styles.footer}>
+              <p>
+                Don't have an account? <Link to={`/register?type=${userType}`}>Sign up</Link>
+              </p>
+              <p>
+                {userType === 'customer' ? (
+                  <Link to="/login?type=vendor">Login as Vendor</Link>
+                ) : (
+                  <Link to="/login?type=customer">Login as Customer</Link>
+                )}
+              </p>
             </div>
           </div>
-
-          {/* Submit */}
-          <button
-            type="submit"
-            disabled={loading}
-            className={`${styles.button} ${loading ? styles.loading : ''}`}
-          >
-            {loading ? 'Signing in...' : 'Sign In'}
-          </button>
-        </form>
-
-        {/* Footer */}
-        <div className={styles.footer}>
-          <p>
-            Don't have an account?{' '}
-            <Link to={`/register?type=${userType}`} className={styles.link}>
-              Sign up
-            </Link>
-          </p>
-          <p>
-            {userType === 'customer' ? (
-              <Link to="/login?type=vendor" className={styles.link}>
-                Login as Vendor
-              </Link>
-            ) : (
-              <Link to="/login?type=customer" className={styles.link}>
-                Login as Customer
-              </Link>
-            )}
-          </p>
         </div>
       </div>
     </div>
