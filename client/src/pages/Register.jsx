@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { Eye, EyeOff, Mail, Lock, User, Phone } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, User } from 'lucide-react';
 import { useAuth } from "../context/AuthContext"
 import { showSuccess, showError } from '../utils/toast';
 import styles from "../styles/pages/Register.module.css";
@@ -13,7 +13,6 @@ export default function Register() {
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
-    phone: '',
     email: '',
     password: '',
     confirmPassword: ''
@@ -40,12 +39,15 @@ export default function Register() {
         formData.firstName,
         formData.lastName,
         formData.email,
-        formData.phone,
         formData.password,
         userType
       );
       showSuccess(`Welcome to Mangalam!`, "Registration Successful");
-      navigate('/');
+      if (userType === "vendor") {
+        navigate("/vendor/onboarding");
+      } else {
+        navigate("/"); // customer
+      }
     } catch (error) {
       const errMsg = error.response?.data?.detail || error.message || "An unexpected error occurred";
       showError(errMsg, "Registration Failed");
@@ -112,22 +114,6 @@ export default function Register() {
                     placeholder="Last"
                   />
                 </div>
-              </div>
-            </div>
-
-            {/* Phone */}
-            <div className={styles.inputGroup}>
-              <label htmlFor="phone">Phone Number</label>
-              <div className={styles.inputIconWrapper}>
-                <Phone className={styles.icon} />
-                <input
-                  id="phone"
-                  type="tel"
-                  required
-                  value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  placeholder="Phone number"
-                />
               </div>
             </div>
 

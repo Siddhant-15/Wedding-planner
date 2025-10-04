@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.database import engine, Base
 from app.routers import auth
+from app.routers.vendor import vendorrouter
 
 Base.metadata.create_all(bind=engine)
 
@@ -24,6 +25,7 @@ app.add_middleware(
 
 # Routers
 app.include_router(auth.router)
+app.include_router(vendorrouter)
 # app.include_router(appointment.router, prefix="/appointments", tags=["Appointments"])
 # app.include_router(payment.router)
 # app.include_router(review.router, prefix="/reviews", tags=["Reviews"])

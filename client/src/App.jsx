@@ -19,7 +19,6 @@ import DJs from "./pages/services/DJs";
 import EventManagement from "./pages/services/EventManagement";
 import Catering from "./pages/services/Catering";
 import Photography from "./pages/services/Photography";
-import ImageTest from "./pages/ImageTest";
 import MyBookings from "./pages/MyBookings";
 
 // dashboards
@@ -100,7 +99,6 @@ function RoleBasedRoutes() {
       <Route path="/services/event-management" element={<EventManagement />} />
       <Route path="/services/catering" element={<Catering />} />
       <Route path="/services/photography" element={<Photography />} />
-      <Route path="/image-test" element={<ImageTest />} />
       <Route path="/my-bookings" element={<MyBookings />} />
       <Route path="/wishlist" element={<Wishlist/>}/>
       <Route path="/cart" element={<Cart/>}/>

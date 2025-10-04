@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { authAPI } from '../services/api';
+import { authAPI, vendorAPI } from '../utils/api'
 import { Label } from '../components/ui/Label';
 import { Input } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
@@ -30,7 +30,7 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const { setUser } = useAuth();
+  const { login } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -38,22 +38,20 @@ export default function Login() {
     setLoading(true);
 
     try {
-      const res = await authAPI.login({ ...formData, role: userType });
-      const { access_token, refresh_token } = res.data;
-
-      localStorage.setItem("access_token", access_token);
-      localStorage.setItem("refresh_token", refresh_token);
-
-      const decoded = jwtDecode(access_token);
-      setUser({
-        id: decoded.sub,
-        email: formData.email,
-        type: decoded.role,
-        exp: decoded.exp,
-      });
-
+      await login(formData.email, formData.password, userType);
+      if (userType === "vendor") {
+        // check onboarding status
+        const res = await vendorAPI.status();
+        console.log("Welcome Vendor",res)
+        if (res.data.onboarding_completed) {
+          navigate("/vendor/dashboard");
+        } else {
+          navigate("/vendor/onboarding");
+        }
+      } else {
+        navigate("/");
+      }
       showSuccess('Welcome back!', 'Login Successful');
-      navigate('/');
     } catch (error) {
       console.error('Login error:', error);
       const errorMessage = error.response?.data?.detail || error.response?.data?.message || error.message || 'Please check your credentials';

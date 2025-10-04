@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { serviceAPI } from '../services/api';
+import { serviceAPI } from "../utils/api"
 import { Plus, Eye, Trash2, Edit3, Calendar } from 'lucide-react';
 import ConfirmModal from './Modals/ConfirmModal';
 import ServiceFormModal from '@/components/ServiceForm';
