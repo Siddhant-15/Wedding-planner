@@ -218,11 +218,10 @@ class Service(Base):
     )
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    service_code = Column(String(50), unique=True, nullable=True, default=lambda: f"SVC-{uuid.uuid4().hex[:8].upper()}")
+    # service_code = Column(String(50), unique=True, nullable=True, default=lambda: f"SVC-{uuid.uuid4().hex[:8].upper()}")
     vendor_id = Column(UUID(as_uuid=True), ForeignKey("vendors.id", ondelete="CASCADE"))
     category = Column(Enum(ServiceCategory), nullable=False, index=True)
     title = Column(String(255), nullable=False)
-    slug = Column(String(255), unique=True, nullable=True)
     description = Column(Text)
     tags = Column(JSONB, default=list)
     base_price = Column(Numeric(12, 2), default=0, index=True)

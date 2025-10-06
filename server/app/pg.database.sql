@@ -25,32 +25,28 @@ CREATE TYPE package_modal_t AS ENUM ('package_based','hourly','fixed'); -- norma
    USERS, ROLES
    --------------------------- */
 CREATE TABLE users (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  first_name VARCHAR(150),
-  last_name VARCHAR(150),
-  email TEXT NOT NULL UNIQUE,
-  phone TEXT UNIQUE,
-  hashed_password TEXT NOT NULL,
-  is_active BOOLEAN NOT NULL DEFAULT TRUE,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    email TEXT UNIQUE NOT NULL,
+    first_name VARCHAR(150) NOT NULL,
+    last_name VARCHAR(150) NOT NULL,
+    hashed_password TEXT NOT NULL,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMPTZ DEFAULT now(),
+    updated_at TIMESTAMPTZ DEFAULT now()
 );
+CREATE INDEX idx_users_email ON users(email);
+CREATE INDEX idx_users_is_active ON users(is_active);
 
 CREATE TABLE roles (
-  id SMALLINT PRIMARY KEY,
-  name TEXT NOT NULL UNIQUE
+    id SMALLSERIAL PRIMARY KEY,
+    name TEXT UNIQUE NOT NULL
 );
-INSERT INTO roles (id, name) VALUES
-  (1, 'customer'),
-  (2, 'vendor'),
-  (3, 'admin')
-  ON CONFLICT DO NOTHING;
 
 CREATE TABLE user_roles (
-  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  role_id SMALLINT NOT NULL REFERENCES roles(id) ON DELETE RESTRICT,
-  assigned_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  PRIMARY KEY (user_id, role_id)
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    role_id SMALLINT NOT NULL REFERENCES roles(id) ON DELETE RESTRICT,
+    assigned_at TIMESTAMPTZ DEFAULT now(),
+    PRIMARY KEY (user_id, role_id)
 );
 
 /* ---------------------------
@@ -59,57 +55,99 @@ CREATE TABLE user_roles (
    - vendor.user_id links to the account (allows same email to be both vendor & customer)
    --------------------------- */
 CREATE TABLE vendors (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID REFERENCES users(id) ON DELETE SET NULL,  -- keep this to allow linking; can be NOT NULL if you enforce link
-  business_name TEXT NOT NULL,
-  business_description TEXT,
-  contact_person VARCHAR(200),
-  phone TEXT,
-  address_line1 TEXT,
-  address_line2 TEXT,
-  city TEXT,
-  state TEXT,
-  country TEXT,
-  pincode TEXT,
-  experience_years INTEGER CHECK (experience_years >= 0),
-  website TEXT,
-  is_verified BOOLEAN NOT NULL DEFAULT FALSE,
-  gst_number TEXT,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  UNIQUE (business_name, city)  -- helps avoid duplicate vendor entries in same city
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID UNIQUE NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    business_name TEXT NOT NULL,
+    business_description TEXT,
+    contact_person TEXT NOT NULL,
+    phone TEXT UNIQUE,
+    city TEXT,
+    state TEXT,
+    country TEXT,
+    pincode TEXT,
+    experience_years INT,
+    is_verified BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMPTZ DEFAULT now(),
+    UNIQUE (business_name, city)
 );
 
-CREATE INDEX idx_vendors_city ON vendors(city);
+CREATE INDEX idx_vendors_city_state ON vendors(city, state);
+CREATE INDEX idx_vendors_is_verified ON vendors(is_verified);
+
 
 /* ---------------------------
    SERVICES (common)
    --------------------------- */
 CREATE TABLE services (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  vendor_id UUID NOT NULL REFERENCES vendors(id) ON DELETE CASCADE,
-  category service_category_t NOT NULL,
-  title TEXT NOT NULL,
-  slug TEXT,                 -- optional SEO friendly slug
-  description TEXT,
-  base_price NUMERIC(12,2) CHECK (base_price >= 0) DEFAULT 0,
-  currency TEXT DEFAULT 'INR',
-  unit TEXT,                 -- e.g., 'per event', 'per head'
-  images JSONB DEFAULT '[]'::jsonb,
-  pricing_type pricing_type_t NOT NULL,
-  location TEXT,             -- human readable address
-  latitude NUMERIC(9,6),     -- e.g. 28.704060
-  longitude NUMERIC(9,6),
-  is_active BOOLEAN NOT NULL DEFAULT TRUE,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    vendor_id UUID REFERENCES vendors(id) ON DELETE CASCADE,
+    category servicecategory NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+    tags JSONB DEFAULT '[]'::jsonb,
+    base_price NUMERIC(12, 2) DEFAULT 0,
+    currency VARCHAR(10) DEFAULT 'INR',
+    pricing_type pricingtype NOT NULL,
+    images JSONB DEFAULT '[]'::jsonb,
+    amenities JSONB DEFAULT '[]'::jsonb,
+    featured BOOLEAN DEFAULT FALSE,
+    verified BOOLEAN DEFAULT FALSE,
+    is_active BOOLEAN DEFAULT TRUE,
+    address_line1 TEXT,
+    address_line2 TEXT,
+    area VARCHAR(150),
+    city VARCHAR(150),
+    state VARCHAR(150),
+    country VARCHAR(150),
+    pincode VARCHAR(20),
+    geo_point JSONB,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW(),
+    CONSTRAINT uq_vendor_service UNIQUE (vendor_id, category, title, city, pincode)
 );
 
-ADD CONSTRAINT unique_vendor_service UNIQUE (vendor_id, category, title, location);
-CREATE INDEX idx_services_vendor ON services(vendor_id);
-CREATE INDEX idx_services_category ON services(category);
-CREATE INDEX idx_services_location ON services(location);
-CREATE INDEX idx_services_price ON services(base_price);
+
+-- Multi-column index for fast filtering
+CREATE INDEX idx_service_filtering
+ON services (city, category, base_price, is_active, verified, featured);
+
+-- GIN index for JSONB 'tags' search
+CREATE INDEX idx_services_tags_gin
+ON services USING GIN (tags jsonb_path_ops);
+
+-- Indexes for location and activity filters
+CREATE INDEX idx_services_city ON services (city);
+CREATE INDEX idx_services_state ON services (state);
+CREATE INDEX idx_services_country ON services (country);
+CREATE INDEX idx_services_pincode ON services (pincode);
+
+
+
+-- ✅ Indexes for Fast Filtering
+CREATE INDEX idx_service_filtering ON services(city, category, base_price, is_active, verified, featured);
+CREATE INDEX idx_service_price ON services(base_price);
+CREATE INDEX idx_service_category ON services(category);
+CREATE INDEX idx_service_city_state ON services(city, state);
+CREATE INDEX idx_services_jsonb_images ON services USING gin (images jsonb_path_ops);
+CREATE INDEX idx_services_jsonb_amenities ON services USING gin (amenities jsonb_path_ops);
+
+
+
+CREATE TABLE service_variants (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    service_id UUID NOT NULL REFERENCES services(id) ON DELETE CASCADE,
+    name TEXT NOT NULL,
+    price NUMERIC(12,2) NOT NULL,
+    is_active BOOLEAN DEFAULT TRUE,
+    images JSONB DEFAULT '[]'::jsonb,
+    amenities JSONB DEFAULT '[]'::jsonb,
+    created_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE INDEX idx_service_variants_service_price ON service_variants(service_id, price);
+CREATE INDEX idx_service_variants_active ON service_variants(is_active);
+CREATE INDEX idx_variants_images ON service_variants USING gin (images jsonb_path_ops);
+CREATE INDEX idx_variants_amenities ON service_variants USING gin (amenities jsonb_path_ops);
 
 /* ---------------------------
    VENUE SERVICE (structured details)
@@ -319,3 +357,13 @@ CREATE INDEX IF NOT EXISTS idx_enquiries_service ON enquiries(service_id);
 CREATE INDEX IF NOT EXISTS idx_enquiries_vendor ON enquiries(vendor_id);
 CREATE INDEX IF NOT EXISTS idx_enquiries_status ON enquiries(status);
 CREATE INDEX IF NOT EXISTS idx_enquiries_channel ON enquiries(channel);
+
+
+-- Faster lookups inside JSON fields
+CREATE INDEX IF NOT EXISTS idx_services_amenities_gin ON services USING gin (amenities);
+CREATE INDEX IF NOT EXISTS idx_variants_amenities_gin ON service_variants USING gin (amenities);
+
+-- Performance tuning
+ALTER TABLE services SET (autovacuum_vacuum_scale_factor = 0.1);
+ALTER TABLE reviews SET (autovacuum_vacuum_scale_factor = 0.1);
+

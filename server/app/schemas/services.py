@@ -1,19 +1,15 @@
 from pydantic import BaseModel, Field
-from typing import List, Optional
+from typing import List, Optional, Dict
 from enum import Enum
 from uuid import UUID
 from datetime import datetime
 
-
-
-# Enums (assuming these are defined in your models)
 class ServiceCategory(str, Enum):
     VENUE = "venue"
     CATERING = "catering"
     DJ = "dj"
     EVENT_MANAGEMENT = "event_management"
     PHOTOGRAPHY = "photographer"
-    # Add other categories as needed
 
 class PricingType(str, Enum):
     PER_DAY = "per_day"
@@ -21,7 +17,6 @@ class PricingType(str, Enum):
     PER_HEAD = "per_head"
     PACKAGE = "package"
 
-# Pydantic Schemas
 class GeoPoint(BaseModel):
     lat: float = Field(..., ge=-90, le=90)
     lon: float = Field(..., ge=-180, le=180)
@@ -43,18 +38,19 @@ class ServiceCreate(BaseModel):
     pincode: str = Field(..., max_length=20, description="Pincode")
     geo_point: Optional[GeoPoint] = Field(None, description="Geographical coordinates")
 
+class ServiceCreateResponse(BaseModel):
+    message: Optional[str] = None
+
 class ServiceResponse(BaseModel):
     id: UUID
-    service_code: str
     vendor_id: UUID
-    category: ServiceCategory
+    category: str
     title: str
-    slug: Optional[str]
     description: Optional[str]
     tags: List[str]
     base_price: float
     currency: str
-    pricing_type: PricingType
+    pricing_type: str
     images: List[str]
     amenities: List[str]
     featured: bool
@@ -67,9 +63,9 @@ class ServiceResponse(BaseModel):
     state: str
     country: str
     pincode: str
-    geo_point: Optional[GeoPoint]
+    geo_point: Optional[Dict]
     created_at: datetime
-    updated_at: Optional[datetime]
+    updated_at: datetime
     message: Optional[str] = None
 
     class Config:

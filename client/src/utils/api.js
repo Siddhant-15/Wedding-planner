@@ -51,14 +51,6 @@ export const authAPI = {
 //   delete: (id) => api.delete(`/services/delete/${id}`),
 // };
 
-const endpoints = {
-  VENUE: "/api/services/venue",
-  CATERING: "/api/services/catering",
-  DJ: "/api/services/dj",
-  PHOTOGRAPHER: "/api/services/photographer",
-  EVENT_MANAGEMENT: "/api/services/event-management",
-};
-
 export const serviceAPI = {
   getAll: (params = {}) => api.get("/services/get-all", { params }),
   getByUser: (userId, params = {}) =>
@@ -66,30 +58,18 @@ export const serviceAPI = {
   getByType: (type, params = {}) =>
     api.get("/services/get-by-type", { params: { type, ...params } }),
   create: (data) => {
-    const endpoint = endpoints[data.category.toUpperCase()];
-    if (!endpoint) {
-      throw new Error("Invalid category provided");
-    }
+    const endpoint = `/services/create`;
     return api.post(endpoint, data, {
       headers: { "Content-Type": "multipart/form-data" },
     });
   },
-  update: (id, data) => {
-    const endpoint = endpoints[data.category.toUpperCase()];
-    if (!endpoint) {
-      throw new Error("Invalid category provided");
-    }
-    return api.put(`${endpoint}/${id}`, data, {
+  update: (id, data, category) => {
+    const endpoint = `/services/${category}s/${id}`;
+    return api.put(endpoint, data, {
       headers: { "Content-Type": "multipart/form-data" },
     });
   },
-  delete: (id, category) => {
-    const endpoint = endpoints[category.toUpperCase()];
-    if (!endpoint) {
-      throw new Error("Invalid category provided");
-    }
-    return api.delete(`${endpoint}/${id}`);
-  },
+  delete: (id) => api.delete(`/services/delete/${id}`),
 };
 
 export const vendorAPI = {
