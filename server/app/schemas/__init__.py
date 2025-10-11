@@ -1,9 +1,8 @@
 from app.schemas.auth import (
-    SignupRequest, LoginRequest, TokenPair, RefreshRequest,
-    PasswordResetRequest, PasswordResetConfirmRequest
+    UserSignup, UserLogin, CustomerSignup, VendorSignup, Token, TokenPayload, UserResponse
 )
 from app.schemas.user import UserBase, UserCreate
-from app.schemas.services import ServiceImageResponse, ServiceBase, ServiceCreate, ServiceUpdate, ServiceResponse
+from app.schemas.services import ServiceCreate, ServiceCreateResponse, ServiceResponse
 from app.schemas.availability import AvailabilitySlot, BulkAvailabilityUpsertRequest, AvailabilityOut
 from app.schemas.appointments import AppointmentCreate, AppointmentResponse
 from app.schemas.payment import PaymentCreate, PaymentResponse

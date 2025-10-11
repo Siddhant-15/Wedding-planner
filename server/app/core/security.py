@@ -10,7 +10,7 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 from app.database import get_db
-from app.models.user import User
+from app.models.models import User
 import uuid
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -45,13 +45,23 @@ def decode_token(token: str, refresh: bool = False) -> TokenPayload:
     except (JWTError, ValidationError):
         return None
 
+
 def require_role(allowed_roles: list[str]):
     def role_checker(user: User = Depends(get_current_user)):
-        if user.role not in allowed_roles:
+        user_roles = [user_role.role.name for user_role in user.roles if user_role.role]
+        print("User Roles",user_roles)
+        if not user_roles:
             raise HTTPException(
-                status_code=403,
-                detail=f"Forbidden: Requires role in {allowed_roles}, but you are '{user.role}'"
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Forbidden: You don't have any role assigned"
             )
+        print("Allowed Roles",allowed_roles)
+        if not any(role in allowed_roles for role in user_roles):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Forbidden: Requires role in {allowed_roles}, but you have {user_roles}"
+            )
+        print("User",user)
         return user
     return role_checker
 

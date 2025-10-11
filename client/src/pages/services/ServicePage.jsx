@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Filter} from "lucide-react";
 import Navbar from "@/components/Navbar";
 import FilterSidebar from "@/components/FilterSidebar";
-import { serviceAPI } from "../../services/api";
+import { serviceAPI } from "../../utils/api"
 import styles from "../../styles/ServicePage.module.css";
 import ServiceCard from "./ServiceCard";
 

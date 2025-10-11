@@ -1,0 +1,166 @@
+.container {
+    display: flex;
+    min-height: 100vh;
+    max-height: 100vh;
+    overflow: hidden;
+  }
+  
+  /* Left side */
+  .leftPanel {
+    display: none;
+  }
+  @media (min-width: 1024px) {
+    .leftPanel {
+      display: flex;
+      width: 50%;
+      position: relative;
+      background: url('../assets/wedding-auth-bg.jpg') no-repeat center/cover;
+    }
+  }
+  .leftOverlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(0,0,0,0.6), rgba(150,0,100,0.5));
+  }
+  .leftContent {
+    position: relative;
+    z-index: 2;
+    color: #fff;
+    text-align: center;
+    margin: auto;
+    padding: 2rem;
+  }
+  .heading {
+    font-size: 2.5rem;
+    font-weight: bold;
+    margin-bottom: 1rem;
+  }
+  .goldText {
+    display: block;
+    color: gold;
+  }
+  .subHeading {
+    font-size: 1.1rem;
+    opacity: 0.9;
+    max-width: 400px;
+    margin: auto;
+  }
+  
+  /* Right side */
+  .rightPanel {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(to bottom right, #fff5f8, #ffe9ef);
+    overflow-y: auto;
+  }
+  .formWrapper {
+    background: #fff;
+    border-radius: 16px;
+    padding: 2rem;
+    max-width: 400px;
+    width: 100%;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+  }
+  .formHeader {
+    text-align: center;
+    margin-bottom: 1rem;
+  }
+  .formHeader h2 {
+    font-size: 1.5rem;
+    font-weight: bold;
+  }
+  .formHeader p {
+    font-size: 0.9rem;
+    color: #666;
+  }
+  .form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  .row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+  }
+  .inputGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+  .inputGroup label {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #555;
+  }
+  .inputIconWrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+  .inputIconWrapper input {
+    width: 100%;
+    padding: 0.5rem 2.5rem 0.5rem 2rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    transition: border 0.2s;
+  }
+  .inputIconWrapper input:focus {
+    outline: none;
+    border-color: #e6397e;
+  }
+  .icon {
+    position: absolute;
+    left: 8px;
+    width: 16px;
+    height: 16px;
+    color: #888;
+  }
+  .toggleBtn {
+    position: absolute;
+    right: 8px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #888;
+  }
+  .toggleBtn:hover {
+    color: #000;
+  }
+  .submitBtn {
+    width: 100%;
+    padding: 0.75rem;
+    background: #e6397e;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .submitBtn:hover:not(:disabled) {
+    transform: scale(1.02);
+    box-shadow: 0 4px 12px rgba(230,57,126,0.4);
+  }
+  .submitBtn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+  .footer {
+    margin-top: 1rem;
+    text-align: center;
+    font-size: 0.8rem;
+    color: #666;
+  }
+  .footer a {
+    color: #e6397e;
+    font-weight: 500;
+    text-decoration: none;
+  }
+  .footer a:hover {
+    text-decoration: underline;
+  }
+  

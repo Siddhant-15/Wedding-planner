@@ -1,0 +1,103 @@
+.button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem; /* spacing between items like icons */
+    white-space: nowrap;
+    border-radius: 0.375rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    outline: none;
+  }
+  
+  .button:disabled {
+    pointer-events: none;
+    opacity: 0.5;
+  }
+  
+  /* Focus */
+  .button:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px #3b82f6, 0 0 0 4px #ffffff; /* mimic ring-offset */
+  }
+  
+  /* Variants */
+  .variant-default {
+    background-color: #3b82f6; /* bg-primary */
+    color: #ffffff; /* text-primary-foreground */
+  }
+  
+  .variant-default:hover {
+    background-color: rgba(59, 130, 246, 0.9); /* hover:bg-primary/90 */
+  }
+  
+  .variant-destructive {
+    background-color: #ef4444; /* bg-destructive */
+    color: #ffffff; /* text-destructive-foreground */
+  }
+  
+  .variant-destructive:hover {
+    background-color: rgba(239, 68, 68, 0.9);
+  }
+  
+  .variant-outline {
+    border: 1px solid #d1d5db; /* border-input */
+    background-color: #ffffff; /* bg-background */
+    color: #111827;
+  }
+  
+  .variant-outline:hover {
+    background-color: #f3f4f6; /* hover:bg-accent */
+    color: #111827; /* hover:text-accent-foreground */
+  }
+  
+  .variant-secondary {
+    background-color: #e5e7eb; /* bg-secondary */
+    color: #111827; /* text-secondary-foreground */
+  }
+  
+  .variant-secondary:hover {
+    background-color: rgba(229, 231, 235, 0.8); /* hover:bg-secondary/80 */
+  }
+  
+  .variant-ghost:hover {
+    background-color: #f3f4f6; /* hover:bg-accent */
+    color: #111827; /* hover:text-accent-foreground */
+  }
+  
+  .variant-link {
+    color: #3b82f6;
+    text-decoration: underline;
+  }
+  
+  .variant-link:hover {
+    text-decoration: underline;
+  }
+  
+  /* Sizes */
+  .size-default {
+    height: 2.5rem; /* h-10 */
+    padding: 0.5rem 1rem; /* px-4 py-2 */
+  }
+  
+  .size-sm {
+    height: 2.25rem; /* h-9 */
+    padding: 0.5rem 0.75rem; /* px-3 */
+    border-radius: 0.375rem;
+  }
+  
+  .size-lg {
+    height: 2.75rem; /* h-11 */
+    padding: 0.5rem 2rem; /* px-8 */
+    border-radius: 0.375rem;
+  }
+  
+  .size-icon {
+    height: 2.5rem;
+    width: 2.5rem;
+    padding: 0;
+    justify-content: center;
+  }
+  

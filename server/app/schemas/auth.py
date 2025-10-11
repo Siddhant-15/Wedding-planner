@@ -1,45 +1,64 @@
+from pydantic import BaseModel, EmailStr, constr
 from typing import Optional
-from pydantic import EmailStr, Field, constr
-from .base import StrictModel
-from .common import Role
+import uuid
+from datetime import datetime
 
-Password = constr(min_length=8, max_length=128)
+# -------------------------
+# Request Schemas
+# -------------------------
 
-class SignupRequest(StrictModel):
-    first_name: constr(min_length=1, max_length=50)
-    last_name: constr(min_length=1, max_length=50)
+class UserSignup(BaseModel):
+    first_name: constr(strip_whitespace=True, min_length=1, max_length=150)
+    last_name: Optional[constr(strip_whitespace=True, max_length=150)] = None
     email: EmailStr
-    password: Password
-    role: Role = Role.CUSTOMER
-    phone: Optional[constr(max_length=20)] = None
+    password: constr(min_length=6)
+    role: Optional[str] = "customer"
 
-class LoginRequest(StrictModel):
-    # email: EmailStr
-    email: str
-    password: Password
-    role: Role = Role.CUSTOMER
+class UserLogin(BaseModel):
+    email: EmailStr
+    password: str
+    role: str
 
-class TokenPair(StrictModel):
+from pydantic import BaseModel, EmailStr, constr
+from typing import Optional
+
+class CustomerSignup(BaseModel):
+    first_name: constr(strip_whitespace=True, min_length=1, max_length=150)
+    last_name: Optional[constr(strip_whitespace=True, max_length=150)] = None
+    email: EmailStr
+    password: constr(min_length=6)
+
+
+class VendorSignup(BaseModel):
+    first_name: constr(strip_whitespace=True, min_length=1, max_length=150)
+    last_name: Optional[constr(strip_whitespace=True, max_length=150)] = None
+    email: EmailStr
+    password: constr(min_length=6)
+
+# -------------------------
+# Token Schemas
+# -------------------------
+
+class Token(BaseModel):
     access_token: str
     refresh_token: str
     token_type: str = "bearer"
-    expires_in: int = Field(..., ge=60)
 
-class RefreshRequest(StrictModel):
-    refresh_token: str
-
-class PasswordResetRequest(StrictModel):
-    email: EmailStr
-
-class PasswordResetConfirmRequest(StrictModel):
-    token: str
-    new_password: Password
-
-class TokenPayload(StrictModel):
-    sub: Optional[str] = None  # User ID or email
+class TokenPayload(BaseModel):
+    sub: Optional[str] = None   # user_id
     role: Optional[str] = None
-    exp: Optional[int] = None  # Expiration timestamp
+    exp: Optional[int] = None
 
-class GoogleLoginRequest(StrictModel):
-    id_token: str
-    role: str
+# -------------------------
+# Response Schema
+# -------------------------
+
+class UserResponse(BaseModel):
+    id: uuid.UUID
+    first_name: str
+    last_name: Optional[str]
+    email: EmailStr
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
