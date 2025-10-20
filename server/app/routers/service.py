@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status, Form, File, Uploa
 from typing import List, Optional
 from uuid import UUID, uuid4
 from datetime import datetime
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import select, delete
 from app.database import get_db
 from app.models.models import (
@@ -13,7 +13,7 @@ from app.models.models import (
 )
 from app.core.security import require_role
 from app.utils.supabase_client import supabase
-from app.schemas.services import ServiceCreateResponse, ServiceResponse, GeoPoint
+from app.schemas.services import ServiceCreateResponse, ServiceResponse, GeoPoint, VenueServiceResponse, CateringServiceResponse, DJServiceResponse, PhotographerServiceResponse, EventManagementServiceResponse
 import mimetypes
 import json
 import logging
@@ -274,7 +274,7 @@ async def create_service(
     "/get-all",
     response_model=List[ServiceResponse],
     status_code=status.HTTP_200_OK,
-    description="Retrieve all services for the authenticated vendor"
+    description="Retrieve all services for the authenticated vendor including category-specific details"
 )
 async def get_all_services(
     db: Session = Depends(get_db),
@@ -292,9 +292,24 @@ async def get_all_services(
                 detail="Vendor identification failed"
             )
 
-        services = db.query(Service).filter(Service.vendor_id == vendor_id).all()
-        return [
-            ServiceResponse(
+        # Query services with eager loading of related category-specific tables
+        services = (
+            db.query(Service)
+            .filter(Service.vendor_id == vendor_id)
+            .options(
+                joinedload(Service.venue_service),
+                joinedload(Service.catering_service),
+                joinedload(Service.dj_service),
+                joinedload(Service.photographer_service),
+                joinedload(Service.event_management_service)
+            )
+            .all()
+        )
+
+        response = []
+        for service in services:
+            # Base service response
+            service_data = ServiceResponse(
                 id=service.id,
                 vendor_id=service.vendor_id,
                 category=service.category.value,
@@ -319,22 +334,81 @@ async def get_all_services(
                 geo_point=service.geo_point,
                 created_at=service.created_at,
                 updated_at=service.updated_at
-            ) for service in services
-        ]
+            )
+
+            # Add category-specific data
+            if service.category == ModelServiceCategory.venue and service.venue_service:
+                service_data.venue_details = VenueServiceResponse(
+                    capacity_min=service.venue_service.capacity_min,
+                    capacity_max=service.venue_service.capacity_max,
+                    hall_type=service.venue_service.hall_type.value if service.venue_service.hall_type else None,
+                    indoor_outdoor=service.venue_service.indoor_outdoor.value if service.venue_service.indoor_outdoor else None,
+                    square_feet=float(service.venue_service.square_feet) if service.venue_service.square_feet else None,
+                    parking_capacity=service.venue_service.parking_capacity,
+                    decoration_policy=service.venue_service.decoration_policy.value if service.venue_service.decoration_policy else None,
+                    catering_policy=service.venue_service.catering_policy.value if service.venue_service.catering_policy else None,
+                    alcohol_policy=service.venue_service.alcohol_policy.value if service.venue_service.alcohol_policy else None
+                )
+            elif service.category == ModelServiceCategory.catering and service.catering_service:
+                service_data.catering_details = CateringServiceResponse(
+                    cuisine_types=service.catering_service.cuisine_types or [],
+                    veg_price_per_head=float(service.catering_service.veg_price_per_head) if service.catering_service.veg_price_per_head else None,
+                    nonveg_price_per_head=float(service.catering_service.nonveg_price_per_head) if service.catering_service.nonveg_price_per_head else None,
+                    min_order=service.catering_service.min_order,
+                    max_order=service.catering_service.max_order,
+                    service_style=service.catering_service.service_style.value if service.catering_service.service_style else None,
+                    staff_included=service.catering_service.staff_included,
+                    crockery_cutlery_included=service.catering_service.crockery_cutlery_included,
+                    tasting_available=service.catering_service.tasting_available
+                )
+            elif service.category == ModelServiceCategory.dj and service.dj_service:
+                service_data.dj_details = DJServiceResponse(
+                    genres_supported=service.dj_service.genres_supported or [],
+                    duration_hours=float(service.dj_service.duration_hours) if service.dj_service.duration_hours else None,
+                    equipment=service.dj_service.equipment or [],
+                    lighting_included=service.dj_service.lighting_included,
+                    mc_host_available=service.dj_service.mc_host_available,
+                    setup_time_required=float(service.dj_service.setup_time_required) if service.dj_service.setup_time_required else None
+                )
+            elif service.category == ModelServiceCategory.photographer and service.photographer_service:
+                service_data.photographer_details = PhotographerServiceResponse(
+                    package_type=service.photographer_service.package_type or [],
+                    hours_covered=float(service.photographer_service.hours_covered) if service.photographer_service.hours_covered else None,
+                    photos_delivered=service.photographer_service.photos_delivered,
+                    edited_photos_count=service.photographer_service.edited_photos_count,
+                    delivery_time_days=service.photographer_service.delivery_time_days,
+                    videography_included=service.photographer_service.videography_included,
+                    drone_available=service.photographer_service.drone_available,
+                    album_included=service.photographer_service.album_included
+                )
+            elif service.category == ModelServiceCategory.event_management and service.event_management_service:
+                service_data.event_management_details = EventManagementServiceResponse(
+                    event_types=service.event_management_service.event_types or [],
+                    team_size=service.event_management_service.team_size,
+                    includes=service.event_management_service.includes or [],
+                    package_modal=service.event_management_service.package_modal.value if service.event_management_service.package_modal else None,
+                    vendor_network_size=service.event_management_service.vendor_network_size,
+                    experience_years=service.event_management_service.experience_years
+                )
+
+            response.append(service_data)
+
+        return response
 
     except Exception as e:
         logger.exception("Failed to retrieve services")
         raise HTTPException(status_code=500, detail=f"Failed to retrieve services: {str(e)}")
 
+
 @servicerouter.put(
-    "/{slug}",
+    "/{category}s/{id}",
     response_model=ServiceResponse,
     status_code=status.HTTP_200_OK,
-    description="Update an existing service by slug"
+    description="Update an existing service by category and ID"
 )
 async def update_service(
-    slug: str,
-    category: str = Form(...),
+    category: str,
+    id: UUID,
     title: str = Form(...),
     description: Optional[str] = Form(None),
     tags: Optional[str] = Form(None),
@@ -404,9 +478,16 @@ async def update_service(
                 detail="Vendor identification failed"
             )
 
+        # Validate category
+        try:
+            category_enum = ModelServiceCategory(category)
+        except ValueError:
+            raise HTTPException(status_code=400, detail=f"Invalid category: {category}")
+
         db_service = db.query(Service).filter(
-            Service.slug == slug,
-            Service.vendor_id == vendor_id
+            Service.id == id,
+            Service.vendor_id == vendor_id,
+            Service.category == category_enum
         ).first()
 
         if not db_service:
@@ -428,14 +509,12 @@ async def update_service(
 
         # Validate Enums
         try:
-            category_enum = ModelServiceCategory(category)
             pricing_type_enum = ModelPricingType(pricing_type)
         except ValueError as e:
             raise HTTPException(status_code=400, detail=str(e))
 
         # Update base Service
         db_service.title = title
-        db_service.slug = f"{title.lower().replace(' ', '-')}-{uuid4().hex[:8]}" if title != db_service.title else db_service.slug
         db_service.description = description
         db_service.tags = tags_list
         db_service.base_price = base_price
@@ -489,8 +568,7 @@ async def update_service(
                 db.execute(delete(PhotographerService).where(PhotographerService.service_id == db_service.id))
             elif db_service.category == ModelServiceCategory.event_management:
                 db.execute(delete(EventManagementService).where(EventManagementService.service_id == db_service.id))
-
-        db_service.category = category_enum
+            db_service.category = category_enum
 
         # Update category-specific tables
         if category_enum == ModelServiceCategory.venue:
@@ -631,7 +709,6 @@ async def update_service(
             vendor_id=db_service.vendor_id,
             category=db_service.category.value,
             title=db_service.title,
-            slug=db_service.slug,
             description=db_service.description,
             tags=db_service.tags or [],
             base_price=float(db_service.base_price),
@@ -663,12 +740,12 @@ async def update_service(
         raise HTTPException(status_code=500, detail=f"Failed to update service: {str(e)}")
 
 @servicerouter.delete(
-    "/{slug}",
+    "/delete/{id}",
     status_code=status.HTTP_204_NO_CONTENT,
-    description="Delete a service and its associated data by slug"
+    description="Delete a service and its associated data by ID"
 )
 async def delete_service(
-    slug: str,
+    id: UUID,
     db: Session = Depends(get_db),
     current_user=Depends(require_role(["vendor"]))
 ):
@@ -685,7 +762,7 @@ async def delete_service(
             )
 
         db_service = db.query(Service).filter(
-            Service.slug == slug,
+            Service.id == id,
             Service.vendor_id == vendor_id
         ).first()
 
@@ -713,7 +790,7 @@ async def delete_service(
             db.execute(delete(EventManagementService).where(EventManagementService.service_id == db_service.id))
 
         # Delete the service
-        db.execute(delete(Service).where(Service.slug == slug))
+        db.execute(delete(Service).where(Service.id == id))
         db.commit()
 
     except HTTPException:

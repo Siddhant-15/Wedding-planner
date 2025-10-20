@@ -28,12 +28,47 @@ import CustomerDashboard from "./pages/dashboards/CustomerDashboard";
 import VendorPage from "./pages/Vendor/VendorPage";
 import Wishlist from "./pages/Wishlist";
 import Cart from "./pages/Cart";
+import Lottie from "lottie-react";
+import loadingAnimation from "@/assets/animations/loading.json";
 
 const queryClient = new QueryClient();
 
 // 🔑 Role-based router wrapper
 function RoleBasedRoutes() {
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          height: "100vh",
+          width: "100vw",
+          backgroundColor: "#ffffff",
+          flexDirection: "column",
+        }}
+      >
+        <Lottie
+          animationData={loadingAnimation}
+          loop
+          autoplay
+          style={{ width: 200, height: 200 }}
+        />
+        <p
+          style={{
+            marginTop: 16,
+            fontSize: 16,
+            color: "#555555",
+            fontFamily: "Arial, sans-serif",
+          }}
+        >
+          Loading, please wait...
+        </p>
+      </div>
+    );
+  }
 
   return (
     <Routes>

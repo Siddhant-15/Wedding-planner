@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { X, Upload, Trash2, MapPin, DollarSign, Tag, Image as ImageIcon, Edit2, Save, Sparkles } from "lucide-react";
+import { X, Upload, Trash2, MapPin, DollarSign, Tag, Image as ImageIcon, Edit2, Sparkles } from "lucide-react";
 import { showSuccess, showError } from '../utils/toast.js';
 import styles from '../styles/ServiceForm.module.css';
 
@@ -119,47 +119,79 @@ const ServiceFormModal = ({ isOpen, onClose, onSubmit, initialData }) => {
   const [newImages, setNewImages] = useState([]);
   const [previewUrls, setPreviewUrls] = useState([]);
   const [uploading, setUploading] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = "hidden";
       if (initialData) {
         setFormData({
-          ...initialData,
-          geo_point: initialData.geo_point || { lat: "", lon: "" },
+          title: initialData.title || "",
+          description: initialData.description || "",
           tags: initialData.tags || [],
+          address_line1: initialData.address_line1 || "",
+          address_line2: initialData.address_line2 || "",
+          area: initialData.area || "",
+          city: initialData.city || "",
+          state: initialData.state || "",
+          country: initialData.country || "India",
+          pincode: initialData.pincode || "",
+          geo_point: initialData.geo_point || { lat: "", lon: "" },
+          category: initialData.category || "",
+          base_price: initialData.base_price || "",
+          pricing_type: initialData.pricing_type || "",
           amenities: initialData.amenities || [],
+          capacity_min: initialData.capacity_min || "",
+          capacity_max: initialData.capacity_max || "",
+          hall_type: initialData.hall_type || "",
+          indoor_outdoor: initialData.indoor_outdoor || "",
+          square_feet: initialData.square_feet || "",
+          parking_capacity: initialData.parking_capacity || "",
+          decoration_policy: initialData.decoration_policy || "",
+          catering_policy: initialData.catering_policy || "",
+          alcohol_policy: initialData.alcohol_policy || "",
           cuisine_types: initialData.cuisine_types || [],
+          veg_price_per_head: initialData.veg_price_per_head || "",
+          nonveg_price_per_head: initialData.nonveg_price_per_head || "",
+          min_order: initialData.min_order || "",
+          max_order: initialData.max_order || "",
+          service_style: initialData.service_style || "",
+          staff_included: initialData.staff_included || false,
+          crockery_cutlery_included: initialData.crockery_cutlery_included || false,
+          tasting_available: initialData.tasting_available || false,
           genres_supported: initialData.genres_supported || [],
+          duration_hours: initialData.duration_hours || "",
           equipment: initialData.equipment || [],
+          lighting_included: initialData.lighting_included || false,
+          mc_host_available: initialData.mc_host_available || false,
+          setup_time_required: initialData.setup_time_required || "",
           package_type: initialData.package_type || [],
+          hours_covered: initialData.hours_covered || "",
+          photos_delivered: initialData.photos_delivered || "",
+          edited_photos_count: initialData.edited_photos_count || "",
+          delivery_time_days: initialData.delivery_time_days || "",
+          videography_included: initialData.videography_included || false,
+          drone_available: initialData.drone_available || false,
+          album_included: initialData.album_included || false,
           event_types: initialData.event_types || [],
+          team_size: initialData.team_size || "",
           includes: initialData.includes || [],
+          package_modal: initialData.package_modal || "",
+          vendor_network_size: initialData.vendor_network_size || "",
+          experience_years: initialData.experience_years || "",
         });
         setExistingImages(initialData.images || []);
         setPreviewUrls(initialData.images || []);
         setCurrentStep(0);
       } else {
-        const draft = localStorage.getItem("serviceDraft");
-        if (draft) {
-          const parsed = JSON.parse(draft);
-          setFormData(parsed.formData);
-          setCurrentStep(parsed.currentStep);
-        } else {
-          resetForm();
-        }
+        resetForm();
       }
     } else {
       document.body.style.overflow = "";
-      if (!submitted) {
-        saveDraft();
-      }
     }
     return () => {
       document.body.style.overflow = "";
     };
-  }, [isOpen, submitted, initialData]);
+  }, [isOpen, initialData]);
 
   const resetForm = () => {
     setFormData({
@@ -221,18 +253,6 @@ const ServiceFormModal = ({ isOpen, onClose, onSubmit, initialData }) => {
     setNewImages([]);
     setPreviewUrls([]);
     setCurrentStep(0);
-  };
-
-  const saveDraft = () => {
-    if (initialData) return; // No draft for edit
-    localStorage.setItem(
-      "serviceDraft",
-      JSON.stringify({
-        formData: { ...formData, images: undefined },
-        currentStep,
-      })
-    );
-    onClose();
   };
 
   const handleInputChange = (field, value) => {
@@ -339,32 +359,42 @@ const ServiceFormModal = ({ isOpen, onClose, onSubmit, initialData }) => {
         return true; // Specific details are optional
       case 3:
         return true; // Amenities and images are optional
+      case 4:
+        if (!formData.title || !formData.description || !formData.city || !formData.state || !formData.country || !formData.pincode) {
+          alert("Please fill all required fields in Basic Info");
+          return false;
+        }
+        if (!formData.category || !formData.base_price || !formData.pricing_type) {
+          alert("Please fill all required fields in Service Type & Pricing");
+          return false;
+        }
+        if (formData.geo_point.lat !== "" && (formData.geo_point.lat < -90 || formData.geo_point.lat > 90)) {
+          alert("Latitude must be between -90 and 90");
+          return false;
+        }
+        if (formData.geo_point.lon !== "" && (formData.geo_point.lon < -180 || formData.geo_point.lon > 180)) {
+          alert("Longitude must be between -180 and 180");
+          return false;
+        }
+        if (formData.title.length < 3 || formData.title.length > 255) {
+          alert("Title must be between 3 and 255 characters");
+          return false;
+        }
+        if (formData.base_price < 0) {
+          alert("Base price must be non-negative");
+          return false;
+        }
+        return true;
       default:
         return true;
     }
   };
 
-  const isSaveAndExitEnabled = () => {
-    return (
-      formData.title &&
-      formData.description &&
-      formData.city &&
-      formData.state &&
-      formData.country &&
-      formData.pincode &&
-      formData.category &&
-      formData.base_price &&
-      formData.pricing_type &&
-      formData.title.length >= 3 &&
-      formData.title.length <= 255 &&
-      formData.base_price >= 0 &&
-      (formData.geo_point.lat === "" || (formData.geo_point.lat >= -90 && formData.geo_point.lat <= 90)) &&
-      (formData.geo_point.lon === "" || (formData.geo_point.lon >= -180 && formData.geo_point.lon <= 180))
-    );
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (currentStep !== 4) {
+      return; // Prevent submission unless in review step
+    }
     if (!validateStep(currentStep)) return;
 
     try {
@@ -469,12 +499,9 @@ const ServiceFormModal = ({ isOpen, onClose, onSubmit, initialData }) => {
         `${formData.title} has been ${initialData ? "updated" : "added"} successfully 🎉`
       );
 
-      setSubmitted(true);
-      localStorage.removeItem("serviceDraft");
-      onClose();
+      onClose(); // Close only after successful submission
     } catch (err) {
       console.error("Service operation failed:", err);
-      // Enhanced error handling
       const errorMessage = err.response?.data?.detail || err.message || "Something went wrong";
       showError(
         "Failed to process service",
@@ -505,7 +532,7 @@ const ServiceFormModal = ({ isOpen, onClose, onSubmit, initialData }) => {
         <div
           key={index}
           className={`${styles.step} ${index === currentStep ? styles.activeStep : ""} ${index < currentStep ? styles.completedStep : ""}`}
-          onClick={() => index < currentStep && handleEditStep(index)}
+          onClick={() => index <= currentStep && handleEditStep(index)} // Allow editing current or previous steps
         >
           <span>{index + 1}</span>
           <p>{step}</p>
@@ -663,6 +690,7 @@ const ServiceFormModal = ({ isOpen, onClose, onSubmit, initialData }) => {
                 onChange={(e) => handleInputChange("category", e.target.value)}
                 className={styles.input}
                 required
+                disabled={!!initialData}
               >
                 <option value="">Select category</option>
                 {serviceTypes.map((type) => (
@@ -1480,7 +1508,7 @@ const ServiceFormModal = ({ isOpen, onClose, onSubmit, initialData }) => {
             </button>
           </div>
           {renderStepper()}
-          <form onSubmit={(e) => currentStep === steps.length - 1 && handleSubmit(e)} className={styles.form}>
+          <form onSubmit={handleSubmit} className={styles.form}>
             {renderStepContent()}
             <div className={styles.actions}>
               {currentStep > 0 && (
@@ -1494,17 +1522,7 @@ const ServiceFormModal = ({ isOpen, onClose, onSubmit, initialData }) => {
                 </button>
               ) : (
                 <button type="submit" disabled={uploading} className={styles.submitBtn}>
-                  {uploading ? "Processing..." : initialData ? "Update Service" : "Create Service"}
-                </button>
-              )}
-              {!initialData && (
-                <button
-                  type="button"
-                  onClick={saveDraft}
-                  className={styles.draftBtn}
-                  disabled={!isSaveAndExitEnabled()}
-                >
-                  <Save size={16} /> Save & Exit
+                  {uploading ? "Processing..." : "Finish"}
                 </button>
               )}
             </div>

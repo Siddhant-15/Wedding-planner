@@ -50,7 +50,7 @@ const VendorServices = ({ isServiceModalOpen, setIsServiceModalOpen, editingServ
 
   const handleUpdateService = async (serviceData) => {
     try {
-      const { data: updatedService } = await serviceAPI.update(editingService.id, serviceData);
+      const { data: updatedService } = await serviceAPI.update(editingService.id, serviceData, editingService.category);
       setServices((prev) =>
         prev.map((s) => (s.id === editingService.id ? updatedService : s))
       );

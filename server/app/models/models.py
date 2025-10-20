@@ -251,6 +251,13 @@ class Service(Base):
     rating_summary = relationship("ServiceRatingSummary", uselist=False, back_populates="service")
     variants = relationship("ServiceVariant", back_populates="service", cascade="all, delete-orphan")
 
+    # Category-specific relationships
+    venue_service = relationship("VenueService", uselist=False, back_populates="service")
+    catering_service = relationship("CateringService", uselist=False, back_populates="service")
+    dj_service = relationship("DJService", uselist=False, back_populates="service")
+    photographer_service = relationship("PhotographerService", uselist=False, back_populates="service")
+    event_management_service = relationship("EventManagementService", uselist=False, back_populates="service")
+
 
 # ======================
 # SERVICE VARIANT
@@ -277,6 +284,7 @@ class ServiceVariant(Base):
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
     service = relationship("Service", back_populates="variants")
+    
 
 
 # Venue, Catering, DJ, Photographer, EventManagement service tables
@@ -293,6 +301,8 @@ class VenueService(Base):
     catering_policy = Column(Enum(CateringPolicy))
     alcohol_policy = Column(Enum(AlcoholPolicy))
 
+    service = relationship("Service", back_populates="venue_service")
+
 
 class CateringService(Base):
     __tablename__ = "catering_services"
@@ -307,6 +317,8 @@ class CateringService(Base):
     crockery_cutlery_included = Column(Boolean, default=True)
     tasting_available = Column(Boolean, default=False)
 
+    service = relationship("Service", back_populates="catering_service")
+
 
 class DJService(Base):
     __tablename__ = "dj_services"
@@ -317,6 +329,8 @@ class DJService(Base):
     lighting_included = Column(Boolean, default=False)
     mc_host_available = Column(Boolean, default=False)
     setup_time_required = Column(Numeric(5, 2), default=1.0)
+
+    service = relationship("Service", back_populates="dj_service")
 
 
 class PhotographerService(Base):
@@ -331,6 +345,8 @@ class PhotographerService(Base):
     drone_available = Column(Boolean, default=False)
     album_included = Column(Boolean, default=False)
 
+    service = relationship("Service", back_populates="photographer_service")
+
 
 class EventManagementService(Base):
     __tablename__ = "event_management_services"
@@ -341,6 +357,8 @@ class EventManagementService(Base):
     package_modal = Column(Enum(PackageModal))
     vendor_network_size = Column(Integer)
     experience_years = Column(Integer)
+
+    service = relationship("Service", back_populates="event_management_service")
 
 
 class ServiceExtra(Base):

@@ -6,6 +6,7 @@ const AuthContext = createContext(undefined);
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     // Restore user from token on app load
@@ -31,6 +32,7 @@ export function AuthProvider({ children }) {
         localStorage.removeItem("refresh_token");
       }
     }
+    setLoading(false);
   }, []);
 
   const login = async (email, password, type) => {
@@ -103,6 +105,7 @@ export function AuthProvider({ children }) {
         login,
         register,
         logout,
+        loading,
       }}
     >
       {children}

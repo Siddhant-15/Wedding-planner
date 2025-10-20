@@ -6,19 +6,19 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 50;
+  z-index: 1000;
   padding: 20px;
 }
 
 .modal {
-  background: #fff;
-  border-radius: 20px;
+  background: #ffffff;
+  border-radius: 16px;
   box-shadow: 0 15px 35px rgba(0, 0, 0, 0.25);
   display: flex;
   max-width: 1000px;
   width: 100%;
+  max-height: 90vh;
   overflow: hidden;
-  position: relative;
   animation: fadeIn 0.3s ease-in-out;
 }
 
@@ -29,20 +29,26 @@
   background: transparent;
   border: none;
   cursor: pointer;
-  color: #666;
+  color: #6b7280;
   transition: color 0.2s;
-  font-weight: bold;
 }
+
 .closeBtn:hover {
-  color: #000;
+  color: #1f2937;
+}
+
+.closeIcon {
+  width: 24px;
+  height: 24px;
 }
 
 .imageWrapper {
-  width: 45%;
+  width: 50%;
   position: relative;
+  background: #f3f4f6;
+  border-top-left-radius: 16px;
+  border-bottom-left-radius: 16px;
   overflow: hidden;
-  border-top-left-radius: 20px;
-  border-bottom-left-radius: 20px;
 }
 
 .slider {
@@ -54,15 +60,15 @@
 
 .sliderInner {
   display: flex;
-  transition: transform 0.4s ease;
   height: 100%;
+  transition: transform 0.4s ease-in-out;
 }
 
 .sliderImg {
   width: 100%;
-  flex-shrink: 0;
-  object-fit: cover;
   height: 100%;
+  object-fit: cover;
+  flex-shrink: 0;
 }
 
 .prevBtn,
@@ -70,28 +76,32 @@
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  background: rgba(0,0,0,0.4);
-  color: white;
+  background: rgba(0, 0, 0, 0.5);
+  color: #ffffff;
   border: none;
   border-radius: 50%;
-  width: 36px;
-  height: 36px;
-  font-size: 1.4rem;
+  width: 40px;
+  height: 40px;
+  font-size: 1.5rem;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  z-index: 10;
-  transition: background 0.3s;
+  transition: background-color 0.3s;
 }
 
 .prevBtn:hover,
 .nextBtn:hover {
-  background: rgba(0,0,0,0.7);
+  background: rgba(0, 0, 0, 0.8);
 }
 
-.prevBtn { left: 12px; }
-.nextBtn { right: 12px; }
+.prevBtn {
+  left: 12px;
+}
+
+.nextBtn {
+  right: 12px;
+}
 
 .sliderDots {
   position: absolute;
@@ -105,16 +115,16 @@
 .dot {
   width: 10px;
   height: 10px;
-  background: rgba(255,255,255,0.6);
+  background: rgba(255, 255, 255, 0.6);
   border-radius: 50%;
   cursor: pointer;
   transition: all 0.3s;
 }
 
-.activeDot {
+.dot.activeDot {
   width: 14px;
   height: 14px;
-  background: white;
+  background: #ffffff;
 }
 
 .status {
@@ -123,68 +133,120 @@
   left: 12px;
   padding: 6px 14px;
   border-radius: 20px;
-  font-size: 0.85rem;
+  font-size: 0.875rem;
   font-weight: 600;
   text-transform: capitalize;
 }
-.active {
+
+.status.active {
   background: #d1fae5;
   color: #065f46;
 }
-.inactive {
+
+.status.inactive {
   background: #fee2e2;
   color: #991b1b;
 }
 
-.details {
-  width: 55%;
-  padding: 30px 28px;
+.noImage {
   display: flex;
-  flex-direction: column;
-  justify-content: start;
-  max-height: 80vh;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #9ca3af;
+  font-size: 1rem;
+}
+
+.noImageIcon {
+  width: 48px;
+  height: 48px;
+  margin-right: 8px;
+}
+
+.details {
+  width: 50%;
+  padding: 32px;
   overflow-y: auto;
-  background: #f9f9f9;
+  background: #f9fafb;
 }
 
 .title {
   font-size: 2rem;
   font-weight: 700;
-  color: #111;
-  margin-bottom: 14px;
+  color: #1f2937;
+  margin-bottom: 16px;
 }
 
 .description {
-  color: #555;
-  margin-bottom: 20px;
+  color: #6b7280;
+  margin-bottom: 24px;
   line-height: 1.5;
+  font-size: 1rem;
 }
 
 .infoGroup {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 24px;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sectionTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1f2937;
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.sectionIcon {
+  width: 20px;
+  height: 20px;
+  margin-right: 8px;
+  color: #4f46e5;
+}
+
+.specificDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  color: #374151;
   font-size: 1rem;
-  color: #333;
+}
+
+.noDetails {
+  color: #6b7280;
+  font-size: 1rem;
 }
 
 .label {
   font-weight: 600;
   margin-right: 6px;
+  color: #1f2937;
 }
 
 .amenities {
-  margin-top: 6px;
+  margin-top: 8px;
   list-style: disc;
-  padding-left: 22px;
-  color: #444;
+  padding-left: 20px;
+  color: #374151;
+  font-size: 1rem;
 }
 
-/* Fade animation */
+.amenities li {
+  margin-bottom: 4px;
+}
+
 @keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateY(-25px);
+    transform: translateY(-20px);
   }
   to {
     opacity: 1;
@@ -192,19 +254,23 @@
   }
 }
 
-/* Responsive */
 @media (max-width: 768px) {
   .modal {
     flex-direction: column;
-    border-radius: 16px;
+    border-radius: 12px;
   }
-  .imageWrapper, .details {
+
+  .imageWrapper,
+  .details {
     width: 100%;
   }
+
   .imageWrapper {
-    border-radius: 16px 16px 0 0;
+    border-radius: 12px 12px 0 0;
   }
+
   .details {
-    border-radius: 0 0 16px 16px;
+    border-radius: 0 0 12px 12px;
+    padding: 24px;
   }
 }
