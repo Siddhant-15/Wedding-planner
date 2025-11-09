@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 
 @servicerouter.post(
     "/create",
-    response_model=ServiceResponse,
+    response_model=ServiceCreateResponse,
     status_code=status.HTTP_201_CREATED,
     description="Create a new service (single endpoint for all categories)"
 )

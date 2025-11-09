@@ -196,7 +196,7 @@ class Vendor(Base):
     website = Column(Text)
     is_verified = Column(Boolean, default=False, index=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+    # updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
     # relationships - must match back_populates names on User, Service, Enquiry, Booking
     user = relationship("User", back_populates="vendor_profile")

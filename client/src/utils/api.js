@@ -72,6 +72,34 @@ export const serviceAPI = {
   delete: (id) => api.delete(`/services/delete/${id}`),
 };
 
+export const CustomerServiceAPI = {
+  getByType: async (
+    serviceType,
+    params = {}
+  ) => {
+    return api.get(`/${serviceType}/list`, { params });
+  },
+
+  getDetail: async (serviceId) => {
+  if (!serviceId || typeof serviceId !== 'string') {
+    throw new Error("Valid serviceId is required");
+  }
+
+  const url = `/services/detail/${encodeURIComponent(serviceId)}`;
+  console.log("Fetching:", url); // ← DEBUG THIS
+
+  try {
+    const { data } = await api.get(url);
+    return data;
+  } catch (error) {
+    if (error.response?.status === 404) {
+      throw new Error("Service not found or unavailable");
+    }
+    throw error;
+  }
+}
+};
+
 export const vendorAPI = {
   onboarding: (data) => api.post("/vendors/onboarding", data),
   status: () => api.get("/vendors/status"),

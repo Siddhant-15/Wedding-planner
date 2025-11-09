@@ -4,6 +4,7 @@ from app.database import engine, Base
 from app.routers import auth
 from app.routers.vendor import vendorrouter
 from app.routers.service import servicerouter
+from app.routers.customer_services import customerservicerouter
 
 Base.metadata.create_all(bind=engine)
 
@@ -28,6 +29,7 @@ app.add_middleware(
 app.include_router(auth.router)
 app.include_router(vendorrouter)
 app.include_router(servicerouter)
+app.include_router(customerservicerouter)
 # app.include_router(appointment.router, prefix="/appointments", tags=["Appointments"])
 # app.include_router(payment.router)
 # app.include_router(review.router, prefix="/reviews", tags=["Reviews"])

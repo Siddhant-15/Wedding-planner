@@ -53,7 +53,7 @@ const packageModals = [
 ];
 
 const VendorServiceDetailsModal = ({ isOpen, onClose, service }) => {
-  console.log("Services",service)
+  console.log("Services", service);
   const [currentIndex, setCurrentIndex] = useState(0);
 
   useEffect(() => {
@@ -89,67 +89,182 @@ const VendorServiceDetailsModal = ({ isOpen, onClose, service }) => {
     service.pincode,
   ].filter(Boolean).join(", ");
 
+  const status = service.is_active ? "active" : "inactive";
+
   const renderSpecificDetails = () => {
     switch (service.category) {
       case "venue":
+        const venueDetails = service.venue_details || {};
         return (
           <div className={styles.specificDetails}>
-            <p><span className={styles.label}>Capacity:</span> {service.capacity_min || "N/A"} - {service.capacity_max || "N/A"} guests</p>
-            <p><span className={styles.label}>Hall Type:</span> {hallTypes.find(h => h.value === service.hall_type)?.label || "N/A"}</p>
-            <p><span className={styles.label}>Indoor/Outdoor:</span> {indoorOutdoorOptions.find(o => o.value === service.indoor_outdoor)?.label || "N/A"}</p>
-            <p><span className={styles.label}>Square Feet:</span> {service.square_feet || "N/A"} sq.ft.</p>
-            <p><span className={styles.label}>Parking Capacity:</span> {service.parking_capacity || "N/A"} vehicles</p>
-            <p><span className={styles.label}>Decoration Policy:</span> {policyOptions.find(p => p.value === service.decoration_policy)?.label || "N/A"}</p>
-            <p><span className={styles.label}>Catering Policy:</span> {policyOptions.find(p => p.value === service.catering_policy)?.label || "N/A"}</p>
-            <p><span className={styles.label}>Alcohol Policy:</span> {alcoholOptions.find(a => a.value === service.alcohol_policy)?.label || "N/A"}</p>
+            <div className={styles.detailCard}>
+              <span className={styles.detailLabel}>Capacity</span>
+              <span className={styles.detailValue}>{venueDetails.capacity_min || "N/A"} - {venueDetails.capacity_max || "N/A"} guests</span>
+            </div>
+            <div className={styles.detailCard}>
+              <span className={styles.detailLabel}>Hall Type</span>
+              <span className={styles.detailValue}>{hallTypes.find(h => h.value === venueDetails.hall_type)?.label || "N/A"}</span>
+            </div>
+            <div className={styles.detailCard}>
+              <span className={styles.detailLabel}>Indoor/Outdoor</span>
+              <span className={styles.detailValue}>{indoorOutdoorOptions.find(o => o.value === venueDetails.indoor_outdoor)?.label || "N/A"}</span>
+            </div>
+            <div className={styles.detailCard}>
+              <span className={styles.detailLabel}>Square Feet</span>
+              <span className={styles.detailValue}>{venueDetails.square_feet || "N/A"} sq.ft.</span>
+            </div>
+            <div className={styles.detailCard}>
+              <span className={styles.detailLabel}>Parking Capacity</span>
+              <span className={styles.detailValue}>{venueDetails.parking_capacity || "N/A"} vehicles</span>
+            </div>
+            <div className={styles.detailCard}>
+              <span className={styles.detailLabel}>Decoration Policy</span>
+              <span className={styles.detailValue}>{policyOptions.find(p => p.value === venueDetails.decoration_policy)?.label || "N/A"}</span>
+            </div>
+            <div className={styles.detailCard}>
+              <span className={styles.detailLabel}>Catering Policy</span>
+              <span className={styles.detailValue}>{policyOptions.find(p => p.value === venueDetails.catering_policy)?.label || "N/A"}</span>
+            </div>
+            <div className={styles.detailCard}>
+              <span className={styles.detailLabel}>Alcohol Policy</span>
+              <span className={styles.detailValue}>{alcoholOptions.find(a => a.value === venueDetails.alcohol_policy)?.label || "N/A"}</span>
+            </div>
           </div>
         );
       case "catering":
+        const cateringDetails = service.catering_details || {};
         return (
           <div className={styles.specificDetails}>
-            <p><span className={styles.label}>Cuisine Types:</span> {service.cuisine_types?.join(", ") || "None"}</p>
-            <p><span className={styles.label}>Veg Price per Head:</span> ₹{service.veg_price_per_head || "N/A"}</p>
-            <p><span className={styles.label}>Non-Veg Price per Head:</span> ₹{service.nonveg_price_per_head || "N/A"}</p>
-            <p><span className={styles.label}>Order Range:</span> {service.min_order || "N/A"} - {service.max_order || "N/A"} guests</p>
-            <p><span className={styles.label}>Service Style:</span> {serviceStyles.find(s => s.value === service.service_style)?.label || "N/A"}</p>
-            <p><span className={styles.label}>Staff Included:</span> {service.staff_included ? "Yes" : "No"}</p>
-            <p><span className={styles.label}>Crockery & Cutlery:</span> {service.crockery_cutlery_included ? "Included" : "Not Included"}</p>
-            <p><span className={styles.label}>Tasting Available:</span> {service.tasting_available ? "Yes" : "No"}</p>
+            <div className={styles.detailCard}>
+              <span className={styles.detailLabel}>Cuisine Types</span>
+              <span className={styles.detailValue}>{cateringDetails.cuisine_types?.join(", ") || "None"}</span>
+            </div>
+            <div className={styles.detailCard}>
+              <span className={styles.detailLabel}>Veg Price per Head</span>
+              <span className={styles.detailValue}>₹{cateringDetails.veg_price_per_head || "N/A"}</span>
+            </div>
+            <div className={styles.detailCard}>
+              <span className={styles.detailLabel}>Non-Veg Price per Head</span>
+              <span className={styles.detailValue}>₹{cateringDetails.nonveg_price_per_head || "N/A"}</span>
+            </div>
+            <div className={styles.detailCard}>
+              <span className={styles.detailLabel}>Order Range</span>
+              <span className={styles.detailValue}>{cateringDetails.min_order || "N/A"} - {cateringDetails.max_order || "N/A"} guests</span>
+            </div>
+            <div className={styles.detailCard}>
+              <span className={styles.detailLabel}>Service Style</span>
+              <span className={styles.detailValue}>{serviceStyles.find(s => s.value === cateringDetails.service_style)?.label || "N/A"}</span>
+            </div>
+            <div className={styles.detailCard}>
+              <span className={styles.detailLabel}>Staff Included</span>
+              <span className={styles.detailValue}>{cateringDetails.staff_included ? "Yes" : "No"}</span>
+            </div>
+            <div className={styles.detailCard}>
+              <span className={styles.detailLabel}>Crockery & Cutlery</span>
+              <span className={styles.detailValue}>{cateringDetails.crockery_cutlery_included ? "Included" : "Not Included"}</span>
+            </div>
+            <div className={styles.detailCard}>
+              <span className={styles.detailLabel}>Tasting Available</span>
+              <span className={styles.detailValue}>{cateringDetails.tasting_available ? "Yes" : "No"}</span>
+            </div>
           </div>
         );
       case "dj":
+        const djDetails = service.dj_details || {};
         return (
           <div className={styles.specificDetails}>
-            <p><span className={styles.label}>Genres Supported:</span> {service.genres_supported?.join(", ") || "None"}</p>
-            <p><span className={styles.label}>Duration:</span> {service.duration_hours || "N/A"} hours</p>
-            <p><span className={styles.label}>Equipment:</span> {service.equipment?.join(", ") || "None"}</p>
-            <p><span className={styles.label}>Lighting Included:</span> {service.lighting_included ? "Yes" : "No"}</p>
-            <p><span className={styles.label}>MC/Host Available:</span> {service.mc_host_available ? "Yes" : "No"}</p>
-            <p><span className={styles.label}>Setup Time:</span> {service.setup_time_required || "N/A"} hours</p>
+            <div className={styles.detailCard}>
+              <span className={styles.detailLabel}>Genres Supported</span>
+              <span className={styles.detailValue}>{djDetails.genres_supported?.join(", ") || "None"}</span>
+            </div>
+            <div className={styles.detailCard}>
+              <span className={styles.detailLabel}>Duration</span>
+              <span className={styles.detailValue}>{djDetails.duration_hours || "N/A"} hours</span>
+            </div>
+            <div className={styles.detailCard}>
+              <span className={styles.detailLabel}>Equipment</span>
+              <span className={styles.detailValue}>{djDetails.equipment?.join(", ") || "None"}</span>
+            </div>
+            <div className={styles.detailCard}>
+              <span className={styles.detailLabel}>Lighting Included</span>
+              <span className={styles.detailValue}>{djDetails.lighting_included ? "Yes" : "No"}</span>
+            </div>
+            <div className={styles.detailCard}>
+              <span className={styles.detailLabel}>MC/Host Available</span>
+              <span className={styles.detailValue}>{djDetails.mc_host_available ? "Yes" : "No"}</span>
+            </div>
+            <div className={styles.detailCard}>
+              <span className={styles.detailLabel}>Setup Time</span>
+              <span className={styles.detailValue}>{djDetails.setup_time_required || "N/A"} hours</span>
+            </div>
           </div>
         );
       case "photographer":
+        const photographerDetails = service.photographer_details || {};
         return (
           <div className={styles.specificDetails}>
-            <p><span className={styles.label}>Package Types:</span> {service.package_type?.join(", ") || "None"}</p>
-            <p><span className={styles.label}>Hours Covered:</span> {service.hours_covered || "N/A"} hours</p>
-            <p><span className={styles.label}>Photos Delivered:</span> {service.photos_delivered || "N/A"}</p>
-            <p><span className={styles.label}>Edited Photos:</span> {service.edited_photos_count || "N/A"}</p>
-            <p><span className={styles.label}>Delivery Time:</span> {service.delivery_time_days || "N/A"} days</p>
-            <p><span className={styles.label}>Videography Included:</span> {service.videography_included ? "Yes" : "No"}</p>
-            <p><span className={styles.label}>Drone Available:</span> {service.drone_available ? "Yes" : "No"}</p>
-            <p><span className={styles.label}>Album Included:</span> {service.album_included ? "Yes" : "No"}</p>
+            <div className={styles.detailCard}>
+              <span className={styles.detailLabel}>Package Types</span>
+              <span className={styles.detailValue}>{photographerDetails.package_type?.join(", ") || "None"}</span>
+            </div>
+            <div className={styles.detailCard}>
+              <span className={styles.detailLabel}>Hours Covered</span>
+              <span className={styles.detailValue}>{photographerDetails.hours_covered || "N/A"} hours</span>
+            </div>
+            <div className={styles.detailCard}>
+              <span className={styles.detailLabel}>Photos Delivered</span>
+              <span className={styles.detailValue}>{photographerDetails.photos_delivered || "N/A"}</span>
+            </div>
+            <div className={styles.detailCard}>
+              <span className={styles.detailLabel}>Edited Photos</span>
+              <span className={styles.detailValue}>{photographerDetails.edited_photos_count || "N/A"}</span>
+            </div>
+            <div className={styles.detailCard}>
+              <span className={styles.detailLabel}>Delivery Time</span>
+              <span className={styles.detailValue}>{photographerDetails.delivery_time_days || "N/A"} days</span>
+            </div>
+            <div className={styles.detailCard}>
+              <span className={styles.detailLabel}>Videography Included</span>
+              <span className={styles.detailValue}>{photographerDetails.videography_included ? "Yes" : "No"}</span>
+            </div>
+            <div className={styles.detailCard}>
+              <span className={styles.detailLabel}>Drone Available</span>
+              <span className={styles.detailValue}>{photographerDetails.drone_available ? "Yes" : "No"}</span>
+            </div>
+            <div className={styles.detailCard}>
+              <span className={styles.detailLabel}>Album Included</span>
+              <span className={styles.detailValue}>{photographerDetails.album_included ? "Yes" : "No"}</span>
+            </div>
           </div>
         );
       case "event_management":
+        const eventDetails = service.event_management_details || {};
         return (
           <div className={styles.specificDetails}>
-            <p><span className={styles.label}>Event Types:</span> {service.event_types?.join(", ") || "None"}</p>
-            <p><span className={styles.label}>Team Size:</span> {service.team_size || "N/A"} members</p>
-            <p><span className={styles.label}>Services Included:</span> {service.includes?.join(", ") || "None"}</p>
-            <p><span className={styles.label}>Package Modal:</span> {packageModals.find(m => m.value === service.package_modal)?.label || "N/A"}</p>
-            <p><span className={styles.label}>Vendor Network Size:</span> {service.vendor_network_size || "N/A"} vendors</p>
-            <p><span className={styles.label}>Experience:</span> {service.experience_years || "N/A"} years</p>
+            <div className={styles.detailCard}>
+              <span className={styles.detailLabel}>Event Types</span>
+              <span className={styles.detailValue}>{eventDetails.event_types?.join(", ") || "None"}</span>
+            </div>
+            <div className={styles.detailCard}>
+              <span className={styles.detailLabel}>Team Size</span>
+              <span className={styles.detailValue}>{eventDetails.team_size || "N/A"} members</span>
+            </div>
+            <div className={styles.detailCard}>
+              <span className={styles.detailLabel}>Services Included</span>
+              <span className={styles.detailValue}>{eventDetails.includes?.join(", ") || "None"}</span>
+            </div>
+            <div className={styles.detailCard}>
+              <span className={styles.detailLabel}>Package Modal</span>
+              <span className={styles.detailValue}>{packageModals.find(m => m.value === eventDetails.package_modal)?.label || "N/A"}</span>
+            </div>
+            <div className={styles.detailCard}>
+              <span className={styles.detailLabel}>Vendor Network Size</span>
+              <span className={styles.detailValue}>{eventDetails.vendor_network_size || "N/A"} vendors</span>
+            </div>
+            <div className={styles.detailCard}>
+              <span className={styles.detailLabel}>Experience</span>
+              <span className={styles.detailValue}>{eventDetails.experience_years || "N/A"} years</span>
+            </div>
           </div>
         );
       default:
@@ -197,9 +312,9 @@ const VendorServiceDetailsModal = ({ isOpen, onClose, service }) => {
                 </>
               )}
               <span
-                className={`${styles.status} ${service.status === "active" ? styles.active : styles.inactive}`}
+                className={`${styles.status} ${status === "active" ? styles.active : styles.inactive}`}
               >
-                {service.status || "Unknown"}
+                {status}
               </span>
             </div>
           ) : (
@@ -224,10 +339,23 @@ const VendorServiceDetailsModal = ({ isOpen, onClose, service }) => {
               <h3 className={styles.sectionTitle}>
                 <Tag className={styles.sectionIcon} /> Basic Information
               </h3>
-              <p><span className={styles.label}>Category:</span> {serviceTypes.find(t => t.value === service.category)?.label || "N/A"}</p>
-              <p><span className={styles.label}>Location:</span> {locationText || "Not specified"}</p>
-              <p><span className={styles.label}>Geo Coordinates:</span> {service.geo_point?.lat || "N/A"}, {service.geo_point?.lon || "N/A"}</p>
-              <p><span className={styles.label}>Tags:</span> {service.tags?.join(", ") || "None"}</p>
+              <div className={styles.detailCard}>
+                <span className={styles.detailLabel}>Category</span>
+                <span className={styles.detailValue}>{serviceTypes.find(t => t.value === service.category)?.label || "N/A"}</span>
+              </div>
+              <div className={styles.detailCard}>
+                <span className={styles.detailLabel}>Location</span>
+                <span className={styles.detailValue}>{locationText || "Not specified"}</span>
+              </div>
+              <div className={styles.detailCard}>
+                <span className={styles.detailLabel}>Geo Coordinates</span>
+                <span className={styles.detailValue}>{service.geo_point?.lat != null ? service.geo_point.lat : "N/A"},
+                  {service.geo_point?.lon != null ? service.geo_point.lon : "N/A"}</span>
+              </div>
+              <div className={styles.detailCard}>
+                <span className={styles.detailLabel}>Tags</span>
+                <span className={styles.detailValue}>{service.tags?.join(", ") || "None"}</span>
+              </div>
             </div>
 
             {/* Pricing */}
@@ -235,8 +363,14 @@ const VendorServiceDetailsModal = ({ isOpen, onClose, service }) => {
               <h3 className={styles.sectionTitle}>
                 <DollarSign className={styles.sectionIcon} /> Pricing
               </h3>
-              <p><span className={styles.label}>Base Price:</span> ₹{service.base_price || "N/A"}</p>
-              <p><span className={styles.label}>Pricing Type:</span> {pricingTypes.find(t => t.value === service.pricing_type)?.label || "N/A"}</p>
+              <div className={styles.detailCard}>
+                <span className={styles.detailLabel}>Base Price</span>
+                <span className={styles.detailValue}>₹{service.base_price || "N/A"}</span>
+              </div>
+              <div className={styles.detailCard}>
+                <span className={styles.detailLabel}>Pricing Type</span>
+                <span className={styles.detailValue}>{pricingTypes.find(t => t.value === service.pricing_type)?.label || "N/A"}</span>
+              </div>
             </div>
 
             {/* Specific Details */}
@@ -253,11 +387,13 @@ const VendorServiceDetailsModal = ({ isOpen, onClose, service }) => {
                 <h3 className={styles.sectionTitle}>
                   <ImageIcon className={styles.sectionIcon} /> Amenities
                 </h3>
-                <ul className={styles.amenities}>
+                <div className={styles.amenitiesGrid}>
                   {service.amenities.map((amenity, idx) => (
-                    <li key={idx}>{amenity}</li>
+                    <div key={idx} className={styles.amenityCard}>
+                      {amenity}
+                    </div>
                   ))}
-                </ul>
+                </div>
               </div>
             )}
           </div>

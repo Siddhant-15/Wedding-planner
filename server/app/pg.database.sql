@@ -367,3 +367,14 @@ CREATE INDEX IF NOT EXISTS idx_variants_amenities_gin ON service_variants USING 
 ALTER TABLE services SET (autovacuum_vacuum_scale_factor = 0.1);
 ALTER TABLE reviews SET (autovacuum_vacuum_scale_factor = 0.1);
 
+
+INSERT INTO roles (name)
+VALUES 
+    ('admin'),
+    ('customer'),
+    ('vendor');
+
+ALTER TABLE vendors
+ADD COLUMN website TEXT;
+
+select * from vendors

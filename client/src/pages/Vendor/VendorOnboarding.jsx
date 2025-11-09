@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import styles from "../../styles/VendorOnboarding.module.css";
 import { CheckCircle, Briefcase, MapPin, UserCog, ClipboardCheck } from "lucide-react";
 import logo from "../../assets/logo.png";
-import { vendorAPI } from "../../services/api";
+import { vendorAPI } from "../../utils/api"
 import { useNavigate } from "react-router-dom";
 import { showSuccess, showError } from "../../utils/toast";
 

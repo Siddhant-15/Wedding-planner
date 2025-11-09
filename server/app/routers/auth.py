@@ -37,6 +37,7 @@ class ResetPasswordIn(BaseModel):
 # -------------------- SIGNUP (CUSTOMER/VENDOR) --------------------
 def _signup(user_in, role_name: str, db: Session):
     # Pre-checks
+    print("1")
     user = db.query(User).filter(User.email == user_in.email).first()
     role = _get_role(db, role_name)
 

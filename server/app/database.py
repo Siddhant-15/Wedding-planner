@@ -6,7 +6,7 @@ from sqlalchemy.orm import sessionmaker, DeclarativeBase
 # postgresql+psycopg2://postgres:postgres@localhost:5432/weddingdb
 DATABASE_URL = os.getenv(
     "DATABASE_URL",
-    "postgresql+psycopg2://myuser:siddhant@localhost:5432/Mangalam",
+    "postgresql+psycopg2://siddhantjanbandhu:siddhant@localhost:5432/Weddingplanner",
 )
 
 engine = create_engine(DATABASE_URL, pool_pre_ping=True, future=True)
@@ -18,6 +18,7 @@ class Base(DeclarativeBase):
 
 # Dependency for routers (when you add them)
 def get_db():
+    print("db")
     db = SessionLocal()
     try:
         yield db

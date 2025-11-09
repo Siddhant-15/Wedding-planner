@@ -30,6 +30,7 @@ import Wishlist from "./pages/Wishlist";
 import Cart from "./pages/Cart";
 import Lottie from "lottie-react";
 import loadingAnimation from "@/assets/animations/loading.json";
+import ServiceDetail from "./pages/services/ServiceDetail";
 
 const queryClient = new QueryClient();
 
@@ -134,6 +135,7 @@ function RoleBasedRoutes() {
       <Route path="/services/event-management" element={<EventManagement />} />
       <Route path="/services/catering" element={<Catering />} />
       <Route path="/services/photography" element={<Photography />} />
+      <Route path="/service/:id" element={<ServiceDetail/>} />
       <Route path="/my-bookings" element={<MyBookings />} />
       <Route path="/wishlist" element={<Wishlist/>}/>
       <Route path="/cart" element={<Cart/>}/>

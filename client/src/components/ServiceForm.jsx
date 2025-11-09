@@ -114,7 +114,8 @@ const ServiceFormModal = ({ isOpen, onClose, onSubmit, initialData }) => {
   });
   const [newTag, setNewTag] = useState("");
   const [newAmenity, setNewAmenity] = useState("");
-  const [newListItem, setNewListItem] = useState("");
+  const [newGenre, setNewGenre] = useState("");
+  const [newEquipment, setNewEquipment] = useState("");
   const [existingImages, setExistingImages] = useState([]);
   const [newImages, setNewImages] = useState([]);
   const [previewUrls, setPreviewUrls] = useState([]);
@@ -269,13 +270,13 @@ const ServiceFormModal = ({ isOpen, onClose, onSubmit, initialData }) => {
     }));
   };
 
-  const handleAddListItem = (field) => {
-    if (newListItem.trim() && !formData[field].includes(newListItem.trim())) {
+  const handleAddListItem = (field, value, setValue) => {
+    if (value.trim() && !formData[field].includes(value.trim())) {
       setFormData((prev) => ({
         ...prev,
-        [field]: [...prev[field], newListItem.trim()],
+        [field]: [...prev[field], value.trim()],
       }));
-      setNewListItem("");
+      setValue(""); // Clear input
     }
   };
 
@@ -1057,18 +1058,19 @@ const ServiceFormModal = ({ isOpen, onClose, onSubmit, initialData }) => {
       case "dj":
         return (
           <div className={styles.stepContent}>
+            {/* GENRES */}
             <div className={styles.fieldGroup}>
               <label className={styles.label}>Genres Supported</label>
               <div className={styles.listInputRow}>
                 <input
                   type="text"
-                  value={newListItem}
-                  onChange={(e) => setNewListItem(e.target.value)}
+                  value={newGenre}
+                  onChange={(e) => setNewGenre(e.target.value)}
                   placeholder="Add genre"
                   className={styles.input}
-                  onKeyPress={(e) => e.key === "Enter" && (e.preventDefault(), handleAddListItem("genres_supported"))}
+                  onKeyPress={(e) => e.key === "Enter" && (e.preventDefault(), handleAddListItem("genres_supported", newGenre, setNewGenre))}
                 />
-                <button type="button" onClick={() => handleAddListItem("genres_supported")} className={styles.addBtn}>
+                <button type="button" onClick={() => handleAddListItem("genres_supported", newGenre, setNewGenre)} className={styles.addBtn}>
                   Add
                 </button>
               </div>
@@ -1083,6 +1085,8 @@ const ServiceFormModal = ({ isOpen, onClose, onSubmit, initialData }) => {
                 ))}
               </div>
             </div>
+
+            {/* DURATION */}
             <div className={styles.fieldGroup}>
               <label className={styles.label}>Duration Hours</label>
               <input
@@ -1095,18 +1099,20 @@ const ServiceFormModal = ({ isOpen, onClose, onSubmit, initialData }) => {
                 step="any"
               />
             </div>
+
+            {/* EQUIPMENT */}
             <div className={styles.fieldGroup}>
               <label className={styles.label}>Equipment</label>
               <div className={styles.listInputRow}>
                 <input
                   type="text"
-                  value={newListItem}
-                  onChange={(e) => setNewListItem(e.target.value)}
+                  value={newEquipment}
+                  onChange={(e) => setNewEquipment(e.target.value)}
                   placeholder="Add equipment"
                   className={styles.input}
-                  onKeyPress={(e) => e.key === "Enter" && (e.preventDefault(), handleAddListItem("equipment"))}
+                  onKeyPress={(e) => e.key === "Enter" && (e.preventDefault(), handleAddListItem("equipment", newEquipment, setNewEquipment))}
                 />
-                <button type="button" onClick={() => handleAddListItem("equipment")} className={styles.addBtn}>
+                <button type="button" onClick={() => handleAddListItem("equipment", newEquipment, setNewEquipment)} className={styles.addBtn}>
                   Add
                 </button>
               </div>
@@ -1121,6 +1127,8 @@ const ServiceFormModal = ({ isOpen, onClose, onSubmit, initialData }) => {
                 ))}
               </div>
             </div>
+
+            {/* CHECKBOXES */}
             <div className={styles.checkboxGroup}>
               <label>
                 <input
@@ -1139,6 +1147,7 @@ const ServiceFormModal = ({ isOpen, onClose, onSubmit, initialData }) => {
                 MC/Host Available
               </label>
             </div>
+
             <div className={styles.fieldGroup}>
               <label className={styles.label}>Setup Time Required (hours)</label>
               <input

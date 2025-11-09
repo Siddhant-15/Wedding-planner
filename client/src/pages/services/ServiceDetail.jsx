@@ -1,306 +1,326 @@
-import React, { useState, useEffect } from "react";
+import {useAuth} from "../../context/AuthContext";
+import { useCart } from "../../context/CartContext";
+import {useWishlist} from "../../context/WishlistContext"
+import Navbar from "../../components/Navbar.jsx"
+// src/pages/services/ServiceDetail.jsx
+import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { 
-  ArrowLeft, 
-  Star, 
-  MapPin, 
-  Users, 
-  Clock, 
-  CheckCircle, 
-  Heart, 
-  ShoppingCart,
-  Phone,
-  Mail
+import {
+  ArrowLeft, Star, MapPin, Users, Heart, ShoppingCart, Phone, Mail,
+  ChevronLeft, ChevronRight, Home, Send, MessageSquare, Map,
+  CheckCircle, XCircle, Wine, Shield, Car
 } from "lucide-react";
-import { useWishlist } from "@/context/WishlistContext";
-import { useCart } from "@/context/CartContext";
-import { toast } from "@/hooks/use-toast";
-import styles from "../styles/ServiceDetail.module.css";
+import { GoogleMap, LoadScript, Marker } from "@react-google-maps/api";
+import { CustomerServiceAPI } from "@/utils/api";
+import { showSuccess, showInfo, showError } from "@/utils/toast";
+import styles from "../../styles/ServiceDetail.module.css";
 
-// Mock service data - replace with your actual API
-const mockService = {
-  id: "1",
-  name: "Royal Palace Wedding Venue",
-  description: "Experience the grandeur of royalty at our magnificent wedding venue. With stunning architecture, lush gardens, and world-class amenities, we provide the perfect backdrop for your special day.",
-  longDescription: "Our Royal Palace Wedding Venue is a testament to timeless elegance and sophistication. Spread across 5 acres of beautifully landscaped grounds, the venue features multiple event spaces including a grand ballroom, outdoor pavilion, and intimate ceremony gardens. Every detail has been carefully crafted to ensure your wedding day is nothing short of magical.",
-  price: 500000,
-  images: [
-    "/placeholder.svg",
-    "/placeholder.svg", 
-    "/placeholder.svg",
-    "/placeholder.svg"
-  ],
-  rating: 4.8,
-  reviewCount: 127,
-  city: "Mumbai",
-  state: "Maharashtra",
-  capacity: 500,
-  vendor: {
-    name: "Luxe Events",
-    rating: 4.9,
-    experience: "15+ years",
-    phone: "+91 98765 43210",
-    email: "contact@luxeevents.com",
-    description: "Leading wedding planners with over 15 years of experience in creating memorable celebrations."
-  },
-  service_type: "Wedding Venue",
-  amenities: [
-    "Air Conditioning",
-    "Parking Space",
-    "Catering Kitchen",
-    "Sound System",
-    "Lighting Setup",
-    "Bridal Room",
-    "Security",
-    "Valet Parking"
-  ],
-  availability: "Available",
-  bookingPolicy: "Advance booking required with 25% token amount",
-  cancellationPolicy: "Cancellation allowed up to 30 days before event",
-  features: [
-    "Grand Ballroom (300 guests)",
-    "Outdoor Garden (200 guests)", 
-    "VIP Lounge",
-    "Professional Photography Areas",
-    "Dedicated Event Coordinator"
-  ]
-};
+/* ────────────────────── SAFE HELPERS ────────────────────── */
+const safe = (v, fb = "Not specified") => (v != null ? String(v) : fb);
+const safeJoin = (arr, sep = " • ") => Array.isArray(arr) && arr.length ? arr.join(sep) : "Not specified";
+const safeReplace = (s, a, b) => s ? s.replace(a, b) : "Not specified";
+const formatPrice = p => p ? `₹${(p / 100000).toFixed(1)}L` : "Price on request";
 
+/* ────────────────────── COMPONENT ────────────────────── */
 export default function ServiceDetail() {
   const { id } = useParams();
-  const [service, setService] = useState(mockService);
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [loading, setLoading] = useState(false);
-  const [quantity, setQuantity] = useState(1);
-  
+  const [service, setService] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [imgIdx, setImgIdx] = useState(0);
+  const [form, setForm] = useState({ name: "", phone: "", message: "" });
+  const [sending, setSending] = useState(false);
+
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
   const { addToCart } = useCart();
-  
-  const inWishlist = isInWishlist(service?.id || "");
+  const { isAuthenticated } = useAuth();
+  const inWish = isInWishlist(id);
 
-  const handleImageChange = (index) => {
-    setCurrentImageIndex(index);
-  };
+  /* ───── FETCH SERVICE ───── */
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await CustomerServiceAPI.getDetail(id);
+        setService(res);
+      } catch (e) { console.error(e); }
+      finally { setLoading(false); }
+    })();
+  }, [id]);
 
-  const handleWishlistToggle = () => {
-    if (inWishlist) {
-      removeFromWishlist(service.id);
-      toast({
-        title: "Removed from wishlist",
-        description: `${service.name} has been removed from your wishlist.`,
-      });
-    } else {
+  /* ───── ACTIONS ───── */
+  const toggleWish = () => {
+    if (!isAuthenticated) return showInfo("Login required", "Wishlist");
+    if (inWish) { removeFromWishlist(id); showSuccess("Removed from wishlist"); }
+    else {
       addToWishlist({
         id: service.id,
         name: service.name,
         price: service.price,
-        image: service.images[0],
-        vendorName: service.vendor.name,
+        image: service.images?.[0],
+        vendorName: service.vendor?.name,
         serviceType: service.service_type,
         rating: service.rating,
         city: service.city,
-        state: service.state
+        state: service.state,
       });
-      toast({
-        title: "Added to wishlist",
-        description: `${service.name} has been added to your wishlist.`,
-      });
+      showSuccess("Added to wishlist");
     }
   };
 
-  const handleAddToCart = () => {
+  const addCart = () => {
+    if (!isAuthenticated) return showInfo("Login required", "Cart");
     addToCart({
       id: service.id,
       name: service.name,
       price: service.price,
-      image: service.images[0],
-      vendorName: service.vendor.name,
-      serviceType: service.service_type
+      image: service.images?.[0],
+      vendorName: service.vendor?.name,
+      serviceType: service.service_type,
     });
-    
-    toast({
-      title: "Added to cart",
-      description: `${service.name} has been added to your cart.`,
-    });
+    showSuccess("Added to cart");
   };
 
-  if (loading) {
-    return (
-      <div className={styles.container}>
-        <div className={styles.loading}>Loading service details...</div>
-      </div>
-    );
-  }
+  const nextImg = () => setImgIdx(i => (i + 1) % (service.images?.length || 1));
+  const prevImg = () => setImgIdx(i => (i - 1 + (service.images?.length || 1)) % (service.images?.length || 1));
 
-  if (!service) {
-    return (
-      <div className={styles.container}>
-        <div className={styles.notFound}>
-          <h2>Service not found</h2>
-          <Link to="/" className={styles.backLink}>Go back to home</Link>
-        </div>
-      </div>
-    );
-  }
+  const sendMessage = async (e) => {
+    e.preventDefault();
+    if (!form.name || !form.phone || !form.message) return showError("All fields required");
+    setSending(true);
+    try {
+      // Replace with your actual API
+      await CustomerServiceAPI.sendEnquiry(id, form);
+      showSuccess("Message sent! Vendor will contact you soon.");
+      setForm({ name: "", phone: "", message: "" });
+    } catch (err) {
+      showError("Failed to send message. Try again.");
+    } finally {
+      setSending(false);
+    }
+  };
+
+  /* ───── RENDER ───── */
+  if (loading) return <div className={styles.loading}><div className={styles.spinner}></div><p>Loading…</p></div>;
+  if (!service) return <div className={styles.notFound}>Service not found</div>;
+
+  const { venue } = service;
+  const imgs = service.images || [];
+  // const mapCenter = service.lat && service.lng ? { lat: service.lat, lng: service.lng } : null;
+  const mapCenter = {lat: 90, lng:90}
 
   return (
     <div className={styles.container}>
-      <div className={styles.header}>
-        <Link to="/" className={styles.backButton}>
-          <ArrowLeft size={20} />
-          Back to Services
-        </Link>
+      <Navbar/>
+      {/* Back */}
+      <Link to="/" className={styles.backBtn}>
+        <ArrowLeft size={20} /> Back to Services
+      </Link>
+
+      {/* Main Grid */}
+      <div className={styles.grid}>
+        {/* Image Gallery */}
+        <div className={styles.imageSection}>
+          <div className={styles.mainImgWrap}>
+            <img src={imgs[imgIdx] || "/placeholder.jpg"} alt={service.name} className={styles.mainImg} />
+            {imgs.length > 1 && (
+              <>
+                <button onClick={prevImg} className={`${styles.navBtn} ${styles.prevBtn}`}><ChevronLeft /></button>
+                <button onClick={nextImg} className={`${styles.navBtn} ${styles.nextBtn}`}><ChevronRight /></button>
+              </>
+            )}
+          </div>
+
+          {imgs.length > 1 && (
+            <div className={styles.thumbs}>
+              {imgs.map((src, i) => (
+                <button key={i} onClick={() => setImgIdx(i)} className={`${styles.thumb} ${i === imgIdx ? styles.activeThumb : ""}`}>
+                  <img src={src} alt={`thumb ${i + 1}`} />
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Info */}
+        <div className={styles.infoSection}>
+          <div className={styles.header}>
+            <div className={styles.catBadge}>
+              <Home size={14} />
+              <span>{safeReplace(service.service_type, /_/g, " ").replace(/\b\w/g, l => l.toUpperCase())}</span>
+            </div>
+            <h1 className={styles.title}>{service.name}</h1>
+            <p className={styles.vendor}>by <strong>{service.vendor?.name || "N/A"}</strong></p>
+          </div>
+
+          <div className={styles.meta}>
+            <div className={styles.rating}>
+              <Star size={18} fill="currentColor" />
+              <span>{safe(service.rating?.toFixed(1), "N/A")}</span>
+              <span className={styles.reviewCount}>({service.review_count || 0} reviews)</span>
+            </div>
+            <div className={styles.location}>
+              <MapPin size={18} /> {service.city}, {service.state}
+            </div>
+          </div>
+
+          <p className={styles.desc}>{service.description}</p>
+
+          <div className={styles.price}>
+            {formatPrice(service.price)}
+          </div>
+
+          <div className={styles.actions}>
+            <button onClick={toggleWish} className={`${styles.wishBtn} ${inWish ? styles.active : ""}`}>
+              <Heart size={20} fill={inWish ? "currentColor" : "none"} />
+              {inWish ? "Wishlisted" : "Wishlist"}
+            </button>
+            <button onClick={addCart} className={styles.cartBtn}>
+              <ShoppingCart size={20} /> Add to Cart
+            </button>
+          </div>
+
+          {/* Vendor Card */}
+          <div className={styles.vendorCard}>
+            <h3>Vendor Details</h3>
+            <p><strong>{service.vendor?.name}</strong></p>
+            <p className={styles.vendorDesc}>{service.vendor?.description}</p>
+            {service.vendor?.experience != null && (
+              <p className={styles.exp}><strong>{service.vendor.experience}</strong> years of excellence</p>
+            )}
+            <div className={styles.contact}>
+              {service.vendor?.phone && (
+                <a href={`tel:${service.vendor.phone}`} className={styles.contactBtn}>
+                  <Phone size={16} /> Call
+                </a>
+              )}
+              {service.vendor?.email && (
+                <a href={`mailto:${service.vendor.email}`} className={styles.contactBtn}>
+                  <Mail size={16} /> Email
+                </a>
+              )}
+            </div>
+          </div>
+
+          {/* Address */}
+          <div className={styles.addressCard}>
+            <h3><MapPin size={18} className={styles.icon} /> Full Address</h3>
+            <p>{service.address_line1}</p>
+            {service.address_line2 && <p>{service.address_line2}</p>}
+            <p>{service.city}, {service.state} – {service.pincode}</p>
+          </div>
+        </div>
       </div>
 
-      <div className={styles.content}>
-        <div className={styles.imageSection}>
-          <div className={styles.mainImage}>
-            <img 
-              src={service.images[currentImageIndex]} 
-              alt={service.name}
-              className={styles.image}
-            />
+      {/* Venue Specs */}
+      {service.service_type === "venue" && venue && (
+        <div className={styles.venueCard}>
+          <h3><Home className={styles.icon} /> Venue Specifications</h3>
+          <div className={styles.specGrid}>
+            <div><strong>Capacity</strong><br />{venue.capacity_min} – {venue.capacity_max} guests</div>
+            <div><strong>Type</strong><br />{safeReplace(venue.hall_type, /_/g, " ").replace(/\b\w/g, l => l.toUpperCase())}</div>
+            <div><strong>Indoor/Outdoor</strong><br />{safe(venue.indoor_outdoor)?.charAt(0).toUpperCase() + safe(venue.indoor_outdoor)?.slice(1)}</div>
+            <div><strong>Area</strong><br />{safe(venue.square_feet)} sq ft</div>
+            <div><strong>Parking</strong><br />{safe(venue.parking_capacity)} cars</div>
+
+            <div>
+              <strong>Decoration</strong><br />
+              {venue.decoration_policy === "allowed" ? <><CheckCircle className={styles.check} /> Allowed</> :
+               venue.decoration_policy === "in_house_only" ? <><Shield className={styles.check} /> In‑house only</> : "N/A"}
+            </div>
+
+            <div>
+              <strong>Catering</strong><br />
+              {venue.catering_policy === "allowed" ? <><CheckCircle className={styles.check} /> Allowed</> :
+               venue.catering_policy === "in_house_only" ? <><Shield className={styles.check} /> In‑house only</> : "N/A"}
+            </div>
+
+            <div>
+              <strong>Alcohol</strong><br />
+              {venue.alcohol_policy === "allowed" ? <><Wine className={styles.check} /> Allowed</> :
+               venue.alcohol_policy === "not_allowed" ? <><XCircle className={styles.cross} /> Not Allowed</> : "N/A"}
+            </div>
           </div>
-          <div className={styles.thumbnails}>
-            {service.images.map((image, index) => (
-              <button
-                key={index}
-                className={`${styles.thumbnail} ${index === currentImageIndex ? styles.active : ''}`}
-                onClick={() => handleImageChange(index)}
+        </div>
+      )}
+
+      {/* Map */}
+      {mapCenter && (
+        <div className={styles.mapSection}>
+          <h3><Map size={20} className={styles.icon} /> Location on Map</h3>
+          <div className={styles.mapContainer}>
+            <LoadScript googleMapsApiKey={import.meta.env.REACT_APP_GOOGLE_MAPS_KEY}>
+              <GoogleMap
+                mapContainerStyle={{ width: "100%", height: "100%" }}
+                center={mapCenter}
+                zoom={15}
+                options={{
+                  disableDefaultUI: false,
+                  zoomControl: true,
+                  streetViewControl: false,
+                  fullscreenControl: false,
+                }}
               >
-                <img src={image} alt={`View ${index + 1}`} />
-              </button>
+                <Marker position={mapCenter} />
+              </GoogleMap>
+            </LoadScript>
+          </div>
+        </div>
+      )}
+
+      {/* Get in Touch */}
+      <div className={styles.contactFormCard}>
+        <h3><MessageSquare className={styles.icon} /> Get in Touch</h3>
+        <p className={styles.formSubtitle}>Fill the form below and the vendor will contact you within 24 hours.</p>
+        <form onSubmit={sendMessage} className={styles.contactForm}>
+          <input
+            type="text"
+            placeholder="Your Name *"
+            value={form.name}
+            onChange={e => setForm({ ...form, name: e.target.value })}
+            required
+          />
+          <input
+            type="tel"
+            placeholder="Phone Number *"
+            value={form.phone}
+            onChange={e => setForm({ ...form, phone: e.target.value })}
+            required
+          />
+          <textarea
+            placeholder="Your Message *"
+            rows={4}
+            value={form.message}
+            onChange={e => setForm({ ...form, message: e.target.value })}
+            required
+          />
+          <button type="submit" disabled={sending} className={styles.sendBtn}>
+            {sending ? "Sending..." : <>Send Message <Send size={18} /></>}
+          </button>
+        </form>
+      </div>
+
+      {/* Amenities */}
+      {service.amenities?.length > 0 && (
+        <div className={styles.amenitiesCard}>
+          <h3>Amenities & Inclusions</h3>
+          <ul className={styles.amenitiesList}>
+            {service.amenities.map((a, i) => (
+              <li key={i}><CheckCircle size={16} className={styles.check} /> {a}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* Tags */}
+      {service.tags?.length > 0 && (
+        <div className={styles.tagsCard}>
+          <h3>Popular Tags</h3>
+          <div className={styles.tagsRow}>
+            {service.tags.map((t, i) => (
+              <span key={i} className={styles.tag}># {t.replace("#", "")}</span>
             ))}
           </div>
         </div>
-
-        <div className={styles.details}>
-          <div className={styles.mainDetails}>
-            <h1 className={styles.title}>{service.name}</h1>
-            <p className={styles.vendorName}>by {service.vendor.name}</p>
-            
-            <div className={styles.ratingLocation}>
-              <div className={styles.rating}>
-                <Star size={16} fill="currentColor" />
-                <span>{service.rating}</span>
-                <span className={styles.reviewCount}>({service.reviewCount} reviews)</span>
-              </div>
-              <div className={styles.location}>
-                <MapPin size={16} />
-                <span>{service.city}, {service.state}</span>
-              </div>
-            </div>
-
-            <div className={styles.keyInfo}>
-              <div className={styles.infoItem}>
-                <Users size={16} />
-                <span>Up to {service.capacity} guests</span>
-              </div>
-              <div className={styles.infoItem}>
-                <Clock size={16} />
-                <span>{service.availability}</span>
-              </div>
-            </div>
-
-            <p className={styles.description}>{service.description}</p>
-
-            <div className={styles.price}>
-              ₹{(service.price / 100000).toFixed(1)}L
-              <span className={styles.priceNote}>Starting price</span>
-            </div>
-
-            <div className={styles.actions}>
-              <button 
-                className={`${styles.wishlistBtn} ${inWishlist ? styles.active : ''}`}
-                onClick={handleWishlistToggle}
-              >
-                <Heart size={18} fill={inWishlist ? "currentColor" : "none"} />
-                {inWishlist ? "Wishlisted" : "Add to Wishlist"}
-              </button>
-              <button 
-                className={styles.cartBtn}
-                onClick={handleAddToCart}
-              >
-                <ShoppingCart size={18} />
-                Add to Cart
-              </button>
-            </div>
-          </div>
-
-          <div className={styles.vendorCard}>
-            <h3>Vendor Information</h3>
-            <div className={styles.vendorInfo}>
-              <h4>{service.vendor.name}</h4>
-              <div className={styles.vendorRating}>
-                <Star size={14} fill="currentColor" />
-                <span>{service.vendor.rating}</span>
-              </div>
-              <p>{service.vendor.experience} experience</p>
-              <p className={styles.vendorDesc}>{service.vendor.description}</p>
-              
-              <div className={styles.vendorContact}>
-                <a href={`tel:${service.vendor.phone}`} className={styles.contactBtn}>
-                  <Phone size={16} />
-                  Call Now
-                </a>
-                <a href={`mailto:${service.vendor.email}`} className={styles.contactBtn}>
-                  <Mail size={16} />
-                  Email
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className={styles.additionalInfo}>
-        <div className={styles.section}>
-          <h3>About This Service</h3>
-          <p>{service.longDescription}</p>
-        </div>
-
-        <div className={styles.section}>
-          <h3>Features & Amenities</h3>
-          <div className={styles.grid}>
-            <div>
-              <h4>Key Features</h4>
-              <ul className={styles.featureList}>
-                {service.features.map((feature, index) => (
-                  <li key={index}>
-                    <CheckCircle size={16} />
-                    {feature}
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div>
-              <h4>Amenities</h4>
-              <ul className={styles.featureList}>
-                {service.amenities.map((amenity, index) => (
-                  <li key={index}>
-                    <CheckCircle size={16} />
-                    {amenity}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        </div>
-
-        <div className={styles.section}>
-          <h3>Booking & Policies</h3>
-          <div className={styles.policies}>
-            <div className={styles.policy}>
-              <h4>Booking Policy</h4>
-              <p>{service.bookingPolicy}</p>
-            </div>
-            <div className={styles.policy}>
-              <h4>Cancellation Policy</h4>
-              <p>{service.cancellationPolicy}</p>
-            </div>
-          </div>
-        </div>
-      </div>
+      )}
     </div>
   );
 }

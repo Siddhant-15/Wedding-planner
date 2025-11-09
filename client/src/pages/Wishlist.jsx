@@ -5,6 +5,7 @@ import { useWishlist } from "@/context/WishlistContext";
 import { useCart } from "@/context/CartContext";
 import { showSuccess, showInfo } from "../utils/toast"
 import styles from "../styles/Wishlist.module.css"
+import Navbar from "../components/Navbar.jsx"
 
 export default function Wishlist() {
   const { items, removeFromWishlist, clearWishlist } = useWishlist();
@@ -52,6 +53,7 @@ export default function Wishlist() {
 
   return (
     <div className={styles.container}>
+      <Navbar/>
       <div className={styles.header}>
         <h1 className={styles.title}>
           <Heart size={28} />

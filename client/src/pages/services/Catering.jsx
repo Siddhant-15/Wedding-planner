@@ -3,7 +3,7 @@ import ServicesPage from "./ServicePage";
 export default function Catering() {
   return (
     <ServicesPage
-      serviceType="Catering"
+      serviceType="catering"
       title="Catering Services"
       subtitle="Delicious catering for your special day"
     />
