@@ -1,13 +1,21 @@
 import uuid
 from sqlalchemy import (
     Column, String, Boolean, ForeignKey, Integer, Text, SmallInteger,
-    DateTime, Enum, Numeric, Index, JSON, Date, UniqueConstraint
+    DateTime, Enum, Numeric, Index, JSON, Date, UniqueConstraint, Computed
 )
-from sqlalchemy.dialects.postgresql import UUID, JSONB
+from sqlalchemy import Enum as SAEnum
+from decimal import Decimal
+from datetime import datetime
+from sqlalchemy import text
+from sqlalchemy.orm import relationship, mapped_column, Mapped
 from sqlalchemy.sql import func
-from sqlalchemy.orm import relationship
 from app.database import Base
 from enum import Enum as PyEnum
+from typing import List
+from sqlalchemy.dialects.postgresql import UUID, JSONB, TIMESTAMP
+
+from sqlalchemy.orm import configure_mappers
+configure_mappers()
 
 # ======================
 # ENUMS
@@ -105,6 +113,28 @@ class EnquiryStatus(str, PyEnum):
     closed = "closed"
     spam = "spam"
 
+class OrderStatus(str, PyEnum):
+    pending = "pending"
+    confirmed = "confirmed"
+    processing = "processing"
+    completed = "completed"
+    canceled = "canceled"
+
+
+class OrderPaymentStatus(str, PyEnum):
+    pending = "pending"
+    paid = "paid"
+    partially_paid = "partially_paid"
+    refunded = "refunded"
+
+
+# class PaymentProviderStatus(str, Enum):
+#     created = "created"
+#     attempted = "attempted"
+#     paid = "paid"
+#     failed = "failed"
+#     refunded = "refunded"
+
 # ======================
 # USERS / ROLES
 # ======================
@@ -118,17 +148,27 @@ class User(Base):
     first_name = Column(String(150), nullable=False)
     last_name = Column(String(150), nullable=False)
     hashed_password = Column(Text, nullable=False)
+    avatar = Column(Text, nullable=True)
+    location = Column(Text, nullable=True)
+    is_verified = Column(Boolean, default=False, nullable=False)
     is_active = Column(Boolean, default=True, nullable=False, index=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
 
     # relationships
     roles = relationship("UserRole", back_populates="user")
-    bookings = relationship("Booking", back_populates="user")
+    # bookings = relationship("Booking", back_populates="user")
     enquiries = relationship("Enquiry", back_populates="user")
     reviews = relationship("Review", back_populates="user")
     customer_profile = relationship("Customer", uselist=False, back_populates="user")
     vendor_profile = relationship("Vendor", uselist=False, back_populates="user")
+    wishlist_items = relationship("WishlistItem", back_populates="user")
+    # orders: Mapped[List["Order"]] = relationship(
+    #     "Order",
+    #     back_populates="user",
+    #     lazy="selectin",  # best for performance
+    # )
+
 
 
 class Role(Base):
@@ -202,7 +242,7 @@ class Vendor(Base):
     user = relationship("User", back_populates="vendor_profile")
     services = relationship("Service", back_populates="vendor", cascade="all, delete-orphan")
     enquiries = relationship("Enquiry", back_populates="vendor")
-    bookings = relationship("Booking", back_populates="vendor")
+    # bookings = relationship("Booking", back_populates="vendor")
 
 
 # ======================
@@ -245,7 +285,7 @@ class Service(Base):
 
     # relationships
     vendor = relationship("Vendor", back_populates="services")
-    bookings = relationship("Booking", back_populates="service")
+    # bookings = relationship("Booking", back_populates="service")
     enquiries = relationship("Enquiry", back_populates="service")
     reviews = relationship("Review", back_populates="service")
     rating_summary = relationship("ServiceRatingSummary", uselist=False, back_populates="service")
@@ -257,6 +297,7 @@ class Service(Base):
     dj_service = relationship("DJService", uselist=False, back_populates="service")
     photographer_service = relationship("PhotographerService", uselist=False, back_populates="service")
     event_management_service = relationship("EventManagementService", uselist=False, back_populates="service")
+    wishlist_items = relationship("WishlistItem", back_populates="service")
 
 
 # ======================
@@ -273,15 +314,15 @@ class ServiceVariant(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     service_id = Column(UUID(as_uuid=True), ForeignKey("services.id", ondelete="CASCADE"), index=True)
     name = Column(String(150), nullable=False)
-    description = Column(Text)
+    # description = Column(Text)
     price = Column(Numeric(12, 2), nullable=False)
-    currency = Column(String(10), default="INR")
-    pricing_type = Column(Enum(PricingType))
+    # currency = Column(String(10), default="INR")
+    # pricing_type = Column(Enum(PricingType))
     images = Column(JSONB, default=list)
     amenities = Column(JSONB, default=list)
     is_active = Column(Boolean, default=True, index=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+    # updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
     service = relationship("Service", back_populates="variants")
     
@@ -369,54 +410,224 @@ class ServiceExtra(Base):
 
 
 # ======================
+# WISHLIST
+# ======================
+
+class WishlistItem(Base):
+    __tablename__ = "wishlist_items"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    service_id = Column(UUID(as_uuid=True), ForeignKey("services.id", ondelete="CASCADE"), nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+    # Relationships (optional, for eager loading)
+    service = relationship("Service", back_populates="wishlist_items")
+    user = relationship("User", back_populates="wishlist_items")
+
+
+
+# class Order(Base):
+#     __tablename__ = "orders"
+
+#     id: Mapped[uuid.UUID] = mapped_column(
+#         UUID(as_uuid=True), primary_key=True, server_default=func.gen_random_uuid()
+#     )
+#     user_id: Mapped[uuid.UUID] = mapped_column(
+#         ForeignKey("users.id", ondelete="SET NULL"), nullable=False
+#     )
+
+#     subtotal: Mapped[Decimal] = mapped_column(Numeric(12, 2), nullable=False, default=text("0.00"))
+#     tax_amount: Mapped[Decimal] = mapped_column(Numeric(12, 2), default=Decimal("0.00"))
+#     platform_fee: Mapped[Decimal] = mapped_column(Numeric(12, 2), default=Decimal("0.00"))
+#     total_amount: Mapped[Decimal] = mapped_column(Numeric(12, 2), nullable=False, default=text("0.00"))
+
+#     currency: Mapped[str] = mapped_column(String(10), server_default=text("'INR'"))
+
+#     status: Mapped[OrderStatus] = mapped_column(
+#         Enum(OrderStatus, name="order_status_t"),  # Pass the Enum class here
+#         nullable=False,
+#         server_default=OrderStatus.pending.value,
+#     )
+
+#     payment_status: Mapped[OrderPaymentStatus] = mapped_column(
+#         Enum(OrderPaymentStatus, name="order_payment_status_t"),
+#         nullable=False,
+#         server_default=OrderPaymentStatus.pending.value,
+#     )
+
+#     invoice_number: Mapped[str | None] = mapped_column(Text, unique=True, nullable=True)
+
+#     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+#     updated_at: Mapped[datetime] = mapped_column(
+#         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+#     )
+
+#     # Relationships
+#     user: Mapped["User"] = relationship("User", back_populates="orders")
+#     items: Mapped[list["OrderItem"]] = relationship(
+#         "OrderItem", back_populates="order", cascade="all, delete-orphan", lazy="joined"
+#     )
+#     payments: Mapped[list["OrderPayment"]] = relationship(
+#         "OrderPayment", back_populates="order", lazy="joined"
+#     )
+#     status_logs: Mapped[list["OrderStatusLog"]] = relationship(
+#         "OrderStatusLog", back_populates="order"
+#     )
+
+#     __table_args__ = (
+#         Index("idx_orders_user", "user_id"),
+#         Index("idx_orders_status", "status"),
+#     )
+
+
+# class OrderItem(Base):
+#     __tablename__ = "order_items"
+
+#     id: Mapped[uuid.UUID] = mapped_column(
+#         UUID(as_uuid=True), primary_key=True, server_default=func.gen_random_uuid()
+#     )
+#     order_id: Mapped[uuid.UUID] = mapped_column(
+#         ForeignKey("orders.id", ondelete="CASCADE"), nullable=False
+#     )
+#     service_id: Mapped[uuid.UUID | None] = mapped_column(
+#         ForeignKey("services.id", ondelete="SET NULL"), nullable=True
+#     )
+#     variant_id: Mapped[uuid.UUID | None] = mapped_column(
+#         ForeignKey("service_variants.id", ondelete="SET NULL"), nullable=True
+#     )
+#     vendor_id: Mapped[uuid.UUID | None] = mapped_column(
+#         ForeignKey("vendors.id", ondelete="SET NULL"), nullable=True
+#     )
+
+#     price: Mapped[Decimal] = mapped_column(Numeric(12, 2), nullable=False)
+#     quantity: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
+
+#     total: Mapped[Decimal] = mapped_column(
+#         Numeric(12, 2), Computed("price * quantity"), nullable=False
+#     )
+
+#     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+#     # Relationships
+#     order: Mapped["Order"] = relationship("Order", back_populates="items")
+#     service: Mapped["Service"] = relationship("Service", lazy="joined")
+#     variant: Mapped["ServiceVariant"] = relationship("ServiceVariant", lazy="joined")
+
+#     __table_args__ = (
+#         Index("idx_order_items_order", "order_id"),
+#         Index("idx_order_items_vendor", "vendor_id"),
+#     )
+
+
+# class OrderPayment(Base):
+#     __tablename__ = "order_payments"
+
+#     id: Mapped[uuid.UUID] = mapped_column(
+#         UUID(as_uuid=True), primary_key=True, server_default=func.gen_random_uuid()
+#     )
+#     order_id = mapped_column(
+#         ForeignKey("orders.id", ondelete="CASCADE"), nullable=False
+#     )
+#     provider: Mapped[str] = mapped_column(Text, nullable=False)
+#     provider_reference: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+#     amount: Mapped[Decimal] = mapped_column(Numeric(12, 2), nullable=False)
+#     status: Mapped[PaymentProviderStatus] = mapped_column(
+#         Enum(PaymentProviderStatus, name="payment_provider_status_t"), nullable=False
+#     )
+
+#     paid_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+#     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+#     order: Mapped["Order"] = relationship("Order", back_populates="payments")
+
+#     __table_args__ = (Index("idx_order_payments_order", "order_id"),)
+
+
+# class OrderStatusLog(Base):
+#     __tablename__ = "order_status_logs"
+
+#     id: Mapped[uuid.UUID] = mapped_column(
+#         UUID(as_uuid=True), primary_key=True, server_default=func.gen_random_uuid()
+#     )
+#     order_id: Mapped[uuid.UUID] = mapped_column(
+#         ForeignKey("orders.id", ondelete="CASCADE"), nullable=False
+#     )
+#     old_status: Mapped[OrderStatus | None] = mapped_column(
+#         Enum(OrderStatus, name="order_status_t"),
+#         nullable=True
+#     )
+
+#     new_status: Mapped[OrderStatus] = mapped_column(
+#         Enum(OrderStatus, name="order_status_t"),
+#         nullable=False
+    # )
+    # old_status: Mapped[OrderStatus | None] = mapped_column(
+    #     Enum(OrderStatus, name="order_status_t"), nullable=True
+    # )
+    # new_status: Mapped[OrderStatus] = mapped_column(
+    #     Enum(OrderStatus, name="order_status_t"), nullable=False
+    # )
+    # changed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    # changed_by: Mapped[uuid.UUID | None] = mapped_column(
+    #     ForeignKey("users.id", ondelete="SET NULL"), nullable=True
+    # )
+
+    # order: Mapped["Order"] = relationship("Order", back_populates="status_logs")
+
+    # __table_args__ = (Index("idx_order_status_logs_order", "order_id"),)
+
+
+# ======================
 # BOOKINGS / PAYMENTS / AVAILABILITY
 # ======================
 
-class Booking(Base):
-    __tablename__ = "bookings"
-    __table_args__ = (
-        Index("ix_bookings_status_date", "status", "event_date"),
-        Index("ix_bookings_user_service", "user_id", "service_id"),
-        Index("ix_bookings_source", "source"),
-        {"extend_existing": True},
-    )
+# class Booking(Base):
+#     __tablename__ = "bookings"
+#     __table_args__ = (
+#         Index("ix_bookings_status_date", "status", "event_date"),
+#         Index("ix_bookings_user_service", "user_id", "service_id"),
+#         Index("ix_bookings_source", "source"),
+#         {"extend_existing": True},
+#     )
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"))
-    vendor_id = Column(UUID(as_uuid=True), ForeignKey("vendors.id", ondelete="SET NULL"))
-    service_id = Column(UUID(as_uuid=True), ForeignKey("services.id", ondelete="RESTRICT"))
-    event_date = Column(DateTime(timezone=True), nullable=False)
-    currency = Column(Text, default="INR")
-    slot = Column(Enum(Slot), default=Slot.evening)
-    guest_count = Column(Integer)
-    status = Column(Enum(BookingStatus), default=BookingStatus.pending)
-    source = Column(Enum(BookingSource), default=BookingSource.online)
-    amount_total = Column(Numeric(12, 2), default=0)
-    amount_paid = Column(Numeric(12, 2), default=0)
-    payment_status = Column(Enum(PaymentStatus), default=PaymentStatus.pending)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+#     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+#     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"))
+#     vendor_id = Column(UUID(as_uuid=True), ForeignKey("vendors.id", ondelete="SET NULL"))
+#     service_id = Column(UUID(as_uuid=True), ForeignKey("services.id", ondelete="RESTRICT"))
+#     event_date = Column(DateTime(timezone=True), nullable=False)
+#     currency = Column(Text, default="INR")
+#     slot = Column(Enum(Slot), default=Slot.evening)
+#     guest_count = Column(Integer)
+#     status = Column(Enum(BookingStatus), default=BookingStatus.pending)
+#     source = Column(Enum(BookingSource), default=BookingSource.online)
+#     amount_total = Column(Numeric(12, 2), default=0)
+#     amount_paid = Column(Numeric(12, 2), default=0)
+#     payment_status = Column(Enum(PaymentStatus), default=PaymentStatus.pending)
+#     created_at = Column(DateTime(timezone=True), server_default=func.now())
+#     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
-    user = relationship("User", back_populates="bookings")
-    vendor = relationship("Vendor", back_populates="bookings")
-    service = relationship("Service", back_populates="bookings")
-    reviews = relationship("Review", back_populates="booking")
+#     user = relationship("User", back_populates="bookings")
+#     vendor = relationship("Vendor", back_populates="bookings")
+#     service = relationship("Service", back_populates="bookings")
+#     reviews = relationship("Review", back_populates="booking")
 
 
-class Payment(Base):
-    __tablename__ = "payments"
-    __table_args__ = {"extend_existing": True}
+# class Payment(Base):
+#     __tablename__ = "payments"
+#     __table_args__ = {"extend_existing": True}
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    booking_id = Column(UUID(as_uuid=True), ForeignKey("bookings.id", ondelete="CASCADE"))
-    transaction_id = Column(Text)
-    amount = Column(Numeric(12, 2), nullable=False)
-    currency = Column(Text, default="INR")
-    provider = Column(Text)
-    provider_reference = Column(Text)
-    provider_status = Column(Enum(PaymentProviderStatus))
-    paid_at = Column(DateTime(timezone=True))
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
+#     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+#     booking_id = Column(UUID(as_uuid=True), ForeignKey("bookings.id", ondelete="CASCADE"))
+#     transaction_id = Column(Text)
+#     amount = Column(Numeric(12, 2), nullable=False)
+#     currency = Column(Text, default="INR")
+#     provider = Column(Text)
+#     provider_reference = Column(Text)
+#     provider_status = Column(Enum(PaymentProviderStatus))
+#     paid_at = Column(DateTime(timezone=True))
+#     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
 
 class AvailabilityBlock(Base):
@@ -441,25 +652,34 @@ class AvailabilityBlock(Base):
 
 class Review(Base):
     __tablename__ = "reviews"
-    __table_args__ = (
-        Index("ix_reviews_service_rating", "service_id", "rating"),
-        Index("ix_reviews_user_id", "user_id"),
-        {"extend_existing": True},
-    )
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    booking_id = Column(UUID(as_uuid=True), ForeignKey("bookings.id", ondelete="SET NULL"))
+
     service_id = Column(UUID(as_uuid=True), ForeignKey("services.id", ondelete="CASCADE"))
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"))
-    rating = Column(Integer, nullable=False)
-    review_text = Column(Text)
-    images = Column(JSONB, default=list)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
-    booking = relationship("Booking", back_populates="reviews")
-    service = relationship("Service", back_populates="reviews")
+    overall_rating = Column(SmallInteger, nullable=False)
+    food_beverage_rating = Column(SmallInteger)
+    service_quality_rating = Column(SmallInteger)
+    ambiance_rating = Column(SmallInteger)
+    value_for_money_rating = Column(SmallInteger)
+
+    title = Column(Text)
+    review_text = Column(Text)
+
+    photos = Column(JSONB, default=list)
+
+    event_type = Column(Text)
+    event_date = Column(Date)
+
+    helpful_count = Column(Integer, default=0)
+
+    created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
+    updated_at = Column(TIMESTAMP(timezone=True), server_default=func.now(), onupdate=func.now())
+
     user = relationship("User", back_populates="reviews")
+    service = relationship("Service", back_populates="reviews")
+
 
 
 class ServiceRatingSummary(Base):

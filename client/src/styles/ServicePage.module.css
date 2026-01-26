@@ -84,37 +84,39 @@
 }
 
 /* =========================
-   GRID + CARDS
+   GRID + CARDS (FIXED WIDTH)
 ========================= */
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fit, 340px);
+  gap: 28px;
+  /* justify-content: center;  */
+  padding: 0 12px;
 }
 
 .card {
   background: #fff;
   border-radius: 16px;
-  overflow: hidden;
+  overflow: visible;
   box-shadow: 0 4px 16px hsl(var(--brand) / 0.15);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
   display: flex;
   flex-direction: column;
-  min-width: 280px;
-  max-width: 350px;
-  min-height: 420px;
-  max-height: 500px;
-  /* margin: 0 auto; centers when narrower than grid cell */
+  width: 340px;
+  max-width: 340px;
+  height: fit-content;
+  cursor: pointer;
 }
 
 .card:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 8px 24px hsl(var(--brand) / 0.25);
+  transform: translateY(-8px);
+  box-shadow: 0 12px 28px hsl(var(--brand) / 0.25);
 }
 
 .imageWrapper {
   position: relative;
   height: 220px;
+  overflow: hidden;
 }
 
 /* =========================
@@ -125,53 +127,60 @@
   width: 100%;
   height: 100%;
   overflow: hidden;
-  border-radius: 12px 12px 0 0;
+  border-radius: 16px 16px 0 0;
 }
 
 .cardImage {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: opacity 0.3s ease-in-out;
+  transition: opacity 0.4s ease;
 }
 
-/* Prev/Next Buttons */
+/* Prev/Next Buttons - Visible on hover */
 .prevButton,
 .nextButton {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  background: rgba(0, 0, 0, 0.3);
+  background: rgba(0, 0, 0, 0.4);
   color: white;
   border: none;
   border-radius: 50%;
-  width: 32px;
-  height: 32px;
-  font-size: 1.2rem;
+  width: 34px;
+  height: 34px;
+  font-size: 1.3rem;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   z-index: 10;
-  transition: background 0.3s;
+  transition: all 0.3s ease;
+  opacity: 0;
+}
+
+.carousel:hover .prevButton,
+.carousel:hover .nextButton {
+  opacity: 1;
 }
 
 .prevButton:hover,
 .nextButton:hover {
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(0, 0, 0, 0.7);
 }
 
-.prevButton { left: 10px; }
-.nextButton { right: 10px; }
+.prevButton { left: 12px; }
+.nextButton { right: 12px; }
 
-/* Dots */
+/* Carousel Dots */
 .carouselDots {
   position: absolute;
-  bottom: 10px;
+  bottom: 12px;
   width: 100%;
   display: flex;
   justify-content: center;
-  gap: 6px;
+  gap: 7px;
+  z-index: 10;
 }
 
 .dot {
@@ -180,146 +189,408 @@
   background: rgba(255, 255, 255, 0.6);
   border-radius: 50%;
   cursor: pointer;
-  transition: all 0.3s;
+  transition: all 0.3s ease;
 }
 
 .dot.active {
+  width: 14px;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.infoWrapper {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+}
+.infoBtn {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  border: none;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(4px);
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.infoBtn:hover {
+  background: rgba(0, 0, 0, 0.75);
+  transform: scale(1.05);
+}
+
+.infoPopover {
+  position: absolute;
+  bottom: 36px;
+  right: 0;
+  width: 280px;
+
+  background: #ffffff;
+  color: #111827;
+  padding: 14px;
+  border-radius: 14px;
+
+  box-shadow:
+    0 14px 34px rgba(0, 0, 0, 0.18),
+    0 6px 14px rgba(0, 0, 0, 0.1);
+
+  font-size: 0.85rem;
+  line-height: 1.55;
+
+  opacity: 0;
+  transform: translateY(6px);
+  pointer-events: none;
+  transition: all 0.2s ease;
+
+  z-index: 10000;
+}
+.infoHeader {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 6px;
+}
+
+.infoContent {
+  font-size: 0.82rem;
+  color: #4b5563;
+}
+
+.infoWrapper:hover .infoPopover,
+.infoWrapper:focus-within .infoPopover {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.infoPopover::after {
+  content: "";
+  position: absolute;
+  bottom: -6px;
+  right: 14px;
   width: 12px;
   height: 12px;
   background: #fff;
+  transform: rotate(45deg);
 }
+
+/* New price + hall type row */
+.priceHallRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+
+.priceBlock {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.cardPrice {
+  font-size: 1.28rem;
+  font-weight: 700;
+  color: #111827;
+  letter-spacing: -0.3px;
+}
+
+/* Beautiful hall type badge */
+.hallTypeBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #f1f5f9;
+  color: #334155;
+  font-size: 0.82rem;
+  font-weight: 600;
+  padding: 5px 11px;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  white-space: nowrap;
+}
+
+.hallTypeBadge svg {
+  color: #64748b;
+}
+
+/* After .priceHallRow */
+
+.djHighlights {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 16px;
+  margin: 12px 0 8px;
+  font-size: 0.92rem;
+  color: #4b5563;
+}
+
+.highlightItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.highlightItem svg {
+  color: #6366f1;          /* indigo-500 – looks premium for DJ */
+  flex-shrink: 0;
+}
+
+/* Optional: make first genre row bolder */
+.djHighlights .highlightItem:first-child {
+  font-weight: 600;
+  color: #1f2937;
+}
+
+
+/* After .djHighlights */
+
+.eventMgmtHighlights {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 16px;
+  margin: 10px 0 8px;
+  font-size: 0.92rem;
+  color: #4b5563;
+}
+
+.eventMgmtHighlights .highlightItem svg {
+  color: #8b5cf6;          /* violet-500 – elegant & event-like */
+  flex-shrink: 0;
+}
+
+/* Optional: make event types bolder */
+.eventMgmtHighlights .highlightItem:first-child {
+  font-weight: 600;
+  color: #1f2937;
+}
+
+/* Optional premium badge for strong event managers */
+.eventMgmtPremium {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #f3e8ff;
+  color: #6d28d9;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 5px 11px;
+  border-radius: 10px;
+  border: 1px solid #d8b4fe;
+  margin: 8px 0;
+}
+
+.djHighlights,
+.eventMgmtHighlights,
+.photographerHighlights {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 16px;
+  margin-right: auto; /* pushes price to the right */
+  font-size: 0.92rem;
+  color: #4b5563;
+}
+
+
+
+
 
 /* =========================
    CARD CONTENT
 ========================= */
-.cardBadge {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  background: hsl(var(--peach));
-  color: hsl(var(--primary));
-  padding: 4px 10px;
-  border-radius: 20px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
 .cardContent {
-  padding: 14px 16px;
+  padding: 16px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
   flex-grow: 1;
 }
 
-.cardTitle {
-  font-size: 1.2rem;
-  font-weight: 600;
-  color: #1d2233;
+/* Title + Rating Row */
+.titleRatingRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 
+.cardTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1d2233;
+  margin: 0;
+  line-height: 1.3;
+}
+
+.ratingInline {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #f59e0b;
+  white-space: nowrap;
+}
+
+/* Location & Capacity */
 .cardLocation,
 .cardCapacity {
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 0.9rem;
+  gap: 7px;
+  font-size: 0.92rem;
   color: #666;
 }
 
-.cardPrice {
-  font-weight: bold;
-  margin-top: 6px;
-  font-size: 1rem;
+/* Price */
+/* .cardPrice {
+  font-size: 1.1rem;
+  font-weight: 700;
   color: #1d2233;
-}
+  margin-top: 4px;
+} */
 
-.cardButton {
-  margin-top: auto; /* stick button to bottom */
-  padding: 10px 14px;
-  font-size: 0.95rem;
-  background: hsl(var(--brand));
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background 0.2s ease, transform 0.2s ease;
+/* Horizontal row */
+.extrasRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 10px;
 }
-
-.cardActions {
+.extrasLeft {
   display: flex;
   gap: 8px;
-  margin-top: auto;
-  align-items: center;
-}
-
-.cardButton {
   flex: 1;
-  padding: 10px 14px;
-  font-size: 0.95rem;
-  background: hsl(var(--brand));
-  color: hsl(var(--brand-foreground));
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  text-decoration: none;
-  text-align: center;
-  transition: background 0.2s ease, transform 0.2s ease;
+  overflow: hidden;
+  white-space: nowrap;
 }
 
-.cardButton:hover {
-  background: hsl(var(--brand) / 0.9);
-  transform: translateY(-2px);
+
+
+
+/* Grey pill */
+.extraChip {
+  background: #f3f4f6;
+  color: #374151;
+  font-size: 0.78rem;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-weight: 500;
 }
 
-.cartButton {
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: transparent;
+
+
+/* +X more wrapper */
+.moreWrapper {
+  position: relative;
+  flex-shrink: 0;
+  padding: 4px 6px; /* bigger hover zone */
+}
+
+
+/* +X more text */
+.moreText {
+  font-size: 0.78rem;
+  font-weight: 500;
   color: hsl(var(--brand));
-  border: 1px solid hsl(var(--brand));
-  border-radius: 8px;
   cursor: pointer;
+}
+
+/* Floating popover */
+.morePopover {
+  position: absolute;
+  bottom: calc(100% + 8px); /* open upwards */
+  right: 0;
+
+  min-width: 240px;
+  max-width: 300px;
+  max-height: 260px;
+
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 10px;
+
+  box-shadow:
+    0 14px 34px rgba(0, 0, 0, 0.18),
+    0 6px 14px rgba(0, 0, 0, 0.1);
+
+  overflow-y: auto;
+
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(6px);
+  pointer-events: none;
   transition: all 0.2s ease;
+
+  z-index: 99999;
 }
 
-.cartButton:hover {
-  background: hsl(var(--brand));
-  color: hsl(var(--brand-foreground));
-  transform: translateY(-2px);
+.morePopover::before {
+  content: "";
+  position: absolute;
+  bottom: -6px;
+  right: 18px;
+  width: 12px;
+  height: 12px;
+  background: #fff;
+  transform: rotate(45deg);
 }
 
+.moreWrapper:hover .morePopover,
+.moreWrapper:focus-within .morePopover {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+  pointer-events: auto;
+}
 
-/* Wishlist Heart Button */
+.popoverItem {
+  font-size: 0.82rem;
+  color: #374151;
+  padding: 7px 10px;
+  border-radius: 8px;
+}
+
+.popoverItem:hover {
+  background: #f3f4f6;
+}
+
+/* Wishlist Button - Top Right */
 .wishlistButton {
   position: absolute;
   top: 12px;
-  left: 12px;
-  width: 36px;
-  height: 36px;
+  right: 12px;
+  left: auto;
+  width: 38px;
+  height: 38px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.95);
   border: 1px solid hsl(var(--border));
   border-radius: 50%;
   color: hsl(var(--muted-foreground));
   cursor: pointer;
   transition: all 0.3s ease;
-  backdrop-filter: blur(8px);
+  backdrop-filter: blur(10px);
   z-index: 10;
 }
 
 .wishlistButton:hover {
-  background: rgba(255, 255, 255, 1);
+  background: #fff;
   color: hsl(var(--brand));
-  transform: scale(1.1);
+  transform: scale(1.12);
 }
 
 .wishlistButton.active {
@@ -330,6 +601,12 @@
 
 .wishlistButton.active:hover {
   background: hsl(var(--brand) / 0.9);
+  transform: scale(1.12);
+}
+
+/* Hide old badge */
+.cardBadge {
+  display: none;
 }
 
 /* =========================
@@ -340,18 +617,22 @@
   justify-content: center;
   align-items: center;
   gap: 12px;
-  margin-top: 20px;
+  margin-top: 40px;
 }
 
 .pageButton {
-  padding: 8px 16px;
+  padding: 10px 18px;
   font-size: 0.95rem;
   background: hsl(var(--brand));
   color: #fff;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
   cursor: pointer;
   transition: background 0.2s ease;
+}
+
+.pageButton:hover:not(:disabled) {
+  background: hsl(var(--brand) / 0.9);
 }
 
 .pageButton:disabled {
@@ -361,23 +642,103 @@
 
 .pageInfo {
   font-size: 0.95rem;
-  color: #333;
+  color: #444;
+}
+.totalreviews{
+  color: grey;
+  opacity: 0.5;
+  font-size: 0.75rem;
 }
 
 /* =========================
    RESPONSIVE TWEAKS
 ========================= */
 @media (max-width: 768px) {
-  .title { font-size: 2rem; }
-  .subtitle { font-size: 1rem; }
-  .contentWithFilters { flex-direction: column; }
-  .resultsHeader { flex-direction: column; align-items: flex-start; }
-  .card { min-width: 100%; max-width: 100%; min-height: 380px; }
-  .imageWrapper { height: 180px; }
+  .pageWrapper {
+    padding: 16px;
+  }
+
+  .title {
+    font-size: 2rem;
+  }
+
+  .subtitle {
+    font-size: 1.1rem;
+  }
+
+  .grid {
+    grid-template-columns: repeat(auto-fit, 320px);
+    gap: 20px;
+    padding: 0 8px;
+  }
+
+  .card {
+    width: 320px;
+    max-width: 320px;
+  }
+
+  .imageWrapper {
+    height: 200px;
+  }
+
+  .contentWithFilters {
+    flex-direction: column;
+  }
+
+  .resultsHeader {
+    flex-direction: column;
+    align-items: stretch;
+  }
 }
 
 @media (max-width: 480px) {
-  .title { font-size: 1.7rem; }
-  .card { min-height: 350px; }
-  .imageWrapper { height: 160px; }
+  .title {
+    font-size: 1.8rem;
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+    justify-content: center;
+  }
+
+  .card {
+    width: 100%;
+    max-width: 340px;
+    margin: 0 auto;
+  }
+
+  .imageWrapper {
+    height: 180px;
+  }
+
+  .cardTitle {
+    font-size: 1.15rem;
+  }
+
+  .titleRatingRow {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .priceHallRow {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .hallTypeBadge {
+    font-size: 0.8rem;
+    padding: 5px 10px;
+  }
+
+  .cardPrice {
+    font-size: 1.18rem;
+  }
+  
+  .photographerHighlights,
+  .djHighlights,
+  .eventMgmtHighlights {
+    width: 100%;
+  }
 }

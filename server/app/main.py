@@ -5,6 +5,8 @@ from app.routers import auth
 from app.routers.vendor import vendorrouter
 from app.routers.service import servicerouter
 from app.routers.customer_services import customerservicerouter
+from app.routers.wishlist import wishlistrouter
+from app.routers.review import Reviewrouter
 
 Base.metadata.create_all(bind=engine)
 
@@ -30,6 +32,8 @@ app.include_router(auth.router)
 app.include_router(vendorrouter)
 app.include_router(servicerouter)
 app.include_router(customerservicerouter)
+app.include_router(wishlistrouter)
+app.include_router(Reviewrouter)
 # app.include_router(appointment.router, prefix="/appointments", tags=["Appointments"])
 # app.include_router(payment.router)
 # app.include_router(review.router, prefix="/reviews", tags=["Reviews"])

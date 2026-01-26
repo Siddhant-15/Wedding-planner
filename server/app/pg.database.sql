@@ -31,6 +31,9 @@ CREATE TABLE users (
     last_name VARCHAR(150) NOT NULL,
     hashed_password TEXT NOT NULL,
     is_active BOOLEAN DEFAULT TRUE,
+    avatar TEXT,
+    location TEXT,
+    is_verifired BOOLEAN FALSE,
     created_at TIMESTAMPTZ DEFAULT now(),
     updated_at TIMESTAMPTZ DEFAULT now()
 );
@@ -291,14 +294,26 @@ CREATE TABLE service_rating_summary (
    --------------------------- */
 CREATE TABLE reviews (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  booking_id UUID REFERENCES bookings(id) ON DELETE SET NULL,  -- keep historical reviews even if booking removed
   service_id UUID REFERENCES services(id) ON DELETE CASCADE,
   user_id UUID REFERENCES users(id) ON DELETE SET NULL,
-  rating SMALLINT NOT NULL CHECK (rating >= 1 AND rating <= 5),
+
+  overall_rating SMALLINT NOT NULL CHECK (overall_rating BETWEEN 1 AND 5),
+  food_beverage_rating SMALLINT CHECK (food_beverage_rating BETWEEN 1 AND 5),
+  service_quality_rating SMALLINT CHECK (service_quality_rating BETWEEN 1 AND 5),
+  ambiance_rating SMALLINT CHECK (ambiance_rating BETWEEN 1 AND 5),
+  value_for_money_rating SMALLINT CHECK (value_for_money_rating BETWEEN 1 AND 5),
+
+  title TEXT,
   review_text TEXT,
-  images JSONB DEFAULT '[]'::jsonb,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+
+  photos JSONB DEFAULT '[]'::jsonb,
+
+  event_type TEXT,
+  event_date DATE,
+  helpful_count INTEGER DEFAULT 0,
+
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
 );
 
 CREATE INDEX idx_reviews_service ON reviews(service_id);
@@ -322,6 +337,105 @@ CREATE TABLE availability_blocks (
 
 CREATE INDEX idx_avail_service_date ON availability_blocks(service_id, date);
 CREATE INDEX idx_avail_date ON availability_blocks(date);
+
+
+/* ---------------------------
+   Wish List
+   --------------------------- */
+
+CREATE TABLE wishlist_items (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    service_id UUID NOT NULL REFERENCES services(id) ON DELETE CASCADE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    UNIQUE (user_id, service_id) -- prevent duplicates
+);
+
+CREATE INDEX idx_wishlist_user ON wishlist_items(user_id);
+CREATE INDEX idx_wishlist_service ON wishlist_items(service_id);
+
+
+
+
+CREATE TYPE order_status_t AS ENUM (
+    'pending','confirmed','processing','completed','canceled'
+);
+
+CREATE TYPE order_payment_status_t AS ENUM (
+    'pending','paid','partially_paid','refunded'
+);
+
+CREATE TABLE orders (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE SET NULL,
+    
+    subtotal NUMERIC(12,2) NOT NULL CHECK (subtotal >= 0),
+    tax_amount NUMERIC(12,2) DEFAULT 0 CHECK (tax_amount >= 0),
+    platform_fee NUMERIC(12,2) DEFAULT 0 CHECK (platform_fee >= 0), -- marketplace commission
+    total_amount NUMERIC(12,2) NOT NULL CHECK (total_amount >= 0),
+    
+    currency VARCHAR(10) DEFAULT 'INR',
+    
+    status order_status_t NOT NULL DEFAULT 'pending',
+    payment_status order_payment_status_t NOT NULL DEFAULT 'pending',
+
+    invoice_number TEXT UNIQUE, -- generated, helpful for GST invoice
+    
+    created_at TIMESTAMPTZ DEFAULT now(),
+    updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE INDEX idx_orders_user ON orders(user_id);
+CREATE INDEX idx_orders_status ON orders(status);
+
+CREATE TABLE order_items (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    order_id UUID REFERENCES orders(id) ON DELETE CASCADE,
+    
+    service_id UUID REFERENCES services(id) ON DELETE SET NULL,
+    variant_id UUID REFERENCES service_variants(id) ON DELETE SET NULL,
+    
+    vendor_id UUID REFERENCES vendors(id) ON DELETE SET NULL,
+
+    price NUMERIC(12,2) NOT NULL CHECK (price >= 0),
+    quantity INTEGER DEFAULT 1 CHECK (quantity > 0),
+    
+    total NUMERIC(12,2) GENERATED ALWAYS AS (price * quantity) STORED,
+    
+    created_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE INDEX idx_order_items_order ON order_items(order_id);
+CREATE INDEX idx_order_items_vendor ON order_items(vendor_id);
+
+
+CREATE TABLE order_payments (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    order_id UUID REFERENCES orders(id) ON DELETE CASCADE,
+    provider TEXT NOT NULL,  
+    provider_reference TEXT,  -- razorpay_id, stripe_charge_id etc
+    
+    amount NUMERIC(12,2) NOT NULL,
+    status payment_provider_status_t, 
+    
+    paid_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE INDEX idx_order_payments_order ON order_payments(order_id);
+
+
+CREATE TABLE order_status_logs (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    order_id UUID REFERENCES orders(id) ON DELETE CASCADE,
+    old_status order_status_t,
+    new_status order_status_t,
+    changed_at TIMESTAMPTZ DEFAULT now(),
+    changed_by UUID REFERENCES users(id) ON DELETE SET NULL
+);
+
+CREATE INDEX idx_order_status_logs_order ON order_status_logs(order_id);
+
 
 /* ---------------------------
    Useful triggers / notes (implement in app or DB)
@@ -377,4 +491,3 @@ VALUES
 ALTER TABLE vendors
 ADD COLUMN website TEXT;
 
-select * from vendors

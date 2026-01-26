@@ -5,7 +5,7 @@ from sqlalchemy import and_
 from typing import Optional
 import logging
 
-from app.schemas.customer_services import ServiceDetailResponse
+from app.schemas.customer_services import ServiceDetailResponse, ServiceCardSchema, VenueCardSchema, CateringCardSchema, DJDetailSchema, PhotographerDetailSchema, EventManagementDetailSchema
 # app/routers/customer_services.py
 
 from fastapi import APIRouter, Depends, Query
@@ -19,25 +19,6 @@ from app.models.models import Service, Vendor, ServiceRatingSummary
 customerservicerouter = APIRouter()
 logger = logging.getLogger(__name__)
 
-class ServiceCardSchema(BaseModel):
-    id: str
-    name: str
-    description: Optional[str] = None
-    images: List[str] = []
-    price: Optional[float] = None
-    currency: str = "INR"
-    rating: Optional[float] = None
-    total_reviews: int = 0
-    city: str
-    state: str
-    capacity: Optional[int] = None
-    vendor_name: str
-    vendor_id: str
-    service_type: str
-
-    class Config:
-        from_attributes = True
-
 
 @customerservicerouter.get("/{service_type}/list")
 def get_service_cards(
@@ -50,14 +31,29 @@ def get_service_cards(
     max_price: Optional[float] = Query(None),
     db: Session = Depends(get_db)
 ):
-    # Base query
-    query = db.query(Service).join(Vendor).options(
-        joinedload(Service.vendor),
-        joinedload(Service.rating_summary)
-    ).filter(
-        Service.category == service_type,
-        Service.is_active == True,
-        # Service.verified == True
+    from app.models.models import ServiceCategory, ServiceRatingSummary
+
+    try:
+        category_enum = ServiceCategory(service_type.lower())
+    except ValueError:
+        raise HTTPException(status_code=400, detail=f"Invalid service type: {service_type}")
+
+    # Base query with ALWAYS joined rating summary (as LEFT JOIN)
+    query = (
+        db.query(Service)
+        .outerjoin(ServiceRatingSummary, Service.id == ServiceRatingSummary.service_id)
+        .options(
+            joinedload(Service.vendor),
+            joinedload(Service.venue_service),
+            joinedload(Service.catering_service),
+            joinedload(Service.dj_service),
+            joinedload(Service.photographer_service),
+            joinedload(Service.event_management_service),
+        )
+        .filter(
+            Service.category == category_enum,
+            Service.is_active == True,
+        )
     )
 
     # Filters
@@ -68,59 +64,58 @@ def get_service_cards(
     if max_price is not None:
         query = query.filter(Service.base_price <= max_price)
 
-    # === JOIN rating summary for sorting ===
-    if sort_by in ["popularity", "rating"]:
-        query = query.outerjoin(
-            ServiceRatingSummary,
-            Service.id == ServiceRatingSummary.service_id
-        )
-
-    # === SORTING: Use nulls_last() CORRECTLY ===
+    # Sorting — now safe because ServiceRatingSummary is always joined
     sort_map = {
         "price-low": asc(Service.base_price),
         "price-high": desc(Service.base_price),
         "rating": desc(ServiceRatingSummary.average_rating).nulls_last(),
         "newest": desc(Service.created_at),
-        "popularity": desc(ServiceRatingSummary.total_reviews).nulls_last()
+        "popularity": desc(ServiceRatingSummary.total_reviews).nulls_last(),
     }
 
-    default_sort = desc(ServiceRatingSummary.total_reviews).nulls_last()
+    default_sort = sort_map["popularity"]
     order_clause = sort_map.get(sort_by, default_sort)
 
-    # Apply sorting + featured fallback
     query = query.order_by(order_clause, desc(Service.featured))
 
-    # === COUNT & FETCH ===
+    # Now safe to count
     total = query.count()
     services = query.offset(skip).limit(limit).all()
 
-    # === SERIALIZE ===
+    # Rest of serialization...
     results = []
-    for s in services:
-        rs = s.rating_summary
-        data = {
-            "id": str(s.id),
-            "name": s.title,
-            "description": s.description,
-            "images": s.images or [],
-            "price": float(s.base_price) if s.base_price else None,
-            "currency": s.currency,
-            "rating": float(rs.average_rating) if rs and rs.average_rating else None,
-            "total_reviews": rs.total_reviews if rs else 0,
-            "city": s.city or "",
-            "state": s.state or "",
-            "vendor_name": s.vendor.business_name,
-            "vendor_id": str(s.vendor.id),
-            "service_type": s.category.value,
-            "capacity": s.venue_service.capacity_max if getattr(s, 'venue_service', None) else None
-        }
-        results.append(ServiceCardSchema(**data))
+    for service in services:
+        rating_summary = service.rating_summary
+
+        card_data = ServiceCardSchema(
+            id=str(service.id),
+            name=service.title,
+            description=service.description,
+            images=service.images or [],
+            price=float(service.base_price) if service.base_price else None,
+            currency=service.currency,
+            rating=float(rating_summary.average_rating) if rating_summary and rating_summary.average_rating else None,
+            total_reviews=rating_summary.total_reviews if rating_summary else 0,
+            area=service.area or "",
+            city=service.city,
+            state=service.state,
+            address_line1=service.address_line1,
+            address_line2=service.address_line2,
+            vendor_name=service.vendor.business_name or "Unknown Vendor",
+            vendor_id=str(service.vendor.id),
+            service_type=service.category.value,
+            venue=VenueCardSchema.from_orm(service.venue_service) if service.venue_service else None,
+            catering=CateringCardSchema.from_orm(service.catering_service) if service.catering_service else None,
+            dj=DJDetailSchema.from_orm(service.dj_service) if service.dj_service else None,
+            photographer=PhotographerDetailSchema.from_orm(service.photographer_service) if service.photographer_service else None,
+            event_management=EventManagementDetailSchema.from_orm(service.event_management_service) if service.event_management_service else None,
+        )
+        results.append(card_data)
 
     return {
         "services": results,
         "total_count": total
     }
-
 
 
 

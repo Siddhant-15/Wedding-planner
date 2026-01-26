@@ -1,0 +1,322 @@
+/* ──────────────────────────────────────────────
+   Main Gallery Container
+───────────────────────────────────────────────── */
+.galleryContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;                    /* increased gap between hero and thumbnails */
+  border-radius: 20px;
+  overflow: hidden;
+  background: hsl(var(--card));
+  box-shadow: var(--shadow-soft);
+  border: 1px solid hsl(var(--border));
+  padding: 16px;                /* added internal padding for better spacing */
+}
+
+/* Hero / Main Image – Made Smaller */
+.heroWrapper {
+  position: relative;
+  aspect-ratio: 16 / 10;        /* wider & shorter – more modern & balanced */
+  max-height: 420px;            /* significantly reduced height – cleaner look */
+  overflow: hidden;
+  border-radius: 16px;          /* slightly softer corners */
+  margin: 0 auto;               /* centered if container is wider */
+  width: 100%;
+  max-width: 1000px;            /* prevents stretching too wide on large screens */
+}
+
+.heroImageBox {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: hsl(var(--muted) / 0.25);
+  border-radius: 16px;
+}
+
+.heroImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.7s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.heroImageBox:hover .heroImage {
+  transform: scale(1.08);       /* slightly larger zoom for elegance */
+}
+
+/* Overlay Elements */
+.imageOverlay {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  background: linear-gradient(
+    to bottom,
+    rgba(0,0,0,0.18) 0%,
+    transparent 45%,
+    rgba(0,0,0,0.45) 100%
+  );
+}
+
+.heroImageBox:hover .imageOverlay {
+  opacity: 1;
+}
+
+.overlayTop {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  right: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 2;
+}
+
+.counter {
+  background: rgba(0,0,0,0.6);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  backdrop-filter: blur(6px);
+}
+
+.zoomButton {
+  background: rgba(255,255,255,0.92);
+  border: none;
+  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(6px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.zoomButton:hover {
+  background: white;
+  transform: scale(1.12);
+}
+
+/* Navigation Arrows */
+.navButton {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255,255,255,0.88);
+  border: none;
+  border-radius: 50%;
+  width: 52px;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  transition: all 0.35s ease;
+  backdrop-filter: blur(6px);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.18);
+}
+
+.heroImageBox:hover .navButton {
+  opacity: 1;
+}
+
+.navLeft { left: 20px; }
+.navRight { right: 20px; }
+
+.navButton:hover {
+  background: white;
+  transform: translateY(-50%) scale(1.15);
+}
+
+/* Thumbnails – More breathing room */
+.thumbnailsContainer {
+  padding: 0px 12px;              /* increased side padding */
+}
+
+.thumbnailsScroll {
+  display: flex;
+  gap: 16px;                    
+  overflow-x: auto;
+  padding: 12px 0;        
+  scrollbar-width: thin;
+}
+
+.thumbnailsScroll::-webkit-scrollbar {
+  height: 8px;
+}
+
+.thumbnailsScroll::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted) / 0.6);
+  border-radius: 4px;
+}
+
+.thumbnail {
+  flex: 0 0 110px;              /* slightly larger thumbnails for better touch targets */
+  height: 88px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  opacity: 0.78;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+}
+
+.thumbnail img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.thumbnail:hover,
+.thumbnailActive {
+  opacity: 1;
+  border-color: hsl(var(--brand));
+  transform: scale(1.08);
+  box-shadow: 0 12px 24px hsl(var(--brand) / 0.25);
+}
+
+/* ──────────────────────────────────────────────
+   Lightbox (unchanged – already premium)
+───────────────────────────────────────────────── */
+.lightboxOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.94);
+  backdrop-filter: blur(10px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.4s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.lightboxContent {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.lightboxClose {
+  position: absolute;
+  top: 28px;
+  right: 28px;
+  background: rgba(255,255,255,0.18);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 52px;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s;
+  backdrop-filter: blur(6px);
+}
+
+.lightboxClose:hover {
+  background: rgba(255,255,255,0.35);
+  transform: scale(1.12);
+}
+
+.lightboxCounter {
+  position: absolute;
+  top: 28px;
+  left: 28px;
+  color: white;
+  background: rgba(0,0,0,0.55);
+  padding: 8px 16px;
+  border-radius: 999px;
+  font-size: 1rem;
+  backdrop-filter: blur(6px);
+}
+
+.lightboxImage {
+  max-width: 92vw;
+  max-height: 82vh;
+  object-fit: contain;
+  border-radius: 16px;
+  box-shadow: 0 30px 80px rgba(0,0,0,0.7);
+  transition: transform 0.5s ease;
+}
+
+.lightboxNav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255,255,255,0.18);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 64px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.35s;
+  backdrop-filter: blur(8px);
+}
+
+.lightboxNav:hover {
+  background: rgba(255,255,255,0.35);
+  transform: translateY(-50%) scale(1.18);
+}
+
+.lightboxNavLeft { left: 32px; }
+.lightboxNavRight { right: 32px; }
+
+.lightboxThumbnails {
+  position: absolute;
+  bottom: 40px;
+  display: flex;
+  gap: 16px;
+  max-width: 90vw;
+  overflow-x: auto;
+  padding: 16px;
+  background: rgba(0,0,0,0.45);
+  border-radius: 20px;
+  backdrop-filter: blur(10px);
+}
+
+.lightboxThumb {
+  flex: 0 0 90px;
+  height: 68px;
+  border-radius: 12px;
+  overflow: hidden;
+  opacity: 0.68;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.lightboxThumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.lightboxThumbActive,
+.lightboxThumb:hover {
+  opacity: 1;
+  border-color: hsl(var(--brand));
+  transform: scale(1.1);
+  /* box-shadow: 0 12px 28px rgba(0,0,0,0.4); */
+}

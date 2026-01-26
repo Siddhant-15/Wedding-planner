@@ -15,11 +15,11 @@ export function AuthProvider({ children }) {
       try {
         const decoded = jwtDecode(accessToken);
         const currentTime = Math.floor(Date.now() / 1000);
-        if (decoded.exp > currentTime) { // Check if token is not expired
+        if (decoded.exp > currentTime) {
           setUser({
             id: decoded.sub,
-            email: decoded.email || "", // Adjust based on token contents
-            type: decoded.role || "customer", // Fallback role
+            email: decoded.email || "",
+            type: decoded.role || "customer",
             exp: decoded.exp,
           });
         } else {

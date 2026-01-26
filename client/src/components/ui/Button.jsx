@@ -1,22 +1,43 @@
-import React from "react";
-import { Slot } from "@radix-ui/react-slot";
-import styles from "../../styles/ui/Button.module.css"
+// components/ui/Button.jsx
+import React from 'react';
+import styles from '../../styles/ui/Button.module.css';
 
-const Button = React.forwardRef(
-  ({ className = "", variant = "default", size = "default", asChild = false, ...props }, ref) => {
-    const Comp = asChild ? Slot : "button";
-    const variantClass = styles[`variant-${variant}`] || "";
-    const sizeClass = styles[`size-${size}`] || "";
-    return (
-      <Comp
-        className={`${styles.button} ${variantClass} ${sizeClass} ${className}`}
-        ref={ref}
-        {...props}
-      />
-    );
-  }
-);
+const Button = React.forwardRef(({
+  className = '',
+  variant = 'primary',
+  size = 'default',
+  children,
+  ...props
+}, ref) => {
+  const variantClasses = {
+    primary: styles.variantPrimary,
+    secondary: styles.variantSecondary,
+    outline: styles.variantOutline,
+    ghost: styles.variantGhost,
+  };
 
-Button.displayName = "Button";
+  const sizeClasses = {
+    default: styles.sizeDefault,
+    sm: styles.sizeSm,
+    lg: styles.sizeLg,
+  };
+
+  return (
+    <button
+      className={`
+        ${styles.base}
+        ${variantClasses[variant] || styles.variantPrimary}
+        ${sizeClasses[size] || styles.sizeDefault}
+        ${className}
+      `}
+      ref={ref}
+      {...props}
+    >
+      {children}
+    </button>
+  );
+});
+
+Button.displayName = 'Button';
 
 export { Button };

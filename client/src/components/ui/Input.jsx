@@ -1,10 +1,9 @@
-import React from "react";
+import React from 'react';
 import styles from "../../styles/ui/Input.module.css"
 
-const Input = React.forwardRef(({ className = "", type = "text", ...props }, ref) => {
+const Input = React.forwardRef(({ className = '', ...props }, ref) => {
   return (
     <input
-      type={type}
       className={`${styles.input} ${className}`}
       ref={ref}
       {...props}
@@ -12,6 +11,6 @@ const Input = React.forwardRef(({ className = "", type = "text", ...props }, ref
   );
 });
 
-Input.displayName = "Input";
+Input.displayName = 'Input';
 
 export { Input };

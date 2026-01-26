@@ -104,3 +104,22 @@ export const vendorAPI = {
   onboarding: (data) => api.post("/vendors/onboarding", data),
   status: () => api.get("/vendors/status"),
 };
+
+export const wishlistAPI = {
+  getAll: () => api.get("/wishlist/"),
+  add: (serviceId) => api.post(`/wishlist/${serviceId}`),
+  remove: (serviceId) => api.delete(`/wishlist/${serviceId}`),
+  clear: () => api.delete("/wishlist/"),
+};
+
+export const reviewAPI = {
+  getAll: (serviceId) => api.get(`/reviews/${serviceId}`),
+  
+  add: (formData) => {
+    return api.post("/reviews/create-customer-review", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+  },
+};

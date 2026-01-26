@@ -1,0 +1,327 @@
+/* AvailabilityForm.module.css */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+.container {
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 0 1rem;          /* ← extra breathing room on small screens */
+}
+
+.card {
+  background: hsl(var(--card));
+  border-radius: var(--radius);
+  border: 1px solid hsl(var(--border));
+  box-shadow: var(--shadow-soft);
+  overflow: hidden;
+  position: relative;
+}
+
+.card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    hsl(var(--peach) / 0.08) 0%,
+    hsl(var(--cream) / 0.12) 50%,
+    transparent 100%
+  );
+  pointer-events: none;
+  border-radius: var(--radius);
+}
+
+/* ── Header ── */
+.header {
+  text-align: center;
+  padding: 1.75rem 1.5rem 1.25rem;
+  background: linear-gradient(
+    180deg,
+    hsl(var(--rose-50) / 0.6) 0%,
+    transparent 70%
+  );
+}
+
+.title {
+  font-family: var(--font-heading);
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: hsl(var(--foreground));
+  margin: 0 0 0.5rem;
+  letter-spacing: -0.02em;
+}
+
+.subtitle {
+  font-size: 1.05rem;
+  color: hsl(var(--muted-foreground));
+  margin: 0;
+}
+
+.serviceHighlight {
+  color: hsl(var(--brand));
+  font-weight: 600;
+}
+
+/* ── Form ── */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding: 0 1.5rem 2rem;
+}
+
+.grid {
+  display: grid;
+  gap: 1.25rem;
+}
+
+@media (min-width: 640px) {
+  .grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* ── Base input / button / select ── */
+.input,
+.dateTrigger,
+.select,
+.submitButton,
+.textarea {
+  width: 100%;
+}
+
+/* Inputs & date trigger */
+.input,
+.dateTrigger {
+  height: 56px;
+  border-radius: var(--radius);
+  border: 1px solid hsl(var(--border));
+  background: hsl(var(--background));
+  padding: 0 1rem;
+  font-size: 1rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.input:focus,
+.dateTrigger:focus {
+  border-color: hsl(var(--brand));
+  box-shadow: 0 0 0 3px hsl(var(--brand) / 0.15);
+  outline: none;
+}
+
+.input::placeholder,
+.dateTrigger::placeholder {
+  color: hsl(var(--muted-foreground) / 0.65);
+}
+
+/* Date trigger */
+.dateTrigger {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  text-align: left;
+  color: hsl(var(--foreground));
+  font-weight: 400;
+  cursor: pointer;
+}
+
+.dateSelected {
+  font-weight: 500;
+}
+
+/* ── Wrapper for icons ── */
+.inputWrapper,
+.dateWrapper {
+  position: relative;
+  width: 100%;
+}
+
+.inputIcon {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 18px;
+  height: 18px;
+  color: hsl(var(--muted-foreground));
+  pointer-events: none;
+  z-index: 1;
+}
+
+.inputWithIcon {
+  padding-left: 2.75rem;
+  padding-right: 0.5rem; /* space for check icon on phone field */
+}
+
+/* ── Phone validation ── */
+.inputValid {
+  border-color: hsl(var(--success, #10b981)) !important;
+  background-color: hsl(var(--success, #10b981) / 0.04);
+}
+
+.inputInvalid {
+  border-color: hsl(var(--destructive, #ef4444)) !important;
+}
+
+.validIcon {
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: hsl(var(--success, #10b981));
+  pointer-events: none;
+  z-index: 1;
+}
+
+.inputInvalid:focus {
+  animation: shake 0.35s;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25%  { transform: translateX(-4px); }
+  75%  { transform: translateX(4px); }
+}
+
+/* ── Calendar popover ── */
+.calendarPopover {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 10;
+  margin-top: 8px;
+  width: 100%;
+  max-width: 320px;
+  background: hsl(var(--popover));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  padding: 12px;
+  box-shadow: var(--shadow-soft);
+}
+
+.nativeDateInput {
+  width: 100%;
+  height: 48px;
+  padding: 0 12px;
+  font-size: 1rem;
+  border: 1px solid hsl(var(--brand));
+  border-radius: var(--radius);
+  background: white;
+}
+
+.nativeDateInput:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px hsl(var(--brand) / 0.2);
+}
+
+/* ── Select ── */
+.select {
+  height: 56px;
+  padding: 0 2.5rem 0 1rem;
+  font-size: 1rem;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  background-size: 16px;
+}
+
+.select:focus {
+  border-color: hsl(var(--brand));
+  box-shadow: 0 0 0 3px hsl(var(--brand) / 0.15);
+  outline: none;
+}
+
+/* ── Textarea ── */
+.textarea {
+  min-height: 110px;
+  resize: vertical;
+  padding: 1rem;
+  font-size: 1rem;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+}
+
+.textarea:focus {
+  border-color: hsl(var(--brand));
+  box-shadow: 0 0 0 3px hsl(var(--brand) / 0.15);
+  outline: none;
+}
+
+/* ── Submit Button ── */
+.submitButton {
+  height: 56px;
+  margin-top: 0.75rem;
+  background: hsl(var(--brand));
+  color: hsl(var(--brand-foreground));
+  font-weight: 600;
+  font-size: 1.05rem;
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: all 0.25s ease;
+}
+
+.submitButton:hover:not(:disabled) {
+  background: hsl(var(--brand) / 0.92);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px hsl(var(--brand) / 0.3);
+}
+
+.submitButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Icons & loader */
+.icon,
+.iconSmall {
+  width: 20px;
+  height: 20px;
+}
+
+.loader {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Privacy note ── */
+.privacyNote {
+  text-align: center;
+  font-size: 0.8125rem;
+  color: hsl(var(--muted-foreground));
+  margin: 1.25rem 0 0.75rem;
+}
+
+/* ── Mobile / small screen safety ── */
+@media (max-width: 520px) {
+  .form {
+    padding-left: 1.25rem;
+    padding-right: 1.25rem;
+  }
+
+  .calendarPopover {
+    left: 50%;
+    transform: translateX(-50%);
+    width: calc(100% - 16px);
+    max-width: none;
+  }
+}

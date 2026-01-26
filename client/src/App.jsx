@@ -7,7 +7,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 import { AuthProvider, useAuth } from "@/context/AuthContext";
-import { CartProvider } from "@/context/CartContext";
 import { WishlistProvider } from "@/context/WishlistContext";
 
 import Index from "./pages/Index";
@@ -27,7 +26,6 @@ import AdminDashboard from "./pages/dashboards/AdminDashboard";
 import CustomerDashboard from "./pages/dashboards/CustomerDashboard";
 import VendorPage from "./pages/Vendor/VendorPage";
 import Wishlist from "./pages/Wishlist";
-import Cart from "./pages/Cart";
 import Lottie from "lottie-react";
 import loadingAnimation from "@/assets/animations/loading.json";
 import ServiceDetail from "./pages/services/ServiceDetail";
@@ -138,7 +136,6 @@ function RoleBasedRoutes() {
       <Route path="/service/:id" element={<ServiceDetail/>} />
       <Route path="/my-bookings" element={<MyBookings />} />
       <Route path="/wishlist" element={<Wishlist/>}/>
-      <Route path="/cart" element={<Cart/>}/>
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
@@ -148,7 +145,6 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <CartProvider>
           <WishlistProvider>
             <TooltipProvider>
               <ToastProvider />
@@ -158,7 +154,6 @@ function App() {
               </BrowserRouter>
             </TooltipProvider>
           </WishlistProvider>
-        </CartProvider>
       </AuthProvider>
     </QueryClientProvider>
   );

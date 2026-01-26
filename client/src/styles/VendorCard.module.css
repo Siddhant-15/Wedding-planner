@@ -1,0 +1,170 @@
+.card {
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+}
+
+/* Header */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.vendorInfo {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background-color: rgba(59, 130, 246, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.avatarIcon {
+  width: 28px;
+  height: 28px;
+  color: #3b82f6;
+}
+
+.vendorName {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.verifiedIcon {
+  width: 20px;
+  height: 20px;
+  color: #16a34a;
+  fill: rgba(22, 163, 74, 0.2);
+}
+
+.location {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.verifiedBadge {
+  background-color: rgba(22, 163, 74, 0.1);
+  color: #16a34a;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+/* Description */
+.description {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin-bottom: 16px;
+  line-height: 1.4;
+}
+
+/* Stats */
+.stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.experience {
+  display: flex;
+  gap: 4px;
+  font-size: 0.875rem;
+}
+
+.experienceValue {
+  font-weight: 600;
+  color: #111827;
+}
+
+.experienceText {
+  color: #6b7280;
+}
+
+.responseTime {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.875rem;
+  color: #16a34a;
+}
+
+.clockIcon {
+  width: 16px;
+  height: 16px;
+}
+
+/* Actions */
+.actions {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.actions button {
+  height: 44px;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  background-color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.actions button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.callBtn:hover {
+  border-color: #3b82f6;
+  background-color: rgba(59, 130, 246, 0.05);
+  color: #3b82f6;
+}
+
+.whatsappBtn:hover {
+  border-color: #16a34a;
+  background-color: rgba(22, 163, 74, 0.05);
+  color: #16a34a;
+}
+
+.emailBtn:hover {
+  border-color: #6366f1;
+  background-color: rgba(99, 102, 241, 0.05);
+  color: #6366f1;
+}
+
+.btnIcon {
+  width: 16px;
+  height: 16px;
+}
+
+.btnText {
+  display: none;
+}
+
+@media (min-width: 640px) {
+  .btnText {
+    display: inline;
+  }
+}
