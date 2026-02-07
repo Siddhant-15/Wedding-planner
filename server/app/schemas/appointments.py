@@ -1,27 +1,22 @@
-from datetime import date
+from pydantic import BaseModel, EmailStr
 from typing import Optional
-from pydantic import constr
-from .base import StrictModel
-from enum import Enum
+from datetime import datetime
 
-class AppointmentStatus(str, Enum):
-    REQUESTED = "requested"
-    CONFIRMED = "confirmed"
-    CANCELLED = "cancelled"
-    COMPLETED = "completed"
+class AppointmentBase(BaseModel):
+    appointment_date: datetime
+    status: Optional[str] = "pending"
 
-class AppointmentCreate(StrictModel):
-    user_id: int
-    vendor_id: int
-    venue_id: Optional[int] = None
-    preferred_date: date
-    message: Optional[constr(max_length=1000)] = None
 
-class AppointmentOut(StrictModel):
-    id: int
-    user_id: int
-    vendor_id: int
-    venue_id: Optional[int]
-    preferred_date: date
-    status: AppointmentStatus
-    message: Optional[str]
+class AppointmentCreate(AppointmentBase):
+    customer_id: str
+    vendor_id: Optional[str]
+    venue_id: Optional[str]
+    service_id: Optional[str]
+
+
+class AppointmentResponse(AppointmentBase):
+    id: str
+    created_at: datetime
+
+    class Config:
+        from_attributes = True

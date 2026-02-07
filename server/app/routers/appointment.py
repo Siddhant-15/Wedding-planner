@@ -1,71 +1,80 @@
-# app/routers/appointment.py
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
-from typing import List
-from datetime import date
+# from fastapi import APIRouter, Depends, HTTPException
+# from sqlalchemy.orm import Session
+# from typing import List, Optional
+# import uuid
 
-from app.database import get_db
-from app.models.appointment import Appointment, AppointmentStatus
-from app.schemas.appointments import AppointmentCreate, AppointmentOut
+# from app.database import get_db
+# from app.models.appointment import Appointment
+# from app.schemas.appointments import AppointmentCreate, AppointmentResponse
 
-router = APIRouter()
+# router = APIRouter()
 
-@router.post("/", response_model=AppointmentOut)
-def create_appointment(data: AppointmentCreate, db: Session = Depends(get_db)):
-    # Check for conflicting appointments (optional)
-    conflict = db.query(Appointment).filter(
-        Appointment.vendor_id == data.vendor_id,
-        Appointment.venue_id == data.venue_id,
-        Appointment.preferred_date == data.preferred_date,
-        Appointment.status != AppointmentStatus.CANCELLED
-    ).first()
-
-    if conflict:
-        raise HTTPException(status_code=400, detail="Appointment slot is already taken.")
-
-    new_appt = Appointment(**data.dict())
-    db.add(new_appt)
-    db.commit()
-    db.refresh(new_appt)
-    return new_appt
+# @router.post("/", response_model=AppointmentResponse)
+# def create_appointment(data: AppointmentCreate, db: Session = Depends(get_db)):
+#     new_appointment = Appointment(
+#         customer_id=uuid.UUID(data.customer_id),
+#         vendor_id=uuid.UUID(data.vendor_id) if data.vendor_id else None,
+#         venue_id=uuid.UUID(data.venue_id) if data.venue_id else None,
+#         service_id=uuid.UUID(data.service_id) if data.service_id else None,
+#         appointment_date=data.appointment_date,
+#         status=data.status or "pending",
+#     )
+#     db.add(new_appointment)
+#     db.commit()
+#     db.refresh(new_appointment)
+#     return new_appointment
 
 
-@router.get("/", response_model=List[AppointmentOut])
-def list_appointments(
-    vendor_id: int = None,
-    user_id: int = None,
-    db: Session = Depends(get_db)
-):
-    query = db.query(Appointment)
-    if vendor_id:
-        query = query.filter(Appointment.vendor_id == vendor_id)
-    if user_id:
-        query = query.filter(Appointment.user_id == user_id)
-    return query.all()
+# @router.get("/", response_model=List[AppointmentResponse])
+# def list_appointments(
+#     vendor_id: Optional[str] = None,
+#     customer_id: Optional[str] = None,
+#     db: Session = Depends(get_db)
+# ):
+#     query = db.query(Appointment)
+#     if vendor_id:
+#         query = query.filter(Appointment.vendor_id == uuid.UUID(vendor_id))
+#     if customer_id:
+#         query = query.filter(Appointment.customer_id == uuid.UUID(customer_id))
+#     return query.all()
 
 
-@router.put("/{appointment_id}/status", response_model=AppointmentOut)
-def update_appointment_status(
-    appointment_id: int,
-    status: AppointmentStatus,
-    db: Session = Depends(get_db)
-):
-    appointment = db.query(Appointment).filter(Appointment.id == appointment_id).first()
-    if not appointment:
-        raise HTTPException(status_code=404, detail="Appointment not found.")
-
-    appointment.status = status
-    db.commit()
-    db.refresh(appointment)
-    return appointment
+# @router.get("/{appointment_id}", response_model=AppointmentResponse)
+# def get_appointment(appointment_id: str, db: Session = Depends(get_db)):
+#     try:
+#         appt_uuid = uuid.UUID(appointment_id)
+#     except ValueError:
+#         raise HTTPException(status_code=400, detail="Invalid appointment ID")
+#     appointment = db.query(Appointment).filter(Appointment.id == appt_uuid).first()
+#     if not appointment:
+#         raise HTTPException(status_code=404, detail="Appointment not found")
+#     return appointment
 
 
-@router.delete("/{appointment_id}")
-def cancel_appointment(appointment_id: int, db: Session = Depends(get_db)):
-    appointment = db.query(Appointment).filter(Appointment.id == appointment_id).first()
-    if not appointment:
-        raise HTTPException(status_code=404, detail="Appointment not found.")
+# @router.patch("/{appointment_id}/status", response_model=AppointmentResponse)
+# def update_appointment_status(appointment_id: str, status: str, db: Session = Depends(get_db)):
+#     try:
+#         appt_uuid = uuid.UUID(appointment_id)
+#     except ValueError:
+#         raise HTTPException(status_code=400, detail="Invalid appointment ID")
+#     appointment = db.query(Appointment).filter(Appointment.id == appt_uuid).first()
+#     if not appointment:
+#         raise HTTPException(status_code=404, detail="Appointment not found")
+#     appointment.status = status
+#     db.commit()
+#     db.refresh(appointment)
+#     return appointment
 
-    appointment.status = AppointmentStatus.CANCELLED
-    db.commit()
-    return {"message": "Appointment cancelled successfully."}
+
+# @router.delete("/{appointment_id}")
+# def delete_appointment(appointment_id: str, db: Session = Depends(get_db)):
+#     try:
+#         appt_uuid = uuid.UUID(appointment_id)
+#     except ValueError:
+#         raise HTTPException(status_code=400, detail="Invalid appointment ID")
+#     appointment = db.query(Appointment).filter(Appointment.id == appt_uuid).first()
+#     if not appointment:
+#         raise HTTPException(status_code=404, detail="Appointment not found")
+#     db.delete(appointment)
+#     db.commit()
+#     return {"detail": "Appointment deleted"}

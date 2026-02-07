@@ -1,39 +1,53 @@
+from pydantic import BaseModel, EmailStr, Field
 from typing import Optional
-from pydantic import EmailStr, Field, constr
-from .base import StrictModel
-from .common import Role
 
-Password = constr(min_length=8, max_length=128)
-
-class SignupRequest(StrictModel):
-    first_name: constr(min_length=1, max_length=50)
-    last_name: constr(min_length=1, max_length=50)
-    email: EmailStr
-    password: Password
-    role: Role = Role.CUSTOMER
-    phone: Optional[constr(max_length=20)] = None
-
-class LoginRequest(StrictModel):
-    # email: EmailStr
-    email: str
-    password: Password
-
-class TokenPair(StrictModel):
+class Token(BaseModel):
     access_token: str
-    refresh_token: str
-    token_type: str = "bearer"
-    expires_in: int = Field(..., ge=60)
+    # refresh_token is set via cookie — not returned in body
 
-class RefreshRequest(StrictModel):
-    refresh_token: str
-
-class PasswordResetRequest(StrictModel):
+class CustomerSignup(BaseModel):
     email: EmailStr
+    password: str = Field(..., min_length=8)
+    first_name: str
+    last_name: str
+    phone: Optional[str] = None
+    # add other customer fields if needed
 
-class PasswordResetConfirmRequest(StrictModel):
-    token: str
-    new_password: Password
+class VendorSignup(BaseModel):
+    email: EmailStr
+    password: str = Field(..., min_length=8)
+    first_name: str
+    last_name: str
+    phone: Optional[str] = None
+    business_name: str
+    # add other vendor fields
 
-class TokenPayload(StrictModel):
-    sub: Optional[str] = None  # User ID or email
-    exp: Optional[int] = None  # Expiration timestamp
+class UserLogin(BaseModel):
+    email: EmailStr
+    password: str
+    role: str = Field(..., pattern="^(customer|vendor)$")  # enforce at input
+
+class ResetPasswordIn(BaseModel):
+    email: EmailStr
+    new_password: str = Field(..., min_length=8)
+    role: str = Field(..., pattern="^(customer|vendor)$")
+
+# app/schemas/auth.py
+from pydantic import BaseModel, EmailStr
+from datetime import datetime
+from typing import Optional
+
+
+class TokenPayload(BaseModel):
+    """
+    Expected structure of the decoded JWT payload.
+    Use this for validation in decode_token().
+    """
+    sub: EmailStr               # usually email (as string)
+    role: str                   # "customer" or "vendor"
+    exp: int                    # expiration timestamp (unix)
+    iat: int                    # issued at (unix)
+    type: Optional[str] = None  # "refresh" for refresh tokens (optional marker)
+
+    class Config:
+        from_attributes = True  # allow creating from dict (jwt.decode result)

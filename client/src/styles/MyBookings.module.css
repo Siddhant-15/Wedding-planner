@@ -1,0 +1,180 @@
+.pageWrapper {
+    min-height: 100vh;
+    background: #f8f9fa;
+    padding-top: 5rem;
+  }
+  
+  .container {
+    max-width: 1200px;
+    margin: auto;
+    padding: 2rem;
+  }
+  
+  .header {
+    margin-bottom: 2rem;
+  }
+  
+  .title {
+    font-size: 2.5rem;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+  }
+  
+  .subtitle {
+    color: #666;
+  }
+  
+  /* Controls */
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+  
+  .select {
+    min-width: 200px;
+  }
+  
+  .exportBtn {
+    min-width: 150px;
+    display: flex;
+    align-items: center;
+  }
+  
+  .icon {
+    margin-right: 0.5rem;
+  }
+  
+  /* Tabs */
+  .tabsList {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+  }
+  
+  .tabContent {
+    margin-top: 1.5rem;
+  }
+  
+  /* Empty state */
+  .emptyCard {
+    text-align: center;
+    padding: 3rem 2rem;
+  }
+  
+  .emptyIcon {
+    margin: 0 auto 1rem;
+    color: #999;
+  }
+  
+  .emptyTitle {
+    font-size: 1.25rem;
+    font-weight: bold;
+  }
+  
+  .emptySubtitle {
+    color: #777;
+    margin-bottom: 1rem;
+  }
+  
+  /* Grid of cards */
+  .grid {
+    display: grid;
+    gap: 1.5rem;
+  }
+  
+  .card {
+    border-radius: 8px;
+    overflow: hidden;
+    transition: box-shadow 0.2s ease;
+  }
+  
+  .card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  }
+  
+  .cardHeader {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+  
+  .vendorInfo {
+    display: flex;
+    gap: 1rem;
+  }
+  
+  .vendorImage {
+    width: 64px;
+    height: 64px;
+    border-radius: 8px;
+    object-fit: cover;
+  }
+  
+  .cardTitle {
+    font-size: 1rem;
+    margin-bottom: 0.25rem;
+  }
+  
+  .vendorName {
+    font-size: 0.875rem;
+    color: #666;
+    margin-bottom: 0.5rem;
+  }
+  
+  .serviceType {
+    font-size: 0.75rem;
+  }
+  
+  /* Price section */
+  .priceSection {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.5rem;
+  }
+  
+  .price {
+    font-size: 1.25rem;
+    font-weight: bold;
+    color: #007bff;
+  }
+  
+  /* Details */
+  .details {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+  
+  .detailItem {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    color: #444;
+  }
+  
+  /* Rating */
+  .rating {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+  
+  .ratingText {
+    font-size: 0.875rem;
+    color: #666;
+  }
+  
+  /* Actions */
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid #eee;
+  }
+  

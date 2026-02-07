@@ -1,0 +1,24 @@
+/* components/ui/Textarea.module.css */
+.textarea {
+  width: 100%;
+  min-height: 120px;
+  padding: 0.85rem 1rem;
+  border-radius: var(--radius);
+  border: 1px solid hsl(var(--border));
+  background-color: hsl(var(--card));
+  color: hsl(var(--foreground));
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  resize: vertical;
+  transition: all 0.2s ease;
+}
+
+.textarea:focus {
+  outline: none;
+  border-color: hsl(var(--brand));
+  box-shadow: 0 0 0 3px hsl(var(--brand) / 0.15);
+}
+
+.textarea::placeholder {
+  color: hsl(var(--muted-foreground));
+}

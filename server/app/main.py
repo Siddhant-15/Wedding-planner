@@ -1,36 +1,127 @@
-from fastapi import FastAPI
+# app/main.py
+import logging
+from contextlib import asynccontextmanager
+from typing import AsyncGenerator
+
+from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
-from app.database import engine, Base
-from app.routers import auth, venue, vendors, booking, payment, review, availability
+from fastapi.responses import JSONResponse
+from fastapi.exceptions import RequestValidationError
+from sqlalchemy.exc import SQLAlchemyError
 
-Base.metadata.create_all(bind=engine)
-
-app = FastAPI(title="Wedding Planner API", version="1.0.0")
-
-
-origins = [
-    "http://localhost:5173",
-    "http://127.0.0.1:5173"
-]
-
-# CORS
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # change in production
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+from app.config import settings
+from app.Db.db import startup_db, shutdown_db
+from app.routers.auth import (
+    AuthRouter,
+    # vendor,
+    # service,
+    # customer_services,
+    # wishlist,
+    # review,
 )
 
-# Routers
-app.include_router(auth.router, prefix="/auth", tags=["Authentication"])
-app.include_router(venue.router, prefix="/venues", tags=["Venues"])
-app.include_router(vendors.router, prefix="/vendors", tags=["Vendors"])
-app.include_router(booking.router, prefix="/bookings", tags=["Bookings"])
-app.include_router(payment.router, prefix="/payments", tags=["Payments"])
-app.include_router(review.router, prefix="/reviews", tags=["Reviews"])
-app.include_router(availability.router, prefix="/availability", tags=["Availability"])
 
-@app.get("/")
-def root():
+# ─── Logging ────────────────────────────────────────────────────────────────
+logging.basicConfig(
+    level=logging.INFO if not settings.DEBUG else logging.DEBUG,
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+)
+logger = logging.getLogger(__name__)
+
+
+# ─── Lifespan ───────────────────────────────────────────────────────────────
+@asynccontextmanager
+async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
+    logger.info("Application startup - initializing database connection pool")
+    await startup_db()
+
+    # No create_all() here anymore → handled by Alembic migrations
+    # If you ever need to debug tables exist → you can run alembic upgrade head manually
+
+    yield
+
+    logger.info("Application shutdown - disposing database engine")
+    await shutdown_db()
+
+
+# ─── FastAPI App ────────────────────────────────────────────────────────────
+app = FastAPI(
+    title="Wedding Planner API",
+    description="Backend API for wedding planning platform",
+    version="1.0.0",
+    docs_url="/docs" if settings.ENVIRONMENT != "production" else None,
+    redoc_url=None,
+    lifespan=lifespan,
+    debug=settings.DEBUG,
+)
+
+
+# ─── CORS ───────────────────────────────────────────────────────────────────
+allowed_origins = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    # "https://your-production-frontend.com",
+]
+
+if settings.ENVIRONMENT == "development":
+    allowed_origins.append("*")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=allowed_origins,
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type", "X-Requested-With"],
+    expose_headers=["X-Total-Count"],
+)
+
+
+# ─── Routers ────────────────────────────────────────────────────────────────
+app.include_router(AuthRouter, prefix=settings.API_V1_STR, tags=["auth"])
+# app.include_router(vendor.router,     prefix=settings.API_V1_STR, tags=["vendor"])
+# app.include_router(service.router,    prefix=settings.API_V1_STR, tags=["services"])
+# ... etc.
+
+
+# ─── Exception Handlers ─────────────────────────────────────────────────────
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    logger.warning(f"Validation error: {exc.errors()}")
+    return JSONResponse(
+        status_code=422,
+        content={"detail": exc.errors(), "message": "Validation failed"},
+    )
+
+
+@app.exception_handler(SQLAlchemyError)
+async def sqlalchemy_exception_handler(request: Request, exc: SQLAlchemyError):
+    logger.error(f"Database error: {exc}", exc_info=True)
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "Database operation failed. Please try again later."},
+    )
+
+
+@app.exception_handler(Exception)
+async def general_exception_handler(request: Request, exc: Exception):
+    logger.exception(f"Unhandled exception: {exc}")
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "Internal server error"},
+    )
+
+
+# ─── Health & Root ──────────────────────────────────────────────────────────
+@app.get("/", include_in_schema=False)
+async def root():
     return {"message": "Wedding Planner API is running"}
+
+
+@app.get("/health", tags=["health"])
+async def health_check():
+    return {
+        "status": "healthy",
+        "environment": settings.ENVIRONMENT,
+        "version": app.version,
+    }

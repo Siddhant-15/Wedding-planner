@@ -1,27 +1,65 @@
-from typing import Optional
-from pydantic import conint, constr, model_validator
-from .base import StrictModel
-
-class ReviewCreate(StrictModel):
-    user_id: int
-    venue_id: Optional[int] = None
-    service_id: Optional[int] = None
-    rating: conint(ge=1, le=5)
-    title: Optional[constr(max_length=120)] = None
-    body: Optional[constr(max_length=2000)] = None
-
-    @model_validator(mode="after")
-    def check_one_target(self):
-        if not self.venue_id and not self.service_id:
-            raise ValueError("Review must be for either a venue or a service.")
-        return self
+from pydantic import BaseModel, Field
+from typing import List, Optional
+from uuid import UUID
+from datetime import date, datetime
 
 
-class ReviewOut(StrictModel):
-    id: int
-    user_id: int
-    venue_id: Optional[int]
-    service_id: Optional[int]
-    rating: int
+class ReviewCreate(BaseModel):
+    service_id: UUID
+    user_id: UUID
+
+    overall_rating: int = Field(..., ge=1, le=5)
+    food_beverage_rating: Optional[int] = Field(None, ge=1, le=5)
+    service_quality_rating: Optional[int] = Field(None, ge=1, le=5)
+    ambiance_rating: Optional[int] = Field(None, ge=1, le=5)
+    value_for_money_rating: Optional[int] = Field(None, ge=1, le=5)
+
     title: Optional[str]
-    body: Optional[str]
+    review_text: Optional[str]
+    photos: Optional[List[str]] = []
+
+    event_type: Optional[str]
+    event_date: Optional[date]
+
+
+class ReviewResponse(ReviewCreate):
+    id: UUID
+    helpful_count: int
+
+    class Config:
+        orm_mode = True
+
+
+class UserInfo(BaseModel):
+    id: UUID
+    name: str
+    avatar: Optional[str]
+    location: Optional[str]
+
+
+class Ratings(BaseModel):
+    overall: int
+    foodBeverage: Optional[int]
+    serviceQuality: Optional[int]
+    ambiance: Optional[int]
+    valueForMoney: Optional[int]
+
+
+class OwnerResponse(BaseModel):
+    text: str
+    date: datetime
+
+
+class ReviewOut(BaseModel):
+    id: UUID
+    user: UserInfo
+    ratings: Ratings
+    title: Optional[str]
+    text: Optional[str]
+    photos: List[str]
+    eventType: Optional[str]
+    eventDate: Optional[date]
+    createdAt: datetime
+    isVerified: bool
+    helpfulCount: int
+    response: Optional[OwnerResponse]

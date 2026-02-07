@@ -1,0 +1,78 @@
+/* components/ui/Button.module.css */
+.base {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: var(--radius);
+  font-weight: 500;
+  font-family: var(--font-body);
+  transition: all 0.25s ease;
+  cursor: pointer;
+}
+
+.base:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* Variants */
+.variantPrimary {
+  background-color: hsl(var(--brand));
+  color: hsl(var(--brand-foreground));
+  box-shadow: 0 4px 14px hsl(var(--brand) / 0.25);
+}
+
+.variantPrimary:hover:not(:disabled) {
+  background-color: hsl(var(--brand) / 0.92);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px hsl(var(--brand) / 0.35);
+}
+
+.variantSecondary {
+  background-color: hsl(var(--peach));
+  color: hsl(var(--foreground));
+}
+
+.variantSecondary:hover:not(:disabled) {
+  background-color: hsl(var(--peach) / 0.9);
+}
+
+.variantOutline {
+  border: 1px solid hsl(var(--brand));
+  background-color: transparent;
+  color: hsl(var(--brand));
+}
+
+.variantOutline:hover:not(:disabled) {
+  background-color: hsl(var(--brand) / 0.08);
+}
+
+.variantGhost {
+  background: transparent;
+  color: hsl(var(--foreground));
+}
+
+.variantGhost:hover:not(:disabled) {
+  background-color: hsl(var(--rose-50));
+}
+
+/* Sizes */
+.sizeDefault {
+  height: 2.75rem;
+  padding: 0 1.5rem;
+  font-size: 0.95rem;
+}
+
+.sizeSm {
+  height: 2.25rem;
+  padding: 0 1rem;
+  font-size: 0.875rem;
+  border-radius: calc(var(--radius) - 2px);
+}
+
+.sizeLg {
+  height: 3.25rem;
+  padding: 0 2rem;
+  font-size: 1.1rem;
+}

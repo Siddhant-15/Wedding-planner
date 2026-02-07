@@ -1,23 +1,60 @@
-import React, { createContext, useContext, useState } from "react";
-import { authAPI } from "../services/api.js"
+import React, { createContext, useContext, useState, useEffect } from "react";
+import { authAPI } from "../utils/api"
+import jwtDecode from "jwt-decode";
 
 const AuthContext = createContext(undefined);
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Restore user from token on app load
+    const accessToken = localStorage.getItem("access_token");
+    if (accessToken) {
+      try {
+        const decoded = jwtDecode(accessToken);
+        const currentTime = Math.floor(Date.now() / 1000);
+        if (decoded.exp > currentTime) {
+          setUser({
+            id: decoded.sub,
+            email: decoded.email || "",
+            type: decoded.role || "customer",
+            exp: decoded.exp,
+          });
+        } else {
+          localStorage.removeItem("access_token");
+          localStorage.removeItem("refresh_token");
+        }
+      } catch (err) {
+        console.error("Invalid token:", err);
+        localStorage.removeItem("access_token");
+        localStorage.removeItem("refresh_token");
+      }
+    }
+    setLoading(false);
+  }, []);
 
   const login = async (email, password, type) => {
     try {
-      const res = await authAPI.login({ email, password });
+      const res = await authAPI.login({ email, password, role: type }); // Include role in payload if API expects it
       localStorage.setItem("access_token", res.data.access_token);
       localStorage.setItem("refresh_token", res.data.refresh_token);
-
-      // In a real app, fetch user profile after login
+  
+      const decoded = jwtDecode(res.data.access_token);
+      let userRole = decoded.role || type; // Fallback to type if role is missing
+      if (Array.isArray(userRole)) {
+        userRole = userRole[0]; // Extract first element if array
+      }
+      userRole = userRole.toString().trim().toLowerCase();
+      if (!["customer", "vendor", "admin"].includes(userRole)) {
+        throw new Error("Invalid role in token");
+      }
       setUser({
-        id: res.data.user_id || "1", // depends on backend response
-        name: res.data.name || email,
+        id: decoded.sub,
         email,
-        type,
+        type: userRole,
+        exp: decoded.exp,
       });
     } catch (err) {
       console.error("Login failed:", err.response?.data || err.message);
@@ -25,25 +62,27 @@ export function AuthProvider({ children }) {
     }
   };
 
-  const register = async (name, email, password, type) => {
+  const register = async (firstName, lastName, email, password, type) => {
     try {
-      const res = await authAPI.signup({
-        first_name: name.split(" ")[0] || name,
-        last_name: name.split(" ")[1] || "",
-        email,
-        password,
-        phone: "", // placeholder, depends on your backend schema
-        role: type, // 'customer' or 'vendor'
-      });
+      let payload;
+        payload = {
+          first_name: firstName,
+          last_name: lastName,
+          email,
+          password,
+        };
+
+      const res = await authAPI.signup(payload, type);
 
       localStorage.setItem("access_token", res.data.access_token);
       localStorage.setItem("refresh_token", res.data.refresh_token);
 
+      const decoded = jwtDecode(res.data.access_token);
       setUser({
-        id: res.data.user_id || "1",
-        name,
+        id: decoded.sub,
         email,
-        type,
+        type: decoded.role || type,
+        exp: decoded.exp,
       });
     } catch (err) {
       console.error("Registration failed:", err.response?.data || err.message);
@@ -66,6 +105,7 @@ export function AuthProvider({ children }) {
         login,
         register,
         logout,
+        loading,
       }}
     >
       {children}

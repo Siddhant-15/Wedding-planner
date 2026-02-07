@@ -1,0 +1,65 @@
+/* components/ui/Calendar.module.css */
+.calendar {
+  background: hsl(var(--card));
+  padding: 1rem;
+  border-radius: var(--radius);
+  border: 1px solid hsl(var(--border));
+  box-shadow: 0 10px 25px hsl(var(--brand) / 0.12);
+}
+
+.day {
+  height: 2.25rem;
+  width: 2.25rem;
+  font-size: 0.875rem;
+  margin: 0.15rem;
+  border-radius: 50%;
+}
+
+.day:hover:not(.day_disabled):not(.day_selected) {
+  background-color: hsl(var(--peach));
+}
+
+.daySelected {
+  background-color: hsl(var(--brand)) !important;
+  color: white !important;
+  font-weight: 600;
+}
+
+.dayToday {
+  background-color: hsl(var(--rose-50));
+  font-weight: 600;
+}
+
+.dayDisabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.dayOutside {
+  opacity: 0.5;
+}
+
+.caption {
+  margin-bottom: 0.75rem;
+}
+
+.headCell {
+  color: hsl(var(--muted-foreground));
+  font-weight: 500;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+}
+
+.cell {
+  padding: 0 !important;
+}
+
+.navButton {
+  color: hsl(var(--brand));
+  opacity: 0.7;
+}
+
+.navButton:hover {
+  opacity: 1;
+  background: hsl(var(--peach));
+}

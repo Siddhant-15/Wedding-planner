@@ -1,0 +1,627 @@
+/* Enhanced styles for a professional, modern, and animated multi-step form */
+
+/* Overlay for the modal */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: hsl(var(--foreground) / 0.7);
+  backdrop-filter: blur(10px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  animation: fadeInOverlay 0.3s ease-out;
+}
+
+@keyframes fadeInOverlay {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Modal wrapper */
+.modalWrapper {
+  width: 100%;
+  max-width: 960px;
+  padding: 1.5rem;
+  max-height: 95vh;
+  display: flex;
+  justify-content: center;
+}
+
+/* Modal container */
+.modal {
+  background: hsl(var(--card));
+  color: hsl(var(--card-foreground));
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  animation: slideUp 0.4s ease-out;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  max-height: 95vh;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(50px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* Header */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.25rem 2rem;
+  border-bottom: 1px solid hsl(var(--border));
+  background: hsl(var(--background));
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.iconBox {
+  background: hsl(var(--accent));
+  padding: 0.75rem;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sparkleIcon {
+  color: hsl(var(--brand));
+}
+
+.title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: hsl(var(--foreground));
+}
+
+.subtitle {
+  font-size: 1rem;
+  color: hsl(var(--muted-foreground));
+}
+
+/* Close button */
+.closeBtn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 50%;
+  transition: background 0.2s ease;
+}
+
+.closeBtn:hover {
+  background: hsl(var(--muted) / 0.3);
+}
+
+.closeIcon {
+  color: hsl(var(--foreground));
+}
+
+/* Form container */
+.form {
+  flex: 1;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--brand)) transparent;
+}
+
+/* WebKit scrollbar */
+.form::-webkit-scrollbar {
+  width: 10px;
+}
+
+.form::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.form::-webkit-scrollbar-thumb {
+  background-color: hsl(var(--brand));
+  border-radius: 5px;
+  border: 2px solid hsl(var(--card));
+}
+
+/* Stepper styles */
+.stepper {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem 2rem;
+  background: hsl(var(--background));
+  border-bottom: 1px solid hsl(var(--border));
+}
+
+.step {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  text-align: center;
+  position: relative;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.step:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  top: 1.25rem;
+  right: -50%;
+  width: 100%;
+  height: 4px;
+  background: hsl(var(--muted));
+  z-index: 1;
+}
+
+.step span {
+  width: 2.5rem;
+  height: 2.5rem;
+  line-height: 2.5rem;
+  border-radius: 50%;
+  background: hsl(var(--muted));
+  color: hsl(var(--muted-foreground));
+  font-weight: 600;
+  z-index: 2;
+  transition: all 0.3s ease;
+}
+
+.step p {
+  font-size: 0.875rem;
+  color: hsl(var(--muted-foreground));
+  font-weight: 500;
+}
+
+.step.activeStep span {
+  background: hsl(var(--brand));
+  color: hsl(var(--primary-foreground));
+  transform: scale(1.1);
+}
+
+.step.activeStep p {
+  color: hsl(var(--foreground));
+  font-weight: 600;
+}
+
+.step.completedStep span {
+  background: hsl(var(--brand) / 0.8);
+  color: hsl(var(--primary-foreground));
+}
+
+.step.completedStep::after {
+  background: hsl(var(--brand) / 0.8);
+}
+
+.step.completedStep p {
+  color: hsl(var(--foreground));
+}
+
+.step:hover:not(.activeStep) span {
+  transform: scale(1.05);
+  background: hsl(var(--brand) / 0.2);
+}
+
+/* Field group */
+.fieldGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  animation: slideInRight 0.3s ease-out;
+}
+
+@keyframes slideInRight {
+  from { transform: translateX(20px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+.label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: hsl(var(--foreground));
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.input,
+.textarea,
+select {
+  padding: 0.75rem 1rem;
+  border: 1px solid hsl(var(--border));
+  border-radius: 10px;
+  font-size: 0.875rem;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.input:focus,
+.textarea:focus,
+select:focus {
+  outline: none;
+  border-color: hsl(var(--brand));
+  box-shadow: 0 0 0 3px hsl(var(--brand) / 0.2);
+}
+
+.textarea {
+  resize: none;
+  min-height: 120px;
+}
+
+/* Section styles */
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.sectionTitle {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: hsl(var(--foreground));
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.geoGroup {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+/* Grid for inputs */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+/* List input row (tags, amenities, etc.) */
+.listInputRow, .amenityInputRow {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.addBtn {
+  background: hsl(var(--brand));
+  color: hsl(var(--primary-foreground));
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: transform 0.2s, background 0.2s;
+}
+
+.addBtn:hover {
+  transform: scale(1.05);
+  background: hsl(var(--brand) / 0.9);
+}
+
+.listItems, .amenitiesList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.badge, .amenityBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: hsl(var(--accent));
+  color: hsl(var(--accent-foreground));
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  transition: box-shadow 0.2s;
+}
+
+.badge:hover, .amenityBadge:hover {
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+}
+
+.removeBtn, .removeAmenity {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: hsl(var(--destructive));
+  transition: color 0.2s;
+}
+
+.removeBtn:hover, .removeAmenity:hover {
+  color: hsl(var(--destructive) / 0.8);
+}
+
+/* Checkbox group */
+.checkboxGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.checkboxGroup label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: hsl(var(--foreground));
+}
+
+/* Upload box */
+.uploadBox {
+  border: 2px dashed hsl(var(--border));
+  border-radius: 12px;
+  padding: 2.5rem;
+  text-align: center;
+  background: hsl(var(--background));
+  transition: border-color 0.2s;
+}
+
+.uploadBox:hover {
+  border-color: hsl(var(--brand));
+}
+
+.uploadIcon {
+  margin: 0 auto 1rem;
+  color: hsl(var(--muted-foreground));
+  width: 2rem;
+  height: 2rem;
+}
+
+.chooseBtn {
+  background: hsl(var(--secondary));
+  color: hsl(var(--secondary-foreground));
+  border: 1px solid hsl(var(--border));
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background 0.2s, transform 0.2s;
+}
+
+.chooseBtn:hover {
+  background: hsl(var(--secondary) / 0.9);
+  transform: scale(1.05);
+}
+
+.hiddenInput {
+  display: none;
+}
+
+/* Image preview grid */
+.previewGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 1rem;
+}
+
+.previewItem {
+  position: relative;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.previewImg {
+  width: 100%;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 10px;
+  transition: transform 0.3s ease;
+}
+
+.previewImg:hover {
+  transform: scale(1.05);
+}
+
+.removeImageBtn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: hsl(var(--destructive));
+  color: hsl(var(--destructive-foreground));
+  border: none;
+  border-radius: 50%;
+  padding: 0.5rem;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.removeImageBtn:hover {
+  transform: scale(1.1);
+}
+
+/* Actions */
+.actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 2rem;
+  justify-content: space-between;
+}
+
+.submitBtn, .nextBtn {
+  flex: 1;
+  background: linear-gradient(135deg, hsl(var(--brand)), hsl(var(--brand) / 0.8));
+  color: hsl(var(--primary-foreground));
+  border: none;
+  padding: 0.75rem;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.submitBtn:hover, .nextBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.cancelBtn, .backBtn, .draftBtn {
+  flex: 1;
+  background: hsl(var(--secondary));
+  color: hsl(var(--secondary-foreground));
+  border: 1px solid hsl(var(--border));
+  padding: 0.75rem;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: transform 0.2s, background 0.2s;
+}
+
+.cancelBtn:hover, .backBtn:hover, .draftBtn:hover {
+  background: hsl(var(--secondary) / 0.9);
+  transform: translateY(-2px);
+}
+
+/* Draft banner */
+.draftBanner {
+  background: hsl(var(--muted));
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  border-radius: 12px;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  animation: fadeIn 0.3s ease;
+}
+
+.loadBtn {
+  background: hsl(var(--brand));
+  color: hsl(var(--primary-foreground));
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: transform 0.2s;
+}
+
+.loadBtn:hover {
+  transform: scale(1.05);
+}
+
+.discardBtn {
+  background: hsl(var(--destructive));
+  color: hsl(var(--destructive-foreground));
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: transform 0.2s;
+}
+
+.discardBtn:hover {
+  transform: scale(1.05);
+}
+
+/* Step content */
+.stepContent {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  animation: slideInRight 0.3s ease-out;
+}
+
+/* Review section */
+.reviewSection {
+  background: hsl(var(--card));
+  padding: 1.5rem;
+  border-radius: 12px;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s;
+}
+
+.reviewSection:hover {
+  transform: translateY(-2px);
+}
+
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.editBtn {
+  background: hsl(var(--secondary));
+  color: hsl(var(--secondary-foreground));
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 500;
+  transition: background 0.2s, transform 0.2s;
+}
+
+.editBtn:hover {
+  background: hsl(var(--secondary) / 0.9);
+  transform: scale(1.05);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .modalWrapper {
+    padding: 1rem;
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .geoGroup {
+    grid-template-columns: 1fr;
+  }
+
+  .stepper {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .step:not(:last-child)::after {
+    display: none;
+  }
+
+  .step span {
+    width: 2rem;
+    height: 2rem;
+    line-height: 2rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .modal {
+    border-radius: 12px;
+  }
+
+  .form {
+    padding: 1rem;
+  }
+
+  .actions {
+    flex-direction: column;
+  }
+
+  .submitBtn, .nextBtn, .cancelBtn, .backBtn, .draftBtn {
+    width: 100%;
+  }
+}

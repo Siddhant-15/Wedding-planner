@@ -1,215 +1,744 @@
+/* =========================
+   PAGE LAYOUT
+========================= */
 .container {
-    min-height: 100vh;
-  }
-  
+  width: 100%;
+  min-height: 100vh;
+  background-color: #f9f9f9;
+}
+
+.pageWrapper {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.hero {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.title {
+  font-size: 2.5rem;
+  font-weight: bold;
+  margin-bottom: 10px;
+  color: #1d2233;
+}
+
+.subtitle {
+  font-size: 1.2rem;
+  color: #555;
+}
+
+/* =========================
+   FILTERS + CONTENT
+========================= */
+.contentWithFilters {
+  display: flex;
+  gap: 20px;
+}
+
+.mainContent {
+  flex: 1;
+}
+
+.filterToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  font-size: 1rem;
+  cursor: pointer;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  margin-bottom: 20px;
+  transition: all 0.2s ease;
+}
+
+.filterToggle:hover {
+  background-color: #f0f0f0;
+}
+
+.resultsHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.resultsCount {
+  font-weight: 500;
+  font-size: 1rem;
+  color: #333;
+}
+
+.sortSelect {
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  background-color: #fff;
+  font-size: 0.95rem;
+}
+
+/* =========================
+   GRID + CARDS (FIXED WIDTH)
+========================= */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, 340px);
+  gap: 28px;
+  /* justify-content: center;  */
+  padding: 0 12px;
+}
+
+.card {
+  background: #fff;
+  border-radius: 16px;
+  overflow: visible;
+  box-shadow: 0 4px 16px hsl(var(--brand) / 0.15);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  width: 340px;
+  max-width: 340px;
+  height: fit-content;
+  cursor: pointer;
+}
+
+.card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 12px 28px hsl(var(--brand) / 0.25);
+}
+
+.imageWrapper {
+  position: relative;
+  height: 220px;
+  overflow: hidden;
+}
+
+/* =========================
+   CAROUSEL
+========================= */
+.carousel {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: 16px 16px 0 0;
+}
+
+.cardImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: opacity 0.4s ease;
+}
+
+/* Prev/Next Buttons - Visible on hover */
+.prevButton,
+.nextButton {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(0, 0, 0, 0.4);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 34px;
+  height: 34px;
+  font-size: 1.3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  transition: all 0.3s ease;
+  opacity: 0;
+}
+
+.carousel:hover .prevButton,
+.carousel:hover .nextButton {
+  opacity: 1;
+}
+
+.prevButton:hover,
+.nextButton:hover {
+  background: rgba(0, 0, 0, 0.7);
+}
+
+.prevButton { left: 12px; }
+.nextButton { right: 12px; }
+
+/* Carousel Dots */
+.carouselDots {
+  position: absolute;
+  bottom: 12px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  gap: 7px;
+  z-index: 10;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.dot.active {
+  width: 14px;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.infoWrapper {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+}
+.infoBtn {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  border: none;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(4px);
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.infoBtn:hover {
+  background: rgba(0, 0, 0, 0.75);
+  transform: scale(1.05);
+}
+
+.infoPopover {
+  position: absolute;
+  bottom: 36px;
+  right: 0;
+  width: 280px;
+
+  background: #ffffff;
+  color: #111827;
+  padding: 14px;
+  border-radius: 14px;
+
+  box-shadow:
+    0 14px 34px rgba(0, 0, 0, 0.18),
+    0 6px 14px rgba(0, 0, 0, 0.1);
+
+  font-size: 0.85rem;
+  line-height: 1.55;
+
+  opacity: 0;
+  transform: translateY(6px);
+  pointer-events: none;
+  transition: all 0.2s ease;
+
+  z-index: 10000;
+}
+.infoHeader {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 6px;
+}
+
+.infoContent {
+  font-size: 0.82rem;
+  color: #4b5563;
+}
+
+.infoWrapper:hover .infoPopover,
+.infoWrapper:focus-within .infoPopover {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.infoPopover::after {
+  content: "";
+  position: absolute;
+  bottom: -6px;
+  right: 14px;
+  width: 12px;
+  height: 12px;
+  background: #fff;
+  transform: rotate(45deg);
+}
+
+/* New price + hall type row */
+.priceHallRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+
+.priceBlock {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.cardPrice {
+  font-size: 1.28rem;
+  font-weight: 700;
+  color: #111827;
+  letter-spacing: -0.3px;
+}
+
+/* Beautiful hall type badge */
+.hallTypeBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #f1f5f9;
+  color: #334155;
+  font-size: 0.82rem;
+  font-weight: 600;
+  padding: 5px 11px;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  white-space: nowrap;
+}
+
+.hallTypeBadge svg {
+  color: #64748b;
+}
+
+/* After .priceHallRow */
+
+.djHighlights {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 16px;
+  margin: 12px 0 8px;
+  font-size: 0.92rem;
+  color: #4b5563;
+}
+
+.highlightItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.highlightItem svg {
+  color: #6366f1;          /* indigo-500 – looks premium for DJ */
+  flex-shrink: 0;
+}
+
+/* Optional: make first genre row bolder */
+.djHighlights .highlightItem:first-child {
+  font-weight: 600;
+  color: #1f2937;
+}
+
+
+/* After .djHighlights */
+
+.eventMgmtHighlights {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 16px;
+  margin: 10px 0 8px;
+  font-size: 0.92rem;
+  color: #4b5563;
+}
+
+.eventMgmtHighlights .highlightItem svg {
+  color: #8b5cf6;          /* violet-500 – elegant & event-like */
+  flex-shrink: 0;
+}
+
+/* Optional: make event types bolder */
+.eventMgmtHighlights .highlightItem:first-child {
+  font-weight: 600;
+  color: #1f2937;
+}
+
+/* Optional premium badge for strong event managers */
+.eventMgmtPremium {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #f3e8ff;
+  color: #6d28d9;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 5px 11px;
+  border-radius: 10px;
+  border: 1px solid #d8b4fe;
+  margin: 8px 0;
+}
+
+.djHighlights,
+.eventMgmtHighlights,
+.photographerHighlights {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 16px;
+  margin-right: auto; /* pushes price to the right */
+  font-size: 0.92rem;
+  color: #4b5563;
+}
+
+
+
+
+
+/* =========================
+   CARD CONTENT
+========================= */
+.cardContent {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex-grow: 1;
+}
+
+/* Title + Rating Row */
+.titleRatingRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.cardTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1d2233;
+  margin: 0;
+  line-height: 1.3;
+}
+
+.ratingInline {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #f59e0b;
+  white-space: nowrap;
+}
+
+/* Location & Capacity */
+.cardLocation,
+.cardCapacity {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.92rem;
+  color: #666;
+}
+
+/* Price */
+/* .cardPrice {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #1d2233;
+  margin-top: 4px;
+} */
+
+/* Horizontal row */
+.extrasRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 10px;
+}
+.extrasLeft {
+  display: flex;
+  gap: 8px;
+  flex: 1;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+
+
+
+/* Grey pill */
+.extraChip {
+  background: #f3f4f6;
+  color: #374151;
+  font-size: 0.78rem;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-weight: 500;
+}
+
+
+
+/* +X more wrapper */
+.moreWrapper {
+  position: relative;
+  flex-shrink: 0;
+  padding: 4px 6px; /* bigger hover zone */
+}
+
+
+/* +X more text */
+.moreText {
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: hsl(var(--brand));
+  cursor: pointer;
+}
+
+/* Floating popover */
+.morePopover {
+  position: absolute;
+  bottom: calc(100% + 8px); /* open upwards */
+  right: 0;
+
+  min-width: 240px;
+  max-width: 300px;
+  max-height: 260px;
+
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 10px;
+
+  box-shadow:
+    0 14px 34px rgba(0, 0, 0, 0.18),
+    0 6px 14px rgba(0, 0, 0, 0.1);
+
+  overflow-y: auto;
+
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(6px);
+  pointer-events: none;
+  transition: all 0.2s ease;
+
+  z-index: 99999;
+}
+
+.morePopover::before {
+  content: "";
+  position: absolute;
+  bottom: -6px;
+  right: 18px;
+  width: 12px;
+  height: 12px;
+  background: #fff;
+  transform: rotate(45deg);
+}
+
+.moreWrapper:hover .morePopover,
+.moreWrapper:focus-within .morePopover {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.popoverItem {
+  font-size: 0.82rem;
+  color: #374151;
+  padding: 7px 10px;
+  border-radius: 8px;
+}
+
+.popoverItem:hover {
+  background: #f3f4f6;
+}
+
+/* Wishlist Button - Top Right */
+.wishlistButton {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  left: auto;
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid hsl(var(--border));
+  border-radius: 50%;
+  color: hsl(var(--muted-foreground));
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+  z-index: 10;
+}
+
+.wishlistButton:hover {
+  background: #fff;
+  color: hsl(var(--brand));
+  transform: scale(1.12);
+}
+
+.wishlistButton.active {
+  background: hsl(var(--brand));
+  color: white;
+  border-color: hsl(var(--brand));
+}
+
+.wishlistButton.active:hover {
+  background: hsl(var(--brand) / 0.9);
+  transform: scale(1.12);
+}
+
+/* Hide old badge */
+.cardBadge {
+  display: none;
+}
+
+/* =========================
+   PAGINATION
+========================= */
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  margin-top: 40px;
+}
+
+.pageButton {
+  padding: 10px 18px;
+  font-size: 0.95rem;
+  background: hsl(var(--brand));
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.pageButton:hover:not(:disabled) {
+  background: hsl(var(--brand) / 0.9);
+}
+
+.pageButton:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.pageInfo {
+  font-size: 0.95rem;
+  color: #444;
+}
+.totalreviews{
+  color: grey;
+  opacity: 0.5;
+  font-size: 0.75rem;
+}
+
+/* =========================
+   RESPONSIVE TWEAKS
+========================= */
+@media (max-width: 768px) {
   .pageWrapper {
-    padding-top: 80px;
+    padding: 16px;
   }
-  
-  .hero {
-    background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--secondary)) 50%, hsl(var(--accent)) 100%);
-    color: white;
-    text-align: center;
-    padding: 80px 20px;
-    margin-bottom: 60px;
-  }
-  
+
   .title {
-    font-size: 3.5rem;
-    font-weight: 700;
-    margin-bottom: 1rem;
-    font-family: var(--font-serif);
+    font-size: 2rem;
   }
-  
+
   .subtitle {
-    font-size: 1.25rem;
-    opacity: 0.9;
-    max-width: 600px;
-    margin: 0 auto;
+    font-size: 1.1rem;
   }
-  
-  .content {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 20px;
-  }
-  
-  .contentWithFilters {
-    display: flex;
-    gap: 30px;
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 40px 20px;
-  }
-  
-  .mainContent {
-    flex: 1;
-  }
-  
-  .filterToggle {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 10px 16px;
-    background: hsl(var(--primary));
-    color: white;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: 500;
-    margin-bottom: 20px;
-    transition: all 0.2s ease;
-  }
-  
-  .filterToggle:hover {
-    background: hsl(var(--primary) / 0.9);
-    transform: translateY(-1px);
-  }
-  
-  .resultsHeader {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 30px;
-    padding-bottom: 15px;
-    border-bottom: 1px solid hsl(var(--border));
-  }
-  
-  .resultsCount {
-    color: hsl(var(--muted-foreground));
-    font-size: 0.95rem;
-  }
-  
-  .sortSelect {
-    padding: 8px 12px;
-    border: 1px solid hsl(var(--border));
-    border-radius: 6px;
-    background: white;
-    cursor: pointer;
-    transition: border-color 0.2s ease;
-  }
-  
-  .sortSelect:focus {
-    outline: none;
-    border-color: hsl(var(--primary));
-  }
-  
+
   .grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-    gap: 30px;
-    margin-bottom: 80px;
+    grid-template-columns: repeat(auto-fit, 320px);
+    gap: 20px;
+    padding: 0 8px;
   }
-  
+
   .card {
-    background: white;
-    border-radius: 15px;
-    overflow: hidden;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    width: 320px;
+    max-width: 320px;
   }
-  
-  .card:hover {
-    transform: translateY(-10px);
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
-  }
-  
+
   .imageWrapper {
-    position: relative;
-    height: 250px;
-    overflow: hidden;
+    height: 200px;
   }
-  
-  .cardImage {
+
+  .contentWithFilters {
+    flex-direction: column;
+  }
+
+  .resultsHeader {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+@media (max-width: 480px) {
+  .title {
+    font-size: 1.8rem;
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+    justify-content: center;
+  }
+
+  .card {
     width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transition: transform 0.3s ease;
+    max-width: 340px;
+    margin: 0 auto;
   }
-  
-  .card:hover .cardImage {
-    transform: scale(1.05);
+
+  .imageWrapper {
+    height: 180px;
   }
-  
-  .cardBadge {
-    position: absolute;
-    top: 12px;
-    right: 12px;
-    background: hsl(var(--primary));
-    color: white;
-    padding: 4px 8px;
-    border-radius: 12px;
-    font-size: 0.75rem;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-  }
-  
-  .cardContent {
-    padding: 25px;
-  }
-  
+
   .cardTitle {
-    font-size: 1.5rem;
-    font-weight: 600;
-    margin-bottom: 8px;
-    color: hsl(var(--foreground));
-    font-family: var(--font-serif);
+    font-size: 1.15rem;
   }
-  
-  .cardLocation {
-    color: hsl(var(--muted-foreground));
-    margin-bottom: 12px;
-    font-size: 0.95rem;
-    display: flex;
-    align-items: center;
-    gap: 6px;
+
+  .titleRatingRow {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
   }
-  
-  .cardCapacity {
-    color: hsl(var(--muted-foreground));
-    margin-bottom: 8px;
-    font-size: 0.9rem;
-    display: flex;
-    align-items: center;
-    gap: 6px;
+
+  .priceHallRow {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
   }
-  
+
+  .hallTypeBadge {
+    font-size: 0.8rem;
+    padding: 5px 10px;
+  }
+
   .cardPrice {
-    font-size: 1.25rem;
-    font-weight: 700;
-    color: hsl(var(--primary));
-    margin-bottom: 20px;
+    font-size: 1.18rem;
   }
   
-  .cardButton {
+  .photographerHighlights,
+  .djHighlights,
+  .eventMgmtHighlights {
     width: 100%;
-    background: hsl(var(--primary));
-    color: white;
-    border: none;
-    padding: 12px 20px;
-    border-radius: 8px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
   }
-  
-  .cardButton:hover {
-    background: hsl(var(--primary) / 0.9);
-  }
-  
-  @media (max-width: 768px) {
-    .title {
-      font-size: 2.5rem;
-    }
-    
-    .hero {
-      padding: 60px 20px;
-    }
-    
-    .grid {
-      grid-template-columns: 1fr;
-      gap: 20px;
-    }
-  }
+}

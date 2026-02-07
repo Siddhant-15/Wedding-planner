@@ -1,35 +1,22 @@
-from datetime import date
+from pydantic import BaseModel, EmailStr
 from typing import Optional
-from pydantic import confloat, conint, constr
-from .base import StrictModel
-from .common import Currency
-from enum import Enum
+from datetime import datetime
 
-class BookingStatus(str, Enum):
-    PENDING = "pending"
-    CONFIRMED = "confirmed"
-    CANCELLED = "cancelled"
-    COMPLETED = "completed"
-    REFUNDED = "refunded"
+class BookingBase(BaseModel):
+    booking_date: datetime
+    status: Optional[str] = "pending"
 
-class BookingCreate(StrictModel):
-    user_id: int
-    event_date: date
-    venue_id: Optional[int] = None
-    service_id: Optional[int] = None
-    guests: Optional[conint(ge=1)] = None
-    total_amount: confloat(ge=0) = 0
-    currency: Currency = Currency.INR
-    notes: Optional[constr(max_length=2000)] = None
 
-class BookingOut(StrictModel):
-    id: int
-    user_id: int
-    event_date: date
-    venue_id: Optional[int]
-    service_id: Optional[int]
-    guests: Optional[int]
-    status: BookingStatus
-    total_amount: float
-    currency: Currency
-    notes: Optional[str]
+class BookingCreate(BookingBase):
+    customer_id: str
+    vendor_id: Optional[str]
+    venue_id: Optional[str]
+    service_id: Optional[str]
+
+
+class BookingResponse(BookingBase):
+    id: str
+    created_at: datetime
+
+    class Config:
+        from_attributes = True

@@ -1,0 +1,525 @@
+.reviewsContainer {
+  background: hsl(var(--card));
+  border-radius: 20px;
+  padding: 32px;
+  box-shadow: var(--shadow-soft);
+  border: 1px solid hsl(var(--border));
+  margin: 0 auto;
+  max-width: 1100px;
+}
+
+/* Summary */
+.summaryHeader {
+  text-align: center;
+  margin-bottom: 40px;
+  padding-bottom: 32px;
+  border-bottom: 1px solid hsl(var(--border));
+}
+
+.scoreValue {
+  font-family: var(--font-heading);
+  font-size: 5.5rem;
+  font-weight: 700;
+  color: hsl(var(--brand));
+  line-height: 1;
+  margin: 0 0 12px;
+}
+
+.scoreStars {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin: 12px 0;
+}
+
+.starGoldLarge {
+  color: hsl(var(--gold));
+  fill: hsl(var(--gold));
+}
+
+.starMutedLarge {
+  color: hsl(var(--muted));
+}
+
+.reviewCount {
+  color: hsl(var(--muted-foreground));
+  font-size: 1.15rem;
+  font-weight: 500;
+}
+
+/* Filters */
+.filtersBar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 32px;
+  flex-wrap: wrap;
+}
+
+.filterLeft {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: hsl(var(--muted-foreground));
+  font-weight: 500;
+}
+
+.sortSelect {
+  padding: 10px 16px;
+  border: 1px solid hsl(var(--border));
+  border-radius: 10px;
+  background: hsl(var(--background));
+  font-size: 0.95rem;
+  min-width: 180px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.sortSelect:focus {
+  outline: none;
+  border-color: hsl(var(--brand));
+  box-shadow: 0 0 0 3px hsl(var(--brand) / 0.15);
+}
+
+.photoFilterBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border: 1px solid hsl(var(--border));
+  border-radius: 10px;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.photoFilterBtn.active {
+  background: hsl(var(--brand));
+  color: white;
+  border-color: hsl(var(--brand));
+}
+
+/* Review Card */
+.reviewCard {
+  background: hsl(var(--card));
+  border-radius: 16px;
+  padding: 28px;
+  margin-bottom: 24px;
+  border: 1px solid hsl(var(--border));
+  transition: all 0.3s ease;
+  opacity: 0;
+  transform: translateY(20px);
+  animation: fadeInUp 0.7s forwards;
+}
+
+.reviewCard:nth-child(1) { animation-delay: 0.1s; }
+.reviewCard:nth-child(2) { animation-delay: 0.2s; }
+.reviewCard:nth-child(3) { animation-delay: 0.3s; }
+.reviewCard:nth-child(4) { animation-delay: 0.4s; }
+
+@keyframes fadeInUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.reviewCard:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 20px 40px hsl(var(--brand) / 0.12);
+}
+
+.cardHeader {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.avatarWrapper {
+  position: relative;
+}
+
+.avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid hsl(var(--peach));
+}
+
+.verifiedIcon {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  color: hsl(160, 84%, 39%);
+  background: white;
+  border-radius: 50%;
+  padding: 2px;
+}
+
+.userInfo {
+  flex: 1;
+}
+
+.nameRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+.userName {
+  font-weight: 600;
+  font-size: 1.2rem;
+  color: hsl(var(--foreground));
+}
+
+.verifiedBadge {
+  background: hsl(160, 84%, 39% / 0.12);
+  color: hsl(160, 84%, 39%);
+  font-size: 0.8rem;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-weight: 500;
+}
+
+.userLocation {
+  font-size: 0.95rem;
+  color: hsl(var(--muted-foreground));
+}
+
+.metaRight {
+  text-align: right;
+}
+
+.starsRow {
+  display: flex;
+  gap: 4px;
+  justify-content: flex-end;
+  margin-bottom: 4px;
+}
+
+.starGold {
+  color: hsl(var(--gold));
+  fill: hsl(var(--gold));
+}
+
+.starInactive {
+  color: hsl(var(--muted));
+}
+
+.date {
+  font-size: 0.9rem;
+  color: hsl(var(--muted-foreground));
+}
+
+/* Event */
+.eventTag {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 16px 0;
+  font-size: 0.95rem;
+  color: hsl(var(--muted-foreground));
+}
+
+.eventBadge {
+  background: hsl(var(--peach));
+  color: hsl(var(--foreground));
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+/* Content */
+.reviewTitle {
+  font-family: var(--font-heading);
+  font-size: 1.45rem;
+  margin: 16px 0 12px;
+  color: hsl(var(--foreground));
+}
+
+.reviewText {
+  line-height: 1.7;
+  color: hsl(var(--foreground));
+  margin-bottom: 16px;
+}
+
+.readMoreBtn {
+  color: hsl(var(--brand));
+  font-weight: 500;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.readMoreBtn:hover {
+  color: hsl(var(--brand) / 0.8);
+  text-decoration: underline;
+}
+
+/* Criteria */
+.criteriaRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px 32px;
+  margin: 20px 0;
+  font-size: 0.95rem;
+  color: hsl(var(--muted-foreground));
+}
+
+.criteriaRow strong {
+  color: hsl(var(--brand));
+  font-weight: 600;
+}
+
+/* Photos */
+.photoGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+  gap: 12px;
+  margin: 24px 0;
+}
+
+.photoItem {
+  aspect-ratio: 1;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px hsl(0 0% 0% / 0.08);
+  transition: transform 0.25s ease;
+}
+
+.photoItem:hover {
+  transform: scale(1.05);
+}
+
+.photoItem img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Vendor Response */
+.vendorResponse {
+  margin-top: 24px;
+  padding: 20px;
+  background: hsl(var(--peach) / 0.35);
+  border-radius: 12px;
+  border-left: 4px solid hsl(var(--brand));
+}
+
+.responseHeader {
+  font-weight: 600;
+  margin-bottom: 12px;
+  color: hsl(var(--brand));
+}
+
+/* Helpful */
+.helpfulBtn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 20px;
+  background: hsl(var(--muted) / 0.5);
+  border-radius: 999px;
+  border: none;
+  cursor: pointer;
+  color: hsl(var(--muted-foreground));
+  font-weight: 500;
+  transition: all 0.25s ease;
+  margin-top: 24px;
+}
+
+.helpfulBtn:hover {
+  background: hsl(var(--muted) / 0.8);
+}
+
+.helpfulActive {
+  background: hsl(var(--brand) / 0.15);
+  color: hsl(var(--brand));
+  font-weight: 600;
+}
+
+/* Empty & Show More */
+.emptyState {
+  text-align: center;
+  padding: 80px 20px;
+  color: hsl(var(--muted-foreground));
+  font-size: 1.15rem;
+}
+
+.showMoreWrapper {
+  text-align: center;
+  margin-top: 48px;
+}
+
+.showMoreBtn {
+  padding: 14px 36px;
+  font-size: 1.05rem;
+  background: hsl(var(--background));
+  border: 1px solid hsl(var(--border));
+  border-radius: 12px;
+  color: hsl(var(--foreground));
+  cursor: pointer;
+  transition: all 0.25s;
+}
+
+.showMoreBtn:hover {
+  background: hsl(var(--brand));
+  color: white;
+  border-color: hsl(var(--brand));
+}
+
+/* ──────────────────────────────────────────────
+   Summary Header – Score + Bars on same row
+───────────────────────────────────────────────── */
+.summaryHeader {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 40px;
+  justify-content: center;
+  align-items: flex-start;
+  margin-bottom: 48px;
+  padding-bottom: 32px;
+  border-bottom: 1px solid hsl(var(--border));
+}
+
+.overallScore {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 180px;
+  text-align: center;
+}
+
+.scoreValue {
+  font-family: var(--font-heading);
+  font-size: 5.8rem;          /* slightly larger for impact */
+  font-weight: 700;
+  color: hsl(var(--brand));
+  line-height: 1;
+  margin: 0 0 12px;
+}
+
+.scoreStars {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin: 12px 0 8px;
+}
+
+.starGoldLarge {
+  color: hsl(var(--gold));
+  fill: hsl(var(--gold));
+  width: 32px;
+  height: 32px;
+}
+
+.starMutedLarge {
+  color: hsl(var(--muted));
+  width: 32px;
+  height: 32px;
+}
+
+.reviewCount {
+  color: hsl(var(--muted-foreground));
+  font-size: 1.1rem;
+  font-weight: 500;
+}
+
+/* Rating Breakdown – now in same row as score */
+.ratingBreakdown {
+  flex: 1;
+  min-width: 300px;
+  max-width: 420px;
+  background: hsl(var(--peach) / 0.18);
+  padding: 20px;
+  border-radius: 16px;
+  border: 1px solid hsl(var(--peach) / 0.5);
+  margin-top: 12px; /* small spacing when stacked on mobile */
+}
+
+@media (min-width: 768px) {
+  .ratingBreakdown {
+    margin-top: 0; /* side-by-side on desktop */
+  }
+}
+
+/* Individual Rating Bar */
+.ratingBar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 10px 0;
+  font-size: 0.95rem;
+  color: hsl(var(--muted-foreground));
+}
+
+.ratingLabel {
+  width: 20px;
+  font-weight: 600;
+  color: hsl(var(--foreground));
+  text-align: right;
+  font-size: 1.05rem;
+}
+
+.starSmallGold {
+  color: hsl(var(--gold));
+  fill: hsl(var(--gold));
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.barTrack {
+  flex: 1;
+  height: 10px;               /* slightly thicker for better visibility */
+  background: hsl(var(--muted) / 0.35);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.barFill {
+  height: 100%;
+  background: linear-gradient(90deg, hsl(var(--brand)), hsl(var(--gold)));
+  border-radius: 999px;
+  transition: width 1s ease-out;
+  animation: fillGrow 1.4s ease-out forwards;
+}
+
+@keyframes fillGrow {
+  from { width: 0; }
+  to   { width: attr(style.width); }
+}
+
+.countLabel {
+  width: 36px;
+  text-align: left;
+  font-weight: 600;
+  color: hsl(var(--foreground));
+}
+
+/* Hover effect on bars */
+.ratingBar:hover {
+  transform: translateX(6px);
+  opacity: 0.92;
+  transition: all 0.25s ease;
+}
+
+/* Responsive: stack on smaller screens */
+@media (max-width: 767px) {
+  .summaryHeader {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .ratingBreakdown {
+    width: 100%;
+    max-width: none;
+  }
+}

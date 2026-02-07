@@ -1,19 +1,23 @@
+from pydantic import BaseModel, EmailStr
 from typing import Optional
-from pydantic import EmailStr, constr
-from .base import StrictModel
-from .common import Role
+from datetime import datetime
 
-class UserOut(StrictModel):
-    id: int
-    first_name: constr(min_length=1, max_length=50)
-    last_name: constr(min_length=1, max_length=50)
+
+# ----------------- USERS -----------------
+class UserBase(BaseModel):
+    first_name: str
+    last_name: str
     email: EmailStr
-    phone: Optional[constr(max_length=20)] = None
-    role: Role
-    is_active: bool
-    is_verified: bool
+    role: str
 
-class UserUpdate(StrictModel):
-    first_name: Optional[constr(min_length=1, max_length=50)] = None
-    last_name: Optional[constr(min_length=1, max_length=50)] = None
-    phone: Optional[constr(max_length=20)] = None
+
+class UserCreate(UserBase):
+    password: str
+
+
+class UserResponse(UserBase):
+    id: str
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
