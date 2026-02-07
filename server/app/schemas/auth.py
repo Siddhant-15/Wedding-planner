@@ -1,64 +1,53 @@
-from pydantic import BaseModel, EmailStr, constr
+from pydantic import BaseModel, EmailStr, Field
 from typing import Optional
-import uuid
-from datetime import datetime
 
-# -------------------------
-# Request Schemas
-# -------------------------
+class Token(BaseModel):
+    access_token: str
+    # refresh_token is set via cookie — not returned in body
 
-class UserSignup(BaseModel):
-    first_name: constr(strip_whitespace=True, min_length=1, max_length=150)
-    last_name: Optional[constr(strip_whitespace=True, max_length=150)] = None
+class CustomerSignup(BaseModel):
     email: EmailStr
-    password: constr(min_length=6)
-    role: Optional[str] = "customer"
+    password: str = Field(..., min_length=8)
+    first_name: str
+    last_name: str
+    phone: Optional[str] = None
+    # add other customer fields if needed
+
+class VendorSignup(BaseModel):
+    email: EmailStr
+    password: str = Field(..., min_length=8)
+    first_name: str
+    last_name: str
+    phone: Optional[str] = None
+    business_name: str
+    # add other vendor fields
 
 class UserLogin(BaseModel):
     email: EmailStr
     password: str
-    role: str
+    role: str = Field(..., pattern="^(customer|vendor)$")  # enforce at input
 
-from pydantic import BaseModel, EmailStr, constr
+class ResetPasswordIn(BaseModel):
+    email: EmailStr
+    new_password: str = Field(..., min_length=8)
+    role: str = Field(..., pattern="^(customer|vendor)$")
+
+# app/schemas/auth.py
+from pydantic import BaseModel, EmailStr
+from datetime import datetime
 from typing import Optional
 
-class CustomerSignup(BaseModel):
-    first_name: constr(strip_whitespace=True, min_length=1, max_length=150)
-    last_name: Optional[constr(strip_whitespace=True, max_length=150)] = None
-    email: EmailStr
-    password: constr(min_length=6)
-
-
-class VendorSignup(BaseModel):
-    first_name: constr(strip_whitespace=True, min_length=1, max_length=150)
-    last_name: Optional[constr(strip_whitespace=True, max_length=150)] = None
-    email: EmailStr
-    password: constr(min_length=6)
-
-# -------------------------
-# Token Schemas
-# -------------------------
-
-class Token(BaseModel):
-    access_token: str
-    refresh_token: str
-    token_type: str = "bearer"
 
 class TokenPayload(BaseModel):
-    sub: Optional[str] = None   # user_id
-    role: Optional[str] = None
-    exp: Optional[int] = None
-
-# -------------------------
-# Response Schema
-# -------------------------
-
-class UserResponse(BaseModel):
-    id: uuid.UUID
-    first_name: str
-    last_name: Optional[str]
-    email: EmailStr
-    created_at: datetime
+    """
+    Expected structure of the decoded JWT payload.
+    Use this for validation in decode_token().
+    """
+    sub: EmailStr               # usually email (as string)
+    role: str                   # "customer" or "vendor"
+    exp: int                    # expiration timestamp (unix)
+    iat: int                    # issued at (unix)
+    type: Optional[str] = None  # "refresh" for refresh tokens (optional marker)
 
     class Config:
-        from_attributes = True
+        from_attributes = True  # allow creating from dict (jwt.decode result)

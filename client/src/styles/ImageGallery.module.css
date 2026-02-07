@@ -158,8 +158,8 @@
 }
 
 .thumbnail {
-  flex: 0 0 110px;              /* slightly larger thumbnails for better touch targets */
-  height: 88px;
+  flex: 0 0 90px;              /* slightly larger thumbnails for better touch targets */
+  height: 68px;
   border-radius: 12px;
   overflow: hidden;
   border: 2px solid transparent;
@@ -167,6 +167,7 @@
   transition: all 0.3s ease;
   opacity: 0.78;
   box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  margin-left: 10px;
 }
 
 .thumbnail img {

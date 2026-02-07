@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import avatar from "../assets/t-4.jpg";
 import {
   Star,
   CheckCircle2,
@@ -43,7 +44,7 @@ const ReviewCard = ({ review }) => {
       <div className={styles.cardHeader}>
         <div className={styles.avatarWrapper}>
           <img
-            src={review.user?.avatar || "/default-avatar.png"}
+            src={review.user?.avatar || avatar}
             alt={review.user?.name || "User"}
             className={styles.avatar}
           />

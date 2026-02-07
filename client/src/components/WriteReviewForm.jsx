@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { Star, Camera, X, Loader2, Send } from "lucide-react";
 import styles from "../styles/WriteReviewForm.module.css";
 
-// API
 import { reviewAPI } from "../utils/api";
 import { useAuth } from "../context/AuthContext";
 
@@ -52,8 +51,8 @@ export default function WriteReviewForm({ serviceName, serviceId, onReviewSubmit
     event_date: new Date().toISOString().split("T")[0],
   });
 
-  const [files, setFiles] = useState([]); // actual File objects for upload
-  const [previews, setPreviews] = useState([]);
+  const [files, setFiles] = useState([]); // File objects
+  const [previews, setPreviews] = useState([]); // data URLs for display
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState(null);
 
@@ -67,6 +66,7 @@ export default function WriteReviewForm({ serviceName, serviceId, onReviewSubmit
     const newFiles = [...files, ...selectedFiles].slice(0, 5);
     setFiles(newFiles);
 
+    // Generate previews
     selectedFiles.forEach((file) => {
       const reader = new FileReader();
       reader.onloadend = () => {
@@ -82,6 +82,7 @@ export default function WriteReviewForm({ serviceName, serviceId, onReviewSubmit
   };
 
   const handleSubmit = async (e) => {
+    console.log("1");
     e.preventDefault();
 
     if (!user?.id) {
@@ -93,64 +94,71 @@ export default function WriteReviewForm({ serviceName, serviceId, onReviewSubmit
       setSubmitError("Please provide an overall rating.");
       return;
     }
-
+    console.log("2");
     setIsSubmitting(true);
     setSubmitError(null);
 
     const formData = new FormData();
+    console.log("3");
+    formData.append("service_id", serviceId);
+    formData.append("user_id", user.id.toString());
 
-    formData.append("service_id", String(serviceId));
-    formData.append("user_id", String(user.id));
-    formData.append("overall_rating", String(form.overallRating));
-    formData.append("food_beverage_rating", String(form.foodBeverageRating));
-    formData.append("service_quality_rating", String(form.serviceQualityRating));
-    formData.append("ambiance_rating", String(form.ambianceRating));
-    formData.append("value_for_money_rating", String(form.valueForMoneyRating));
-    formData.append("title", form.title.trim() || "");
-    formData.append("review_text", form.text.trim() || "");
+    formData.append("overall_rating", form.overallRating.toString());
+
+    // Optional ratings — only send if user actually rated them
+    if (form.foodBeverageRating > 0)
+      formData.append("food_beverage_rating", form.foodBeverageRating.toString());
+    if (form.serviceQualityRating > 0)
+      formData.append("service_quality_rating", form.serviceQualityRating.toString());
+    if (form.ambianceRating > 0)
+      formData.append("ambiance_rating", form.ambianceRating.toString());
+    if (form.valueForMoneyRating > 0)
+      formData.append("value_for_money_rating", form.valueForMoneyRating.toString());
+    console.log("4");
+    formData.append("title", form.title.trim());
+    formData.append("review_text", form.text.trim());
     formData.append("event_type", form.event_type || "General");
 
-    let eventDateStr = form.event_date;
-    if (!eventDateStr) {
-      eventDateStr = new Date().toISOString().split("T")[0];
+    if (form.event_date) {
+      formData.append("event_date", form.event_date);
     }
-    formData.append("event_date", eventDateStr);   // must be "YYYY-MM-DD"
 
-    files.forEach((file) => {
-      formData.append("photos", file);
-    });
-
+    // Attach photos (only once!)
     files.forEach((file) => {
       formData.append("photos", file);
     });
 
     try {
-      for (let [key, value] of formData.entries()) {
-        console.log(`${key}:`, value);
-      }
+      console.log("formData:",formData);
       const response = await reviewAPI.add(formData);
 
-      const newReview = response.data || {
-        ...form,
-        id: "temp-" + Date.now(),
-        createdAt: new Date().toISOString(),
-        user: { name: "You", avatar: "", location: "" },
-        ratings: {
-          overall: form.overallRating,
-          foodBeverage: form.foodBeverageRating,
-          serviceQuality: form.serviceQualityRating,
-          ambiance: form.ambianceRating,
-          valueForMoney: form.valueForMoneyRating,
+      // Prefer real data from backend when available
+      const createdReview = response.data ?? {};
+
+      const optimisticReview = {
+        id: createdReview.id || `temp-${Date.now()}`,
+        service_id: serviceId,
+        user_id: user.id,
+        overall_rating: form.overallRating,
+        food_beverage_rating: form.foodBeverageRating,
+        service_quality_rating: form.serviceQualityRating,
+        ambiance_rating: form.ambianceRating,
+        value_for_money_rating: form.valueForMoneyRating,
+        title: form.title.trim(),
+        review_text: form.text.trim(),
+        event_type: form.event_type,
+        event_date: form.event_date,
+        photos: createdReview.photos || previews, // ← real URLs if returned
+        created_at: createdReview.created_at || new Date().toISOString(),
+        user: {
+          name: user.name || user.username || "You",
+          avatar: user.avatar || "",
         },
-        text: form.text.trim(),
-        photos: previews,
-        isVerified: false,
-        helpfulCount: 0,
+        helpful_count: 0,
+        is_verified: false,
       };
 
-      if (onReviewSubmitted) {
-        onReviewSubmitted(newReview);
-      }
+      onReviewSubmitted?.(optimisticReview);
 
       // Reset form
       setForm({
@@ -166,12 +174,26 @@ export default function WriteReviewForm({ serviceName, serviceId, onReviewSubmit
       });
       setFiles([]);
       setPreviews([]);
+
+      // You can replace alert with a toast notification library
+      alert("Thank you! Your review has been submitted.");
     } catch (err) {
-      console.error(err);
-      const errorMsg =
-        err.response?.data?.detail?.[0]?.msg ||
-        err.response?.data?.detail ||
-        "Failed to submit review. Please try again.";
+      console.error("Review submission error:", err);
+
+      let errorMsg = "Failed to submit review. Please try again later.";
+
+      if (err.response?.data?.detail) {
+        if (typeof err.response.data.detail === "string") {
+          errorMsg = err.response.data.detail;
+        } else if (Array.isArray(err.response.data.detail)) {
+          errorMsg = err.response.data.detail.map((d) => d.msg || d).join("\n");
+        }
+      } else if (err.response?.status === 413) {
+        errorMsg = "Files are too large. Please use smaller photos.";
+      } else if (err.response?.status === 422) {
+        errorMsg = "Invalid input. Please check your ratings and fields.";
+      }
+
       setSubmitError(errorMsg);
     } finally {
       setIsSubmitting(false);
@@ -197,8 +219,9 @@ export default function WriteReviewForm({ serviceName, serviceId, onReviewSubmit
                 key={star}
                 type="button"
                 onClick={() => setForm({ ...form, overallRating: star })}
-                className={`${styles.starButtonLarge} ${form.overallRating === star ? styles.selected : ""
-                  }`}
+                className={`${styles.starButtonLarge} ${
+                  form.overallRating === star ? styles.selected : ""
+                }`}
               >
                 <Star
                   size={48}
@@ -278,15 +301,14 @@ export default function WriteReviewForm({ serviceName, serviceId, onReviewSubmit
           </div>
         </div>
 
-        {/* Title */}
         <input
           className={styles.input}
           placeholder="Review Title (optional)"
           value={form.title}
           onChange={(e) => setForm({ ...form, title: e.target.value })}
+          maxLength={100}
         />
 
-        {/* Text */}
         <div className={styles.textareaWrapper}>
           <textarea
             className={styles.textarea}
@@ -295,12 +317,13 @@ export default function WriteReviewForm({ serviceName, serviceId, onReviewSubmit
             onChange={(e) => setForm({ ...form, text: e.target.value })}
             maxLength={1000}
           />
-          <span className={`${styles.counter} ${form.text.length > 900 ? styles.counterWarning : ""}`}>
+          <span
+            className={`${styles.counter} ${form.text.length > 900 ? styles.counterWarning : ""}`}
+          >
             {form.text.length}/1000
           </span>
         </div>
 
-        {/* Photos */}
         <div className={styles.photoSection}>
           <label className={styles.photoLabel}>Add Photos (up to 5)</label>
           <div className={styles.photosContainer}>
@@ -331,10 +354,9 @@ export default function WriteReviewForm({ serviceName, serviceId, onReviewSubmit
               </label>
             )}
           </div>
-          <p className={styles.photoHint}>JPG, PNG • Maximum 5 photos</p>
+          <p className={styles.photoHint}>JPG, PNG • Maximum 5 photos • &lt; 5MB each recommended</p>
         </div>
 
-        {/* Submit */}
         <button
           type="submit"
           disabled={isSubmitting || form.overallRating === 0}

@@ -29,6 +29,7 @@ import Wishlist from "./pages/Wishlist";
 import Lottie from "lottie-react";
 import loadingAnimation from "@/assets/animations/loading.json";
 import ServiceDetail from "./pages/services/ServiceDetail";
+import ProfileSettings from "./pages/ProfileSettings";
 
 const queryClient = new QueryClient();
 
@@ -135,6 +136,7 @@ function RoleBasedRoutes() {
       <Route path="/services/photography" element={<Photography />} />
       <Route path="/service/:id" element={<ServiceDetail/>} />
       <Route path="/my-bookings" element={<MyBookings />} />
+      <Route path="/profile" element={<ProfileSettings/>} />
       <Route path="/wishlist" element={<Wishlist/>}/>
       <Route path="*" element={<NotFound />} />
     </Routes>
