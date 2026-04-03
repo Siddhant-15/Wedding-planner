@@ -1,9 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 from uuid import UUID
-from app.database import get_db
-from app.models.models import Vendor, User
-from app.core.security import require_role
+from app.Db.db import get_db
+from app.models.models import Vendor
+from app.Dependencies.Auth import get_current_user
 from pydantic import BaseModel
 from typing import Optional
 
@@ -14,55 +15,43 @@ class VendorOnboardingRequest(BaseModel):
     business_description: Optional[str] = None
     city: Optional[str] = None
     state: Optional[str] = None
+    add_line1: Optional[str] = None
+    add_line2: Optional[str] = None
     country: Optional[str] = None
     pincode: Optional[str] = None
+    phone: Optional[str] = None
     experience_years: Optional[int] = None
+    contact_person: Optional[str] = None
     website: Optional[str] = None
+    avatar: Optional[str] = None
 
 
 @vendorrouter.post("/onboarding")
-def vendor_onboarding(
+async def vendor_onboarding(
     data: VendorOnboardingRequest,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(require_role(["vendor"]))
+    db: AsyncSession = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
 ):
     try:
-        # Check if vendor profile already exists
-        vendor = db.query(Vendor).filter(Vendor.user_id == current_user.id).first()
+        result = await db.execute(select(Vendor).filter(Vendor.id == current_user["id"]))
+        vendor = result.scalar_one_or_none()
 
-        if vendor:
-            # Update existing profile (exclude is_verified to prevent overriding)
-            update_data = data.dict(exclude_unset=True, exclude={"is_verified"})
-            for field, value in update_data.items():
-                setattr(vendor, field, value)
+        if not vendor:
+            raise HTTPException(status_code=404, detail="Vendor not found")
 
-        else:
-            # Create new vendor profile
-            vendor = Vendor(
-                user_id=current_user.id,
-                business_name=data.business_name,
-                business_description=data.business_description,
-                city=data.city,
-                state=data.state,
-                country=data.country,
-                pincode=data.pincode,
-                experience_years=data.experience_years,
-                website=data.website,
-                is_verified=False,  # always False at creation
-                contact_person=f"{current_user.first_name} {current_user.last_name}".strip(),
-                phone=current_user.customer_profile.phone if current_user.customer_profile else None,
-            )
-            db.add(vendor)
+        update_data = data.dict(exclude_unset=True, exclude={"is_verified"})
+        for field, value in update_data.items():
+            setattr(vendor, field, value)
 
-        db.commit()
-        db.refresh(vendor)
+        await db.commit()
+        await db.refresh(vendor)
 
         return {
             "message": "Vendor onboarding successful"
         }
 
     except Exception as e:
-        db.rollback()
+        await db.rollback()
         raise HTTPException(
             status_code=400,
             detail=f"Failed to process vendor onboarding: {str(e)}"
@@ -70,11 +59,12 @@ def vendor_onboarding(
 
 
 @vendorrouter.get("/status")
-def vendor_status(
-    db: Session = Depends(get_db),
-    current_user: User = Depends(require_role(["vendor"]))
+async def vendor_status(
+    db: AsyncSession = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
 ):
-    vendor = db.query(Vendor).filter(Vendor.user_id == current_user.id).first()
+    result = await db.execute(select(Vendor).filter(Vendor.id == current_user["id"]))
+    vendor = result.scalar_one_or_none()
 
     if not vendor:
         return {"onboarding_completed": False}

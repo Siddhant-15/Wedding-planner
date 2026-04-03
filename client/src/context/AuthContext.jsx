@@ -9,9 +9,31 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Restore user from token on app load
-    const accessToken = localStorage.getItem("access_token");
-    if (accessToken) {
+    const initializeAuth = async () => {
+      // Restore user from token on app load
+      const accessToken = localStorage.getItem("access_token");
+      
+      // If no access token but we might have a refresh token (HttpOnly cookie), try to refresh
+      if (!accessToken) {
+        try {
+          const res = await authAPI.refresh();
+          const newAccessToken = res.data.access_token;
+          localStorage.setItem("access_token", newAccessToken);
+          const decoded = jwtDecode(newAccessToken);
+          setUser({
+            id: decoded.sub,
+            email: decoded.email || "",
+            type: decoded.role || "customer",
+            exp: decoded.exp,
+          });
+        } catch (err) {
+          // No valid refresh token either
+        } finally {
+          setLoading(false);
+        }
+        return;
+      }
+      
       try {
         const decoded = jwtDecode(accessToken);
         const currentTime = Math.floor(Date.now() / 1000);
@@ -22,24 +44,40 @@ export function AuthProvider({ children }) {
             type: decoded.role || "customer",
             exp: decoded.exp,
           });
+          setLoading(false);
         } else {
-          localStorage.removeItem("access_token");
-          localStorage.removeItem("refresh_token");
+          // Token expired, attempt to refresh on load
+          authAPI.refresh().then(res => {
+            const newAccessToken = res.data.access_token;
+            localStorage.setItem("access_token", newAccessToken);
+            const newDecoded = jwtDecode(newAccessToken);
+            setUser({
+              id: newDecoded.sub,
+              email: newDecoded.email || "",
+              type: newDecoded.role || "customer",
+              exp: newDecoded.exp,
+            });
+          }).catch(err => {
+            console.error("Refresh on load failed:", err);
+            localStorage.removeItem("access_token");
+          }).finally(() => {
+            setLoading(false);
+          });
         }
       } catch (err) {
         console.error("Invalid token:", err);
         localStorage.removeItem("access_token");
-        localStorage.removeItem("refresh_token");
+        setLoading(false);
       }
-    }
-    setLoading(false);
+    };
+    
+    initializeAuth();
   }, []);
 
   const login = async (email, password, type) => {
     try {
       const res = await authAPI.login({ email, password, role: type }); // Include role in payload if API expects it
       localStorage.setItem("access_token", res.data.access_token);
-      localStorage.setItem("refresh_token", res.data.refresh_token);
   
       const decoded = jwtDecode(res.data.access_token);
       let userRole = decoded.role || type; // Fallback to type if role is missing
@@ -62,20 +100,23 @@ export function AuthProvider({ children }) {
     }
   };
 
-  const register = async (firstName, lastName, email, password, type) => {
+  const register = async (firstName, lastName, email, phone, password, type) => {
     try {
-      let payload;
-        payload = {
-          first_name: firstName,
-          last_name: lastName,
-          email,
-          password,
-        };
+      let payload = {
+        first_name: firstName,
+        last_name: lastName,
+        email,
+        phone,
+        password,
+      };
+
+      if (type === 'vendor') {
+        payload.business_name = ""; 
+      }
 
       const res = await authAPI.signup(payload, type);
 
       localStorage.setItem("access_token", res.data.access_token);
-      localStorage.setItem("refresh_token", res.data.refresh_token);
 
       const decoded = jwtDecode(res.data.access_token);
       setUser({
@@ -92,7 +133,6 @@ export function AuthProvider({ children }) {
 
   const logout = () => {
     localStorage.removeItem("access_token");
-    localStorage.removeItem("refresh_token");
     setUser(null);
   };
 

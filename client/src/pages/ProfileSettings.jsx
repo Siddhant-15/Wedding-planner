@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import { User, MapPin, Phone, Mail, Camera, CheckCircle, AlertCircle, Loader2, Save } from "lucide-react";
 import styles from "../styles/ProfileSettings.module.css";  // Module CSS below
 import { useAuth } from "../context/AuthContext";
-// import { userAPI } from "../utils/api";  
+import { userAPI } from "../utils/api";  
 import Navbar from "../components/Navbar";
 
 export default function ProfileSettings() {
@@ -11,8 +11,10 @@ export default function ProfileSettings() {
   const [form, setForm] = useState({
     first_name: "",
     last_name: "",
-    location: "",
+    city: "",
+    state: "",
     phone: "",
+    business_name: "",
   });
   const [avatarFile, setAvatarFile] = useState(null);
   const [avatarPreview, setAvatarPreview] = useState("");
@@ -28,8 +30,10 @@ export default function ProfileSettings() {
       setForm({
         first_name: user.first_name || "",
         last_name: user.last_name || "",
-        location: user.location || "",
+        city: user.city || "",
+        state: user.state || "",
         phone: user.phone || "",
+        business_name: user.business_name || "",
       });
       setAvatarPreview(user.avatar || "");
     }
@@ -58,13 +62,17 @@ export default function ProfileSettings() {
     const formData = new FormData();
     formData.append("first_name", form.first_name);
     formData.append("last_name", form.last_name);
-    formData.append("location", form.location);
-    formData.append("phone", form.phone);
+    if (form.city) formData.append("city", form.city);
+    if (form.state) formData.append("state", form.state);
+    if (form.phone) formData.append("phone", form.phone);
+    if (user?.role === "vendor" && form.business_name) {
+      formData.append("business_name", form.business_name);
+    }
     if (avatarFile) formData.append("avatar", avatarFile);
 
     try {
-      // const response = await userAPI.updateProfile(formData);  // Assume PUT /users/me
-      // setUser(response.data);
+      const response = await userAPI.updateProfile(formData);
+      setUser({ ...user, ...response.data });
       setSuccess("Profile updated successfully!");
     } catch (err) {
       setError(err.response?.data?.detail || "Failed to update profile.");
@@ -77,7 +85,7 @@ export default function ProfileSettings() {
     setIsSendingOtp(true);
     setError(null);
     try {
-      // await userAPI.sendVerification();  // POST /users/send-verification
+      await userAPI.sendVerification();  // POST /users/send-verification
       setSuccess("Verification code sent (check console/logs for OTP).");
     } catch (err) {
       setError(err.response?.data?.detail || "Failed to send verification code.");
@@ -91,7 +99,7 @@ export default function ProfileSettings() {
     setIsVerifying(true);
     setError(null);
     try {
-      // const response = await userAPI.verify({ code: otp });  // POST /users/verify
+      const response = await userAPI.verify({ code: otp });  // POST /users/verify
       setUser(response.data);
       setSuccess("Email verified successfully!");
       setOtp("");
@@ -152,15 +160,39 @@ export default function ProfileSettings() {
         </div>
         
         <div className={styles.inputGroup}>
-          <label className={styles.label}><MapPin size={16} /> Location</label>
+          <label className={styles.label}><MapPin size={16} /> City</label>
           <input
-            name="location"
-            value={form.location}
+            name="city"
+            value={form.city}
             onChange={handleInputChange}
             className={styles.input}
-            placeholder="City, Country"
+            placeholder="City"
           />
         </div>
+
+        <div className={styles.inputGroup}>
+          <label className={styles.label}><MapPin size={16} /> State</label>
+          <input
+            name="state"
+            value={form.state}
+            onChange={handleInputChange}
+            className={styles.input}
+            placeholder="State"
+          />
+        </div>
+        
+        {user?.role === "vendor" && (
+          <div className={styles.inputGroup}>
+            <label className={styles.label}>Business Name</label>
+            <input
+              name="business_name"
+              value={form.business_name}
+              onChange={handleInputChange}
+              className={styles.input}
+              placeholder="Your Business Name"
+            />
+          </div>
+        )}
         
         <div className={styles.inputGroup}>
           <label className={styles.label}><Phone size={16} /> Phone</label>

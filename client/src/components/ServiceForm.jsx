@@ -56,6 +56,7 @@ const packageModals = [
 const steps = ["Basic Info", "Service Type & Pricing", "Specific Details", "Amenities & Images", "Review & Publish"];
 
 const ServiceFormModal = ({ isOpen, onClose, onSubmit, initialData }) => {
+  console.log("Initial Data", initialData)
   const [currentStep, setCurrentStep] = useState(0);
   const [formData, setFormData] = useState({
     title: "",
@@ -70,8 +71,15 @@ const ServiceFormModal = ({ isOpen, onClose, onSubmit, initialData }) => {
     pincode: "",
     geo_point: { lat: "", lon: "" },
     category: "",
-    base_price: "",
-    pricing_type: "",
+    variants: [
+      {
+        variant_name: "Basic Package",
+        pricing_type: "BASE_PRICE",
+        price: "",
+        is_default: true,
+        inclusions: ""
+      }
+    ],
     amenities: [],
     capacity_min: "",
     capacity_max: "",
@@ -116,6 +124,7 @@ const ServiceFormModal = ({ isOpen, onClose, onSubmit, initialData }) => {
   const [newAmenity, setNewAmenity] = useState("");
   const [newGenre, setNewGenre] = useState("");
   const [newEquipment, setNewEquipment] = useState("");
+  const [newListItem, setNewListItem] = useState("");
   const [existingImages, setExistingImages] = useState([]);
   const [newImages, setNewImages] = useState([]);
   const [previewUrls, setPreviewUrls] = useState([]);
@@ -126,62 +135,78 @@ const ServiceFormModal = ({ isOpen, onClose, onSubmit, initialData }) => {
       document.body.style.overflow = "hidden";
       if (initialData) {
         setFormData({
-          title: initialData.title || "",
+          title: initialData.service_name || "",
           description: initialData.description || "",
-          tags: initialData.tags || [],
-          address_line1: initialData.address_line1 || "",
-          address_line2: initialData.address_line2 || "",
+          tags: initialData.metadata?.tags || initialData.tags || [],
+          address_line1: initialData.add_line1 || initialData.address_line1 || "",
+          address_line2: initialData.add_line2 || initialData.address_line2 || "",
           area: initialData.area || "",
           city: initialData.city || "",
           state: initialData.state || "",
           country: initialData.country || "India",
           pincode: initialData.pincode || "",
-          geo_point: initialData.geo_point || { lat: "", lon: "" },
-          category: initialData.category || "",
-          base_price: initialData.base_price || "",
-          pricing_type: initialData.pricing_type || "",
-          amenities: initialData.amenities || [],
-          capacity_min: initialData.capacity_min || "",
-          capacity_max: initialData.capacity_max || "",
-          hall_type: initialData.hall_type || "",
-          indoor_outdoor: initialData.indoor_outdoor || "",
-          square_feet: initialData.square_feet || "",
-          parking_capacity: initialData.parking_capacity || "",
-          decoration_policy: initialData.decoration_policy || "",
-          catering_policy: initialData.catering_policy || "",
-          alcohol_policy: initialData.alcohol_policy || "",
-          cuisine_types: initialData.cuisine_types || [],
-          veg_price_per_head: initialData.veg_price_per_head || "",
-          nonveg_price_per_head: initialData.nonveg_price_per_head || "",
-          min_order: initialData.min_order || "",
-          max_order: initialData.max_order || "",
-          service_style: initialData.service_style || "",
-          staff_included: initialData.staff_included || false,
-          crockery_cutlery_included: initialData.crockery_cutlery_included || false,
-          tasting_available: initialData.tasting_available || false,
-          genres_supported: initialData.genres_supported || [],
-          duration_hours: initialData.duration_hours || "",
-          equipment: initialData.equipment || [],
-          lighting_included: initialData.lighting_included || false,
-          mc_host_available: initialData.mc_host_available || false,
-          setup_time_required: initialData.setup_time_required || "",
-          package_type: initialData.package_type || [],
-          hours_covered: initialData.hours_covered || "",
-          photos_delivered: initialData.photos_delivered || "",
-          edited_photos_count: initialData.edited_photos_count || "",
-          delivery_time_days: initialData.delivery_time_days || "",
-          videography_included: initialData.videography_included || false,
-          drone_available: initialData.drone_available || false,
-          album_included: initialData.album_included || false,
-          event_types: initialData.event_types || [],
-          team_size: initialData.team_size || "",
-          includes: initialData.includes || [],
-          package_modal: initialData.package_modal || "",
-          vendor_network_size: initialData.vendor_network_size || "",
-          experience_years: initialData.experience_years || "",
+          geo_point: {
+            lat: initialData.latitude ?? initialData.geo_point?.lat ?? "",
+            lon: initialData.longitude ?? initialData.geo_point?.lon ?? ""
+          },
+          category: initialData.service_type || initialData.category || "",
+          variants: initialData.variants && initialData.variants.length > 0 ? initialData.variants.map(v => ({
+            id: v.id || null,
+            variant_name: v.variant_name || "Basic Package",
+            pricing_type: v.pricing_type || "BASE_PRICE",
+            price: v.pricing?.base_price ?? v.pricing?.price ?? "",
+            is_default: !!v.is_default,
+            inclusions: Array.isArray(v.inclusions) ? v.inclusions.join(", ") : (v.inclusions || "")
+          })) : [{
+            variant_name: "Basic Package",
+            pricing_type: "BASE_PRICE",
+            price: initialData.base_price || "",
+            is_default: true,
+            inclusions: ""
+          }],
+          amenities: initialData.venue?.amenities || initialData.metadata?.amenities || [],
+          capacity_min: initialData.venue?.min_capacity || "",
+          capacity_max: initialData.venue?.max_capacity || "",
+          hall_type: initialData.venue?.venue_type || "",
+          indoor_outdoor: initialData.venue?.venue_nature || "",
+          square_feet: initialData.venue?.square_feet || "",
+          parking_capacity: initialData.venue?.parking_capacity || "",
+          decoration_policy: initialData.venue?.venue_rules?.find(r => r.startsWith("Decoration:"))?.split(": ")[1] || "",
+          catering_policy: initialData.venue?.catering_options?.policy || "",
+          alcohol_policy: initialData.venue?.venue_rules?.find(r => r.startsWith("Alcohol:"))?.split(": ")[1] || "",
+          cuisine_types: initialData.metadata?.cuisine_types || [],
+          veg_price_per_head: "", // legacy
+          nonveg_price_per_head: "", // legacy
+          min_order: initialData.metadata?.min_order || "",
+          max_order: initialData.metadata?.max_order || "",
+          service_style: initialData.metadata?.service_style || "",
+          staff_included: initialData.metadata?.staff_included || false,
+          crockery_cutlery_included: initialData.metadata?.crockery_cutlery_included || false,
+          tasting_available: initialData.metadata?.tasting_available || false,
+          genres_supported: initialData.metadata?.genres_supported || [],
+          duration_hours: "", // legacy
+          equipment: initialData.metadata?.equipment || [],
+          lighting_included: initialData.metadata?.lighting_included || false,
+          mc_host_available: initialData.metadata?.mc_host_available || false,
+          setup_time_required: "", // legacy
+          package_type: initialData.metadata?.package_type || [],
+          hours_covered: initialData.metadata?.hours_covered || "",
+          photos_delivered: "", // legacy
+          edited_photos_count: "", // legacy
+          delivery_time_days: "", // legacy
+          videography_included: initialData.metadata?.videography_included || false,
+          drone_available: initialData.metadata?.drone_available || false,
+          album_included: initialData.metadata?.album_included || false,
+          event_types: initialData.metadata?.event_types || [],
+          team_size: "", // legacy
+          includes: initialData.metadata?.includes || [],
+          package_modal: "", // legacy
+          vendor_network_size: "", // legacy
+          experience_years: initialData.metadata?.experience_years || "",
         });
-        setExistingImages(initialData.images || []);
-        setPreviewUrls(initialData.images || []);
+        const mediaUrls = initialData.media ? initialData.media.map(m => m.media_url) : (initialData.images || []);
+        setExistingImages(mediaUrls);
+        setPreviewUrls(mediaUrls);
         setCurrentStep(0);
       } else {
         resetForm();
@@ -208,8 +233,15 @@ const ServiceFormModal = ({ isOpen, onClose, onSubmit, initialData }) => {
       pincode: "",
       geo_point: { lat: "", lon: "" },
       category: "",
-      base_price: "",
-      pricing_type: "",
+      variants: [
+        {
+          variant_name: "Basic Package",
+          pricing_type: "BASE_PRICE",
+          price: "",
+          is_default: true,
+          inclusions: ""
+        }
+      ],
       amenities: [],
       capacity_min: "",
       capacity_max: "",
@@ -258,6 +290,55 @@ const ServiceFormModal = ({ isOpen, onClose, onSubmit, initialData }) => {
 
   const handleInputChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleVariantChange = (index, field, value) => {
+    setFormData(prev => {
+      const newVariants = [...prev.variants];
+      if (field === 'is_default' && value === true) {
+        newVariants.forEach(v => v.is_default = false);
+      }
+      newVariants[index][field] = value;
+      return { ...prev, variants: newVariants };
+    });
+  };
+
+  const handleAddVariant = () => {
+    setFormData(prev => ({
+      ...prev,
+      variants: [...prev.variants, {
+        variant_name: "New Package",
+        pricing_type: "BASE_PRICE",
+        price: "",
+        is_default: false,
+        inclusions: ""
+      }]
+    }));
+  };
+
+  const handleDuplicateVariant = (index) => {
+    setFormData(prev => ({
+      ...prev,
+      variants: [...prev.variants, {
+        ...prev.variants[index],
+        variant_name: prev.variants[index].variant_name + " (Copy)",
+        is_default: false
+      }]
+    }));
+  };
+
+  const handleRemoveVariant = (index) => {
+    if (formData.variants.length > 1) {
+      setFormData(prev => {
+        const newVariants = prev.variants.filter((_, i) => i !== index);
+        if (prev.variants[index].is_default && newVariants.length > 0) {
+          newVariants[0].is_default = true;
+        }
+        return { ...prev, variants: newVariants };
+      });
+    } else {
+      showError("You must have at least one package.", "Validation Error");
+    }
   };
 
   const handleGeoChange = (field, value) => {
@@ -330,30 +411,41 @@ const ServiceFormModal = ({ isOpen, onClose, onSubmit, initialData }) => {
     switch (step) {
       case 0:
         if (!formData.title || !formData.description || !formData.city || !formData.state || !formData.country || !formData.pincode) {
-          alert("Please fill all required fields in Basic Info");
+          showError("Please fill all required fields in Basic Info", "Validation Error");
           return false;
         }
         if (formData.geo_point.lat !== "" && (formData.geo_point.lat < -90 || formData.geo_point.lat > 90)) {
-          alert("Latitude must be between -90 and 90");
+          showError("Latitude must be between -90 and 90", "Validation Error");
           return false;
         }
         if (formData.geo_point.lon !== "" && (formData.geo_point.lon < -180 || formData.geo_point.lon > 180)) {
-          alert("Longitude must be between -180 and 180");
+          showError("Longitude must be between -180 and 180", "Validation Error");
           return false;
         }
         if (formData.title.length < 3 || formData.title.length > 255) {
-          alert("Title must be between 3 and 255 characters");
+          showError("Title must be between 3 and 255 characters", "Validation Error");
           return false;
         }
         return true;
       case 1:
-        if (!formData.category || !formData.base_price || !formData.pricing_type) {
-          alert("Please fill all required fields in Service Type & Pricing");
+        if (!formData.category) {
+          showError("Please select a category", "Validation Error");
           return false;
         }
-        if (formData.base_price < 0) {
-          alert("Base price must be non-negative");
+        if (formData.variants.length === 0) {
+          showError("At least one package is required", "Validation Error");
           return false;
+        }
+        for (let i = 0; i < formData.variants.length; i++) {
+          const v = formData.variants[i];
+          if (!v.variant_name || !v.pricing_type || v.price === "") {
+            showError(`Please fill all required fields in package: ${v.variant_name || "Unnamed"}`, "Validation Error");
+            return false;
+          }
+          if (v.price < 0) {
+            showError(`Price must be non-negative for package: ${v.variant_name}`, "Validation Error");
+            return false;
+          }
         }
         return true;
       case 2:
@@ -362,28 +454,35 @@ const ServiceFormModal = ({ isOpen, onClose, onSubmit, initialData }) => {
         return true; // Amenities and images are optional
       case 4:
         if (!formData.title || !formData.description || !formData.city || !formData.state || !formData.country || !formData.pincode) {
-          alert("Please fill all required fields in Basic Info");
+          showError("Please fill all required fields in Basic Info", "Validation Error");
           return false;
         }
-        if (!formData.category || !formData.base_price || !formData.pricing_type) {
-          alert("Please fill all required fields in Service Type & Pricing");
+        if (!formData.category || formData.variants.length === 0) {
+          showError("Please select a category and add at least one package", "Validation Error");
           return false;
         }
         if (formData.geo_point.lat !== "" && (formData.geo_point.lat < -90 || formData.geo_point.lat > 90)) {
-          alert("Latitude must be between -90 and 90");
+          showError("Latitude must be between -90 and 90", "Validation Error");
           return false;
         }
         if (formData.geo_point.lon !== "" && (formData.geo_point.lon < -180 || formData.geo_point.lon > 180)) {
-          alert("Longitude must be between -180 and 180");
+          showError("Longitude must be between -180 and 180", "Validation Error");
           return false;
         }
         if (formData.title.length < 3 || formData.title.length > 255) {
-          alert("Title must be between 3 and 255 characters");
+          showError("Title must be between 3 and 255 characters", "Validation Error");
           return false;
         }
-        if (formData.base_price < 0) {
-          alert("Base price must be non-negative");
-          return false;
+        for (let i = 0; i < formData.variants.length; i++) {
+          const v = formData.variants[i];
+          if (!v.variant_name || !v.pricing_type || v.price === "") {
+            showError(`Please fill all required fields in package: ${v.variant_name || "Unnamed"}`, "Validation Error");
+            return false;
+          }
+          if (v.price < 0) {
+            showError(`Price must be non-negative for package: ${v.variant_name}`, "Validation Error");
+            return false;
+          }
         }
         return true;
       default:
@@ -402,87 +501,84 @@ const ServiceFormModal = ({ isOpen, onClose, onSubmit, initialData }) => {
       setUploading(true);
       const formDataToSend = new FormData();
 
-      // Helper function to append optional fields
-      const appendOptional = (key, value) => {
-        if (value === "" || value === null || value === undefined) {
-          formDataToSend.append(key, "");
-        } else {
-          formDataToSend.append(key, value);
-        }
+      const payload = {
+        service_name: formData.title,
+        service_type: formData.category,
+        description: formData.description || "",
+        add_line1: formData.address_line1 || null,
+        add_line2: formData.address_line2 || null,
+        area: formData.area || null,
+        city: formData.city,
+        state: formData.state,
+        country: formData.country,
+        pincode: formData.pincode,
+        latitude: formData.geo_point.lat !== "" ? parseFloat(formData.geo_point.lat) : null,
+        longitude: formData.geo_point.lon !== "" ? parseFloat(formData.geo_point.lon) : null,
+        metadata: {
+          tags: formData.tags || [],
+          amenities: formData.amenities || []
+        },
+        variants: formData.variants.map(v => ({
+          variant_name: v.variant_name,
+          pricing_type: v.pricing_type,
+          currency: "INR",
+          pricing: { base_price: parseFloat(v.price) || 0 },
+          is_default: v.is_default,
+          inclusions: v.inclusions ? v.inclusions.split(",").map(i => i.trim()).filter(Boolean) : [],
+          metadata: {}
+        }))
       };
 
-      // Append common fields
-      formDataToSend.append("title", formData.title);
-      formDataToSend.append("description", formData.description || "");
-      formDataToSend.append("tags", JSON.stringify(formData.tags));
-      formDataToSend.append("base_price", formData.base_price);
-      formDataToSend.append("pricing_type", formData.pricing_type);
-      formDataToSend.append("amenities", JSON.stringify(formData.amenities));
-      appendOptional("address_line1", formData.address_line1);
-      appendOptional("address_line2", formData.address_line2);
-      appendOptional("area", formData.area);
-      formDataToSend.append("city", formData.city);
-      formDataToSend.append("state", formData.state);
-      formDataToSend.append("country", formData.country);
-      formDataToSend.append("pincode", formData.pincode);
-      formDataToSend.append("geo_point", formData.geo_point.lat !== "" && formData.geo_point.lon !== "" ? JSON.stringify(formData.geo_point) : "");
-
-      // Append category
-      formDataToSend.append("category", formData.category);
-
-      // Append category-specific fields
-      switch (formData.category) {
-        case "venue":
-          appendOptional("capacity_min", formData.capacity_min);
-          appendOptional("capacity_max", formData.capacity_max);
-          appendOptional("hall_type", formData.hall_type);
-          appendOptional("indoor_outdoor", formData.indoor_outdoor);
-          appendOptional("square_feet", formData.square_feet);
-          appendOptional("parking_capacity", formData.parking_capacity);
-          appendOptional("decoration_policy", formData.decoration_policy);
-          appendOptional("catering_policy", formData.catering_policy);
-          appendOptional("alcohol_policy", formData.alcohol_policy);
-          break;
-        case "catering":
-          formDataToSend.append("cuisine_types", JSON.stringify(formData.cuisine_types));
-          appendOptional("veg_price_per_head", formData.veg_price_per_head);
-          appendOptional("nonveg_price_per_head", formData.nonveg_price_per_head);
-          appendOptional("min_order", formData.min_order);
-          appendOptional("max_order", formData.max_order);
-          appendOptional("service_style", formData.service_style);
-          formDataToSend.append("staff_included", formData.staff_included);
-          formDataToSend.append("crockery_cutlery_included", formData.crockery_cutlery_included);
-          formDataToSend.append("tasting_available", formData.tasting_available);
-          break;
-        case "dj":
-          formDataToSend.append("genres_supported", JSON.stringify(formData.genres_supported));
-          appendOptional("duration_hours", formData.duration_hours);
-          formDataToSend.append("equipment", JSON.stringify(formData.equipment));
-          formDataToSend.append("lighting_included", formData.lighting_included);
-          formDataToSend.append("mc_host_available", formData.mc_host_available);
-          appendOptional("setup_time_required", formData.setup_time_required);
-          break;
-        case "photographer":
-          formDataToSend.append("package_type", JSON.stringify(formData.package_type));
-          appendOptional("hours_covered", formData.hours_covered);
-          appendOptional("photos_delivered", formData.photos_delivered);
-          appendOptional("edited_photos_count", formData.edited_photos_count);
-          appendOptional("delivery_time_days", formData.delivery_time_days);
-          formDataToSend.append("videography_included", formData.videography_included);
-          formDataToSend.append("drone_available", formData.drone_available);
-          formDataToSend.append("album_included", formData.album_included);
-          break;
-        case "event_management":
-          formDataToSend.append("event_types", JSON.stringify(formData.event_types));
-          appendOptional("team_size", formData.team_size);
-          formDataToSend.append("includes", JSON.stringify(formData.includes));
-          appendOptional("package_modal", formData.package_modal);
-          appendOptional("vendor_network_size", formData.vendor_network_size);
-          appendOptional("experience_years", formData.experience_years);
-          break;
-        default:
-          throw new Error("Invalid category");
+      if (formData.category === "venue") {
+        payload.venue = {
+          venue_type: formData.hall_type || "banquet",
+          venue_nature: formData.indoor_outdoor || "indoor",
+          min_capacity: parseInt(formData.capacity_min) || 10,
+          max_capacity: parseInt(formData.capacity_max) || 1000,
+          square_feet: parseFloat(formData.square_feet) || 1000.55,
+          parking_capacity: parseInt(formData.parking_capacity) || 0,
+          catering_options: { policy: formData.catering_policy || "allowed" },
+          amenities: formData.amenities || [],
+          venue_rules: [
+            ...(formData.decoration_policy ? [`Decoration: ${formData.decoration_policy}`] : []),
+            ...(formData.alcohol_policy ? [`Alcohol: ${formData.alcohol_policy}`] : [])
+          ]
+        };
+      } else {
+        // Embed category-specific legacy fields into base metadata for other services
+        let catMeta = {};
+        if (formData.category === "catering") {
+          catMeta = {
+            cuisine_types: formData.cuisine_types,
+            service_style: formData.service_style,
+            min_order: formData.min_order,
+            max_order: formData.max_order,
+            staff_included: formData.staff_included
+          };
+        } else if (formData.category === "dj") {
+          catMeta = {
+            genres_supported: formData.genres_supported,
+            equipment: formData.equipment,
+            lighting_included: formData.lighting_included,
+            mc_host_available: formData.mc_host_available
+          };
+        } else if (formData.category === "photographer") {
+          catMeta = {
+            package_type: formData.package_type,
+            hours_covered: formData.hours_covered,
+            videography_included: formData.videography_included
+          };
+        } else if (formData.category === "event_management") {
+          catMeta = {
+            event_types: formData.event_types,
+            includes: formData.includes,
+            experience_years: formData.experience_years
+          };
+        }
+        payload.metadata = { ...payload.metadata, ...catMeta };
       }
+
+      formDataToSend.append("data", JSON.stringify(payload));
 
       // Append images
       newImages.forEach((file) => formDataToSend.append("images", file));
@@ -493,7 +589,7 @@ const ServiceFormModal = ({ isOpen, onClose, onSubmit, initialData }) => {
       }
 
       // Call onSubmit
-      await onSubmit(formDataToSend, formData.category, initialData ? initialData.id : null);
+      await onSubmit(formDataToSend, initialData ? initialData.id : null);
 
       showSuccess(
         initialData ? "Service Updated!" : "Service Created!",
@@ -701,36 +797,84 @@ const ServiceFormModal = ({ isOpen, onClose, onSubmit, initialData }) => {
                 ))}
               </select>
             </div>
-            <div className={styles.fieldGroup}>
-              <label className={styles.label}>
-                <DollarSign className={styles.inlineIcon} /> Base Price *
-              </label>
-              <input
-                type="number"
-                value={formData.base_price}
-                onChange={(e) => handleInputChange("base_price", e.target.value)}
-                placeholder="Enter base price"
-                className={styles.input}
-                required
-                min="0"
-                step="any"
-              />
+
+            <div className={styles.variantsHeader}>
+              <h3 className={styles.sectionTitle}>Packages / Pricing</h3>
+              <button type="button" onClick={handleAddVariant} className={styles.addBtn}>+ Add Package</button>
             </div>
-            <div className={styles.fieldGroup}>
-              <label className={styles.label}>Pricing Type *</label>
-              <select
-                value={formData.pricing_type}
-                onChange={(e) => handleInputChange("pricing_type", e.target.value)}
-                className={styles.input}
-                required
-              >
-                <option value="">Select pricing type</option>
-                {pricingTypes.map((type) => (
-                  <option key={type.value} value={type.value}>
-                    {type.label}
-                  </option>
-                ))}
-              </select>
+
+            <div className={styles.variantsGrid}>
+              {formData.variants.map((variant, index) => (
+                <div key={index} className={`${styles.variantCard} ${variant.is_default ? styles.defaultCard : ""}`}>
+                  <div className={styles.variantCardHeader}>
+                    <h4>{variant.variant_name || "Unnamed Package"}</h4>
+                    <div className={styles.variantActions}>
+                      {variant.is_default && <span className={styles.defaultBadge}>Default</span>}
+                      <button type="button" onClick={() => handleVariantChange(index, "is_default", true)} className={styles.actionBtn}>Set Default</button>
+                      <button type="button" onClick={() => handleDuplicateVariant(index)} className={styles.actionBtn}>Copy</button>
+                      <button type="button" onClick={() => handleRemoveVariant(index)} className={styles.removeIconBtn}><Trash2 size={16} /></button>
+                    </div>
+                  </div>
+
+                  <div className={styles.fieldGroup}>
+                    <label className={styles.label}>Package Name *</label>
+                    <input
+                      type="text"
+                      value={variant.variant_name}
+                      onChange={(e) => handleVariantChange(index, "variant_name", e.target.value)}
+                      placeholder="e.g., Premium Package"
+                      className={styles.input}
+                      required
+                    />
+                  </div>
+
+                  <div className={styles.variantPriceRow}>
+                    <div className={styles.fieldGroup}>
+                      <label className={styles.label}>Pricing Type *</label>
+                      <select
+                        value={variant.pricing_type}
+                        onChange={(e) => handleVariantChange(index, "pricing_type", e.target.value)}
+                        className={styles.input}
+                        required
+                      >
+                        <option value="">Select pricing type</option>
+                        {pricingTypes.map((type) => (
+                          <option key={type.value} value={type.value}>{type.label}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className={styles.fieldGroup}>
+                      <label className={styles.label}>Price *</label>
+                      <div className={styles.inputWithIcon}>
+                        <DollarSign size={16} className={styles.inputIcon} />
+                        <input
+                          type="number"
+                          value={variant.price}
+                          onChange={(e) => handleVariantChange(index, "price", e.target.value)}
+                          placeholder="e.g., 5000"
+                          className={styles.input}
+                          required
+                          min="0"
+                          step="any"
+                          style={{ paddingLeft: "32px" }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className={styles.fieldGroup}>
+                    <label className={styles.label}>Features / Inclusions (comma separated)</label>
+                    <input
+                      type="text"
+                      value={variant.inclusions}
+                      onChange={(e) => handleVariantChange(index, "inclusions", e.target.value)}
+                      placeholder="e.g., 5 Hours Coverage, Edited Photos, Drone"
+                      className={styles.input}
+                    />
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         );
@@ -1391,14 +1535,22 @@ const ServiceFormModal = ({ isOpen, onClose, onSubmit, initialData }) => {
       </div>
       <div className={styles.reviewSection}>
         <div className={styles.sectionHeader}>
-          <h3>Service Type & Pricing</h3>
+          <h3>Packages & Pricing</h3>
           <button className={styles.editBtn} onClick={() => handleEditStep(1)}>
             <Edit2 size={16} /> Edit
           </button>
         </div>
         <p>Category: {serviceTypes.find(t => t.value === formData.category)?.label || "N/A"}</p>
-        <p>Base Price: {formData.base_price}</p>
-        <p>Pricing Type: {pricingTypes.find(t => t.value === formData.pricing_type)?.label || "N/A"}</p>
+        <div className={styles.reviewVariants}>
+          {formData.variants.map((v, i) => (
+            <div key={i} className={styles.reviewVariantCard}>
+              <h4>{v.variant_name} {v.is_default && "(Default)"}</h4>
+              <p>Type: {pricingTypes.find(t => t.value === v.pricing_type)?.label || v.pricing_type}</p>
+              <p>Price: ₹{v.price}</p>
+              <p>Features: {v.inclusions}</p>
+            </div>
+          ))}
+        </div>
       </div>
       <div className={styles.reviewSection}>
         <div className={styles.sectionHeader}>
@@ -1531,7 +1683,7 @@ const ServiceFormModal = ({ isOpen, onClose, onSubmit, initialData }) => {
                 </button>
               ) : (
                 <button type="submit" disabled={uploading} className={styles.submitBtn}>
-                  {uploading ? "Processing..." : "Finish"}
+                  {uploading ? "Processing..." : (initialData ? "Update Service" : "Publish Service")}
                 </button>
               )}
             </div>

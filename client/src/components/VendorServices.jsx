@@ -48,9 +48,9 @@ const VendorServices = ({ isServiceModalOpen, setIsServiceModalOpen, editingServ
     }
   };
 
-  const handleUpdateService = async (serviceData) => {
+  const handleUpdateService = async (serviceData, serviceId) => {
     try {
-      const { data: updatedService } = await serviceAPI.update(editingService.id, serviceData, editingService.category);
+      const { data: updatedService } = await serviceAPI.update(serviceId || editingService.id, serviceData);
       setServices((prev) =>
         prev.map((s) => (s.id === editingService.id ? updatedService : s))
       );
@@ -93,7 +93,8 @@ const VendorServices = ({ isServiceModalOpen, setIsServiceModalOpen, editingServ
     setImageIndexes((prev) => {
       const current = prev[serviceId] || 0;
       const service = services.find((s) => s.id === serviceId);
-      const next = (current + 1) % service.images.length;
+      const imagesArr = service.media ? service.media.map(m => m.media_url) : service.images;
+      const next = (current + 1) % imagesArr.length;
       return { ...prev, [serviceId]: next };
     });
   };
@@ -102,7 +103,8 @@ const VendorServices = ({ isServiceModalOpen, setIsServiceModalOpen, editingServ
     setImageIndexes((prev) => {
       const current = prev[serviceId] || 0;
       const service = services.find((s) => s.id === serviceId);
-      const prevIndex = (current - 1 + service.images.length) % service.images.length;
+      const imagesArr = service.media ? service.media.map(m => m.media_url) : service.images;
+      const prevIndex = (current - 1 + imagesArr.length) % imagesArr.length;
       return { ...prev, [serviceId]: prevIndex };
     });
   };
@@ -139,17 +141,17 @@ const VendorServices = ({ isServiceModalOpen, setIsServiceModalOpen, editingServ
         {services.map((service) => (
           <div key={service.id} className={styles.serviceCard}>
             <div className={styles.imageWrapper}>
-              {service.images && service.images.length > 0 ? (
+              {(service.media && service.media.length > 0) || (service.images && service.images.length > 0) ? (
                 <div className={styles.slider}>
                   <button className={styles.prevBtn} onClick={() => handlePrev(service.id)}>‹</button>
                   <div className={styles.sliderInner} style={{ transform: `translateX(-${(imageIndexes[service.id] || 0) * 100}%)` }}>
-                    {service.images.map((img, index) => (
-                      <img key={index} src={img} alt={service.title} className={styles.sliderImg} />
+                    {(service.media ? service.media.map(m => m.media_url) : service.images).map((img, index) => (
+                      <img key={index} src={img} alt={service.service_name || service.title} className={styles.sliderImg} />
                     ))}
                   </div>
                   <button className={styles.nextBtn} onClick={() => handleNext(service.id)}>›</button>
                   <div className={styles.sliderDots}>
-                    {service.images.map((_, index) => (
+                    {(service.media ? service.media.map(m => m.media_url) : service.images).map((_, index) => (
                       <span
                         key={index}
                         className={`${styles.dot} ${index === (imageIndexes[service.id] || 0) ? styles.activeDot : ''}`}
@@ -159,7 +161,7 @@ const VendorServices = ({ isServiceModalOpen, setIsServiceModalOpen, editingServ
                   </div>
                 </div>
               ) : (
-                <img src="/placeholder.svg" alt={service.title} className={styles.sliderImg} />
+                <img src="/placeholder.svg" alt={service.service_name || service.title} className={styles.sliderImg} />
               )}
               <span className={`${styles.status} ${styles[service.is_active ? 'active' : 'inactive']}`}>
                 {service.is_active ? 'Active' : 'Inactive'}
@@ -168,22 +170,34 @@ const VendorServices = ({ isServiceModalOpen, setIsServiceModalOpen, editingServ
 
             <div className={styles.serviceContent}>
               <div className={styles.serviceHeader}>
-                <span className={styles.type}>{formatCategory(service.category)}</span>
+                <span className={styles.type}>{formatCategory(service.service_type || service.category)}</span>
                 <span>⭐ {service.rating || 'New'}</span>
               </div>
-              <h3 className={styles.serviceTitle}>{service.title}</h3>
+              <h3 className={styles.serviceTitle}>{service.service_name || service.title}</h3>
               <p className={styles.serviceLocation}>
                 <MapPin size={14} className={styles.inlineIcon} /> {service.city}, {service.state}
               </p>
               <div className={styles.serviceMeta}>
-                <span className={styles.price}>₹{service.base_price.toLocaleString('en-IN')} {service.pricing_type.replace('_', ' ')}</span>
+                <span className={styles.price}>
+                  ₹{(service.variants?.[0]?.pricing?.base_price || 0).toLocaleString('en-IN')}
+                  {" "}
+                  {(service.variants?.[0]?.pricing_type || "")
+                    .replaceAll("_", " ")
+                    .toLowerCase()}
+                </span>
                 <span>{service.bookings || 0} bookings</span>
               </div>
               <div className={styles.amenities}>
-                {service.amenities.slice(0, 3).map((amenity, index) => (
-                  <span key={index} className={styles.amenityBadge}>{amenity}</span>
+                {(service.venue?.amenities || []).slice(0, 3).map((amenity, index) => (
+                  <span key={index} className={styles.amenityBadge}>
+                    {amenity}
+                  </span>
                 ))}
-                {service.amenities.length > 3 && <span className={styles.amenityBadge}>+{service.amenities.length - 3}</span>}
+                {(service.venue?.amenities || []).length > 3 && (
+                  <span className={styles.amenityBadge}>
+                    +{service.venue.amenities.length - 3}
+                  </span>
+                )}
               </div>
               <div className={styles.actions}>
                 <button className={styles.viewBtn} onClick={() => handleViewService(service)}>
@@ -209,20 +223,22 @@ const VendorServices = ({ isServiceModalOpen, setIsServiceModalOpen, editingServ
         onCancel={() => setConfirmOpen(false)}
       />
 
-      {services.length === 0 && (
-        <div className={styles.emptyState}>
-          <Calendar size={48} />
-          <h3>No services yet</h3>
-          <p>Create your first service to get started</p>
-          <div className={styles.addButtonWrapper}>
-            <button className={styles.addButton} onClick={() => setIsServiceModalOpen(true)}>
-              <Plus size={16} /> Add Your First Service
-            </button>
+      {
+        services.length === 0 && (
+          <div className={styles.emptyState}>
+            <Calendar size={48} />
+            <h3>No services yet</h3>
+            <p>Create your first service to get started</p>
+            <div className={styles.addButtonWrapper}>
+              <button className={styles.addButton} onClick={() => setIsServiceModalOpen(true)}>
+                <Plus size={16} /> Add Your First Service
+              </button>
+            </div>
           </div>
-        </div>
-      )}
+        )
+      }
 
-      <ServiceFormModal
+      < ServiceFormModal
         isOpen={isServiceModalOpen}
         onClose={handleModalClose}
         onSubmit={editingService ? handleUpdateService : handleCreateService}

@@ -625,3 +625,137 @@ select:focus {
     width: 100%;
   }
 }
+
+/* Variant & Package Cards */
+.variantsHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid hsl(var(--border));
+}
+
+.variantsGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.variantCard {
+  background: hsl(var(--background));
+  border: 1px solid hsl(var(--border));
+  border-radius: 12px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.defaultCard {
+  border: 2px solid hsl(var(--brand));
+  background: hsl(var(--brand) / 0.05);
+  box-shadow: 0 4px 15px hsl(var(--brand) / 0.1);
+}
+
+.variantCardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.variantCardHeader h4 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: hsl(var(--foreground));
+}
+
+.variantActions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.defaultBadge {
+  background: hsl(var(--brand));
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: bold;
+  margin-right: 0.5rem;
+}
+
+.actionBtn {
+  background: hsl(var(--muted));
+  border: none;
+  border-radius: 6px;
+  padding: 0.4rem 0.8rem;
+  font-size: 0.8rem;
+  cursor: pointer;
+  color: hsl(var(--foreground));
+  transition: background 0.2s;
+}
+
+.actionBtn:hover {
+  background: hsl(var(--muted-foreground) / 0.2);
+}
+
+.removeIconBtn {
+  background: transparent;
+  color: hsl(var(--destructive));
+  border: 1px solid hsl(var(--destructive) / 0.3);
+  border-radius: 6px;
+  padding: 0.3rem 0.5rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.removeIconBtn:hover {
+  background: hsl(var(--destructive));
+  color: white;
+}
+
+.variantPriceRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.inputWithIcon {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.inputIcon {
+  position: absolute;
+  left: 10px;
+  color: hsl(var(--muted-foreground));
+}
+
+.reviewVariants {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.reviewVariantCard {
+  background: hsl(var(--background));
+  border: 1px dashed hsl(var(--border));
+  padding: 1rem;
+  border-radius: 8px;
+}
+.reviewVariantCard h4 {
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  color: hsl(var(--brand));
+}

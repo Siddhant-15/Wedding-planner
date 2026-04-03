@@ -61,7 +61,7 @@ export default function ServiceDetail() {
         try {
           const reviewRes = await reviewAPI.getAll(id);
           const reviewList = reviewRes?.data || []; // ← Extract .data here
-          
+
           // Extra safety: ensure it's always an array
           setReviews(Array.isArray(reviewList) ? reviewList : []);
         } catch (reviewErr) {
@@ -78,6 +78,20 @@ export default function ServiceDetail() {
 
     if (id) fetchService();
   }, [id]);
+
+  const getStartingPrice = (service) => {
+    if (service.price) return service.price;
+
+    if (service.variants?.length > 0) {
+      const prices = service.variants
+        .map(v => v.pricing?.base_price)
+        .filter(Boolean);
+
+      return prices.length ? Math.min(...prices) : null;
+    }
+
+    return null;
+  };
 
   const handleReviewSubmitted = (newReview) => {
     setReviews((prev) => [newReview, ...prev]);
@@ -183,6 +197,38 @@ export default function ServiceDetail() {
               <VenueSpecsCard venue={service.venue} />
             )}
 
+            {service.variants?.length > 0 && (
+              <div className={styles.variantsSection} style={{ marginTop: '2rem' }}>
+                <h2 className={styles.sectionTitle} style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '1rem', color: '#1f2937' }}>Available Packages & Pricing</h2>
+                <div className={styles.variantsGrid} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1rem' }}>
+                  {service.variants.map((v) => (
+                    <div key={v.id || v.variant_name} style={{ padding: '1.25rem', border: '1px solid #e5e7eb', borderRadius: '12px', background: '#fff', boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
+                        <h3 style={{ fontSize: '1.1rem', fontWeight: '600', color: '#111827' }}>{v.variant_name}</h3>
+                        <span style={{ background: '#fef3c7', color: '#d97706', padding: '0.2rem 0.6rem', borderRadius: '20px', fontSize: '0.8rem', fontWeight: 500 }}>
+                          {v.pricing_type}
+                        </span>
+                      </div>
+                      <p style={{ fontSize: '0.9rem', color: '#6b7280', marginBottom: '1rem' }}>{v.description}</p>
+
+                      <div style={{ fontSize: '1.25rem', fontWeight: 700, color: '#4f46e5', marginBottom: '1rem' }}>
+                        {v.pricing?.base_price ? `₹${v.pricing.base_price.toLocaleString()}` : v.pricing?.per_plate ? `₹${v.pricing.per_plate.toLocaleString()}/plate` : 'Custom Pricing'}
+                      </div>
+
+                      {v.inclusions && v.inclusions.length > 0 && (
+                        <div>
+                          <p style={{ fontSize: '0.85rem', fontWeight: 600, color: '#374151', paddingBottom: '0.2rem' }}>Includes:</p>
+                          <ul style={{ fontSize: '0.85rem', color: '#4b5563', paddingLeft: '1rem', margin: 0 }}>
+                            {v.inclusions.slice(0, 4).map((inc, i) => <li key={i}>{inc}</li>)}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <AddressCard {...service} />
 
             {service.amenities?.length > 0 && (
@@ -215,7 +261,10 @@ export default function ServiceDetail() {
           {/* Right Column – Sticky Sidebar */}
           <div className={styles.rightColumn} ref={availabilityRef}>
             <div className={styles.stickySidebar}>
-              <AvailabilityForm serviceName={service.name} />
+              <AvailabilityForm
+                serviceName={service.name}
+                unavailableDates={service.unavailable_dates || []}
+              />
               {service.vendor && <VendorCard vendor={service.vendor} />}
             </div>
           </div>
@@ -223,7 +272,7 @@ export default function ServiceDetail() {
       </div>
 
       <MobileBottomBar
-        price={service.price}
+        price={getStartingPrice(service)}
         onCheckAvailability={() =>
           availabilityRef.current?.scrollIntoView({ behavior: "smooth" })
         }

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { Eye, EyeOff, Mail, Lock, User } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, User, Phone } from 'lucide-react';
 import { useAuth } from "../context/AuthContext"
 import { showSuccess, showError } from '../utils/toast';
 import styles from "../styles/pages/Register.module.css";
@@ -14,6 +14,7 @@ export default function Register() {
     firstName: '',
     lastName: '',
     email: '',
+    phone: '',
     password: '',
     confirmPassword: ''
   });
@@ -39,6 +40,7 @@ export default function Register() {
         formData.firstName,
         formData.lastName,
         formData.email,
+        formData.phone,
         formData.password,
         userType
       );
@@ -49,7 +51,10 @@ export default function Register() {
         navigate("/"); // customer
       }
     } catch (error) {
-      const errMsg = error.response?.data?.detail || error.message || "An unexpected error occurred";
+      let errMsg = error.response?.data?.detail || error.message || "An unexpected error occurred";
+      if (Array.isArray(errMsg)) {
+        errMsg = errMsg.map(e => e.msg).join(", ");
+      }
       showError(errMsg, "Registration Failed");
     } finally {
       setLoading(false);
@@ -129,6 +134,22 @@ export default function Register() {
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   placeholder="Email address"
+                />
+              </div>
+            </div>
+
+            {/* Phone */}
+            <div className={styles.inputGroup}>
+              <label htmlFor="phone">Phone Number</label>
+              <div className={styles.inputIconWrapper}>
+                <Phone className={styles.icon} />
+                <input
+                  id="phone"
+                  type="tel"
+                  required
+                  value={formData.phone}
+                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  placeholder="Your phone number"
                 />
               </div>
             </div>

@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import styles from "../styles/MobileBottomBar.module.css";
 
 const formatPrice = (price) => {
+  if (!price) return "Price on request"; // ✅ FIX
+
   if (price >= 100000) {
     return `₹${(price / 100000).toFixed(1)}L`;
   }

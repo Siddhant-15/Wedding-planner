@@ -2,16 +2,17 @@ from sqlalchemy.orm import Session, joinedload
 from sqlalchemy.exc import SQLAlchemyError
 import logging
 
-from app.database import get_db
-from app.models.models import Review, User
+from app.Db.db import get_db
+from app.models.models import Review, Customer
 from app.schemas.review import ReviewCreate, ReviewResponse, ReviewOut
 
 from app.utils.supabase_client import supabase
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form
 from typing import List, Optional
-from uuid import UUID, uuid4
-from datetime import date
-import json, mimetypes
+from datetime import datetime, date
+import uuid, mimetypes
+from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 
 logger = logging.getLogger(__name__)
 
@@ -19,8 +20,8 @@ Reviewrouter = APIRouter(prefix="/reviews", tags=["Reviews"])
 
 @Reviewrouter.post("/create-customer-review", response_model=ReviewResponse)
 async def create_user_review(
-    service_id: str = Form(...),
-    user_id: str = Form(...),
+    service_id: int = Form(...),
+    user_id: int = Form(...),
 
     overall_rating: int = Form(...),
     food_beverage_rating: Optional[int] = Form(None),
@@ -32,30 +33,32 @@ async def create_user_review(
     review_text: Optional[str] = Form(None),
 
     event_type: Optional[str] = Form("General"),
-    event_date: Optional[str] = Form(None),   # ← changed to str
+    event_date: Optional[str] = Form(None),
 
     photos: List[UploadFile] = File([]),
 
     db: Session = Depends(get_db),
 ):
     try:
-        # 🔍 Check user exists
-        user = db.query(User).filter(User.id == user_id).first()
+        # Check user exists via Customer table
+        result = await db.execute(
+            select(Customer).filter(Customer.id == user_id)
+        )
+        user = result.scalar_one_or_none()
         if not user:
             raise HTTPException(status_code=404, detail="User not found.")
 
-        # ⭐ Manual validation (Form doesn't auto-validate ranges)
         if not (1 <= overall_rating <= 5):
             raise HTTPException(status_code=400, detail="Overall rating must be between 1 and 5.")
 
-        # ☁️ Upload images to Supabase
         photo_urls = []
 
         for photo in photos or []:
+            if not photo.filename:
+                continue
             file_bytes = await photo.read()
-
-            file_ext = photo.filename.split(".")[-1] if "." in photo.filename else "bin"
-            file_path = f"services/{uuid4().hex}.{file_ext}"
+            file_ext = photo.filename.split(".")[-1] if "." in photo.filename else "jpg"
+            file_path = f"reviews/{uuid.uuid4().hex}.{file_ext}"
 
             content_type, _ = mimetypes.guess_type(photo.filename)
             if not content_type:
@@ -68,16 +71,16 @@ async def create_user_review(
             )
 
             public_url = supabase.storage.from_("service-images").get_public_url(file_path)
-
-            public_url_val = (
-                public_url.get("publicURL")
-                if isinstance(public_url, dict)
-                else str(public_url)
-            )
-
+            public_url_val = public_url.get("publicURL") if isinstance(public_url, dict) else str(public_url)
             photo_urls.append(public_url_val)
 
-        # 🧾 Create review record
+        parsed_event_date = None
+        if event_date:
+            try:
+                parsed_event_date = datetime.strptime(event_date.split('T')[0], "%Y-%m-%d").date()
+            except ValueError:
+                parsed_event_date = None
+                
         new_review = Review(
             service_id=service_id,
             user_id=user_id,
@@ -89,13 +92,13 @@ async def create_user_review(
             title=title,
             review_text=review_text,
             event_type=event_type,
-            event_date=event_date,
-            photos=photo_urls,  # JSONB column
+            event_date=parsed_event_date,
+            photos=photo_urls,
         )
 
         db.add(new_review)
-        db.commit()
-        db.refresh(new_review)
+        await db.commit()
+        await db.refresh(new_review)
 
         logger.info(f"Review created successfully by user {user_id}")
         return new_review
@@ -108,16 +111,16 @@ async def create_user_review(
         raise HTTPException(status_code=500, detail=f"Failed to create review: {str(e)}")
 
 
-
 @Reviewrouter.get("/{service_id}", response_model=List[ReviewOut])
-def get_reviews(service_id: UUID, db: Session = Depends(get_db)):
+async def get_reviews(service_id: int, db: Session = Depends(get_db)):
     try:
-        reviews = (
-            db.query(Review)
-            .options(joinedload(Review.user))  # load user in same query
+        result = await db.execute(
+            select(Review)
+            .options(selectinload(Review.customer))  # 🔥 better than joinedload
             .filter(Review.service_id == service_id)
-            .all()
         )
+
+        reviews = result.scalars().all()
 
         if not reviews:
             return []
@@ -125,13 +128,21 @@ def get_reviews(service_id: UUID, db: Session = Depends(get_db)):
         result = []
 
         for r in reviews:
+            # Handle location display smoothly
+            location_parts = []
+            if r.customer:
+                if r.customer.city: location_parts.append(r.customer.city)
+                if r.customer.state: location_parts.append(r.customer.state)
+            
+            loc = ", ".join(location_parts) if location_parts else None
+            
             result.append({
                 "id": r.id,
                 "user": {
-                    "id": r.user.id if r.user else None,
-                    "name": f"{r.user.first_name} {r.user.last_name}" if r.user else "Unknown User",
-                    "avatar": r.user.avatar if r.user else None,
-                    "location": r.user.location if r.user else None,
+                    "id": r.customer.id if r.customer else 0,
+                    "name": f"{r.customer.first_name} {r.customer.last_name}" if r.customer else "Unknown User",
+                    "avatar": r.customer.avatar if r.customer else None,
+                    "location": loc,
                 },
                 "ratings": {
                     "overall": r.overall_rating,
@@ -146,9 +157,9 @@ def get_reviews(service_id: UUID, db: Session = Depends(get_db)):
                 "eventType": r.event_type,
                 "eventDate": r.event_date,
                 "createdAt": r.created_at,
-                "isVerified": r.user.is_verified if r.user else False,
+                "isVerified": r.customer.is_verified if r.customer else False,
                 "helpfulCount": r.helpful_count,
-                "response": None  # no table yet
+                "response": None
             })
 
         return result

@@ -1,5 +1,5 @@
 # app/routers/auth.py
-from fastapi import APIRouter, Depends, HTTPException, status, Response
+from fastapi import APIRouter, Depends, HTTPException, status, Response, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 import logging
@@ -10,7 +10,7 @@ from app.schemas.auth import (
     CustomerSignup, VendorSignup, UserLogin, Token, ResetPasswordIn
 )
 from app.core.security import verify_password, hash_password
-from app.core.security import create_access_token, create_refresh_token
+from app.core.security import create_access_token, create_refresh_token, decode_token
 from app.config import settings
 
 logger = logging.getLogger(__name__)
@@ -79,7 +79,9 @@ async def signup_vendor(
         first_name=data.first_name,
         last_name=data.last_name,
         phone=data.phone,
-        business_name=data.business_name,
+        business_name=data.business_name or f"{data.first_name}'s Business",
+        contact_person=data.contact_person,
+        website=data.website,
         # add other fields...
     )
     db.add(new_vendor)
@@ -163,4 +165,19 @@ async def reset_password(
         path="/",
     )
 
+    return {"access_token": access_token}
+
+@AuthRouter.post("/refresh", response_model=Token)
+async def refresh_access_token(
+    request: Request,
+):
+    refresh_token = request.cookies.get("refresh_token")
+    if not refresh_token:
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Refresh token missing")
+    
+    payload = decode_token(refresh_token, refresh=True)
+    if not payload or payload.type != "refresh":
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid refresh token")
+        
+    access_token = create_access_token(subject=str(payload.sub), role=payload.role)
     return {"access_token": access_token}

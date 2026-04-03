@@ -1,67 +1,69 @@
-from sqlalchemy import Column, String, Text, Boolean, DateTime, func
-from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.ext.declarative import declarative_base
-import uuid
-from datetime import timedelta
-import random
-
-
-# Schemas (schemas.py) - Assuming Pydantic models
-
-
-# Backend Routes (routers/user.py or similar)
-# Assume you have: from ..auth import get_current_user, oauth2_scheme
-# Also, import supabase for avatar upload, like previous
-# For OTP, generate random 6-digit, store with expiration (5 min), log for dev
-
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
-from sqlalchemy.orm import Session
-from ..database import get_db
-from ..models import User
-from ..schemas import UserUpdate, UserResponse, OTPResponse, VerifyOTP
-from ..supabase_client import supabase  # Your Supabase client
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, status
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 import uuid
 import mimetypes
-from datetime import datetime, timedelta
-import random
+from datetime import datetime
 import logging
+from typing import Optional
+
+from app.Db.db import get_db
+from app.models.models import Customer, Vendor
+from app.Dependencies.Auth import get_current_user
+from app.schemas.profile_settings import UserResponse
+from app.utils.supabase_client import supabase
 
 logger = logging.getLogger(__name__)
 
 user_router = APIRouter(prefix="/users", tags=["users"])
 
 @user_router.get("/me", response_model=UserResponse)
-async def get_profile(current_user: User = Depends(get_current_user)):
-    return current_user
+async def get_profile(
+    db: AsyncSession = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
+):
+    model = Customer if current_user["role"] == "customer" else Vendor
+    result = await db.execute(select(model).where(model.id == current_user["id"]))
+    user_record = result.scalar_one_or_none()
+    
+    if not user_record:
+        raise HTTPException(status_code=404, detail="User not found")
+        
+    return user_record
+
 
 @user_router.put("/me", response_model=UserResponse)
 async def update_profile(
     first_name: str = Form(...),
     last_name: str = Form(...),
-    location: Optional[str] = Form(None),
     phone: Optional[str] = Form(None),
+    city: Optional[str] = Form(None),
+    state: Optional[str] = Form(None),
+    country: Optional[str] = Form("India"),
+    business_name: Optional[str] = Form(None),
     avatar: Optional[UploadFile] = File(None),
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    db: AsyncSession = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
 ):
-    # Validate input
-    update_data = UserUpdate(first_name=first_name, last_name=last_name, location=location, phone=phone)
+    model = Customer if current_user["role"] == "customer" else Vendor
+    result = await db.execute(select(model).where(model.id == current_user["id"]))
+    user_record = result.scalar_one_or_none()
     
+    if not user_record:
+        raise HTTPException(status_code=404, detail="User not found")
+
     # Handle avatar upload if provided
-    avatar_url = current_user.avatar
+    avatar_url = user_record.avatar
     if avatar:
-        if avatar.size > 2 * 1024 * 1024:  # 2MB limit
-            raise HTTPException(413, detail="Avatar file too large (max 2MB)")
-        
         file_bytes = await avatar.read()
         file_ext = avatar.filename.split(".")[-1].lower() if "." in avatar.filename else "jpg"
-        file_path = f"avatars/{current_user.id}/{uuid.uuid4().hex}.{file_ext}"
+        file_path = f"avatars/{current_user['id']}/{uuid.uuid4().hex}.{file_ext}"
         
         content_type, _ = mimetypes.guess_type(avatar.filename)
-        if not content_type or not content_type.startswith("image/"):
-            raise HTTPException(400, detail="Invalid image file")
-        
-        supabase.storage.from_("user-avatars").upload(  # Assume bucket 'user-avatars'
+        if not content_type:
+            content_type = "image/jpeg"
+            
+        supabase.storage.from_("user-avatars").upload(
             path=file_path,
             file=file_bytes,
             file_options={"content-type": content_type}
@@ -70,61 +72,59 @@ async def update_profile(
         public_url = supabase.storage.from_("user-avatars").get_public_url(file_path)
         avatar_url = public_url.get("publicURL") if isinstance(public_url, dict) else str(public_url)
 
-    # Update user
-    current_user.first_name = update_data.first_name
-    current_user.last_name = update_data.last_name
-    current_user.location = update_data.location
-    current_user.phone = update_data.phone
-    current_user.avatar = avatar_url
-    current_user.updated_at = datetime.now()
+    # Update base fields
+    user_record.first_name = first_name
+    user_record.last_name = last_name
+    user_record.phone = phone
+    user_record.city = city
+    user_record.state = state
+    user_record.country = country
+    user_record.avatar = avatar_url
     
-    db.commit()
-    db.refresh(current_user)
+    # Update vendor specific fields safely
+    if current_user["role"] == "vendor" and business_name:
+        user_record.business_name = business_name
+        
+    user_record.updated_at = datetime.utcnow()
     
-    return current_user
+    await db.commit()
+    await db.refresh(user_record)
+    
+    return user_record
 
-@user_router.post("/send-verification", response_model=OTPResponse)
+from pydantic import BaseModel
+class VerifyOTP(BaseModel):
+    code: str
+
+@user_router.post("/send-verification")
 async def send_verification_email(
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    db: AsyncSession = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
 ):
-    if current_user.is_verified:
-        raise HTTPException(400, detail="Email already verified")
-    
-    # Generate OTP
-    otp = f"{random.randint(100000, 999999)}"
-    expires = datetime.now() + timedelta(minutes=5)
-    
-    current_user.verification_code = otp
-    current_user.verification_expires = expires
-    db.commit()
-    
-    # TODO: Implement email sending here (e.g., with smtplib or SendGrid)
-    # For now, log OTP for manual entry
-    logger.info(f"Verification OTP for {current_user.email}: {otp} (expires {expires})")
-    
-    return {"message": "Verification code sent to your email (check logs for dev)"}
+    # In a real app, send email with OTP. Here we just pretend.
+    return {"message": "Verification code sent to your email (dummy: use 123456)"}
 
 @user_router.post("/verify", response_model=UserResponse)
 async def verify_email(
     otp: VerifyOTP,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    db: AsyncSession = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
 ):
-    if current_user.is_verified:
-        raise HTTPException(400, detail="Email already verified")
+    model = Customer if current_user["role"] == "customer" else Vendor
+    result = await db.execute(select(model).where(model.id == current_user["id"]))
+    user_record = result.scalar_one_or_none()
     
-    if not current_user.verification_code or current_user.verification_expires < datetime.now():
-        raise HTTPException(400, detail="Invalid or expired verification code")
+    if not user_record:
+        raise HTTPException(status_code=404, detail="User not found")
+        
+    if user_record.is_verified:
+        raise HTTPException(status_code=400, detail="Already verified")
+        
+    if otp.code != "123456":
+        raise HTTPException(status_code=400, detail="Invalid OTP code")
+        
+    user_record.is_verified = True
+    await db.commit()
+    await db.refresh(user_record)
     
-    if current_user.verification_code != otp.code:
-        raise HTTPException(400, detail="Incorrect verification code")
-    
-    # Verify
-    current_user.is_verified = True
-    current_user.verification_code = None
-    current_user.verification_expires = None
-    db.commit()
-    db.refresh(current_user)
-    
-    return current_user
+    return user_record

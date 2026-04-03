@@ -1,12 +1,10 @@
 from pydantic import BaseModel, Field
 from typing import List, Optional
-from uuid import UUID
 from datetime import date, datetime
 
-
 class ReviewCreate(BaseModel):
-    service_id: UUID
-    user_id: UUID
+    service_id: int
+    user_id: int
 
     overall_rating: int = Field(..., ge=1, le=5)
     food_beverage_rating: Optional[int] = Field(None, ge=1, le=5)
@@ -21,21 +19,18 @@ class ReviewCreate(BaseModel):
     event_type: Optional[str]
     event_date: Optional[date]
 
-
 class ReviewResponse(ReviewCreate):
-    id: UUID
+    id: int
     helpful_count: int
 
     class Config:
         orm_mode = True
 
-
 class UserInfo(BaseModel):
-    id: UUID
+    id: int
     name: str
     avatar: Optional[str]
     location: Optional[str]
-
 
 class Ratings(BaseModel):
     overall: int
@@ -44,14 +39,12 @@ class Ratings(BaseModel):
     ambiance: Optional[int]
     valueForMoney: Optional[int]
 
-
 class OwnerResponse(BaseModel):
     text: str
     date: datetime
 
-
 class ReviewOut(BaseModel):
-    id: UUID
+    id: int
     user: UserInfo
     ratings: Ratings
     title: Optional[str]

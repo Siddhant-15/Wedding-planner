@@ -19,7 +19,9 @@ class VendorSignup(BaseModel):
     first_name: str
     last_name: str
     phone: Optional[str] = None
-    business_name: str
+    business_name: Optional[str] = None
+    contact_person: Optional[str] = None
+    website: Optional[str] = None
     # add other vendor fields
 
 class UserLogin(BaseModel):

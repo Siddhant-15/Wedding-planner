@@ -8,6 +8,7 @@ const api = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
+  withCredentials: true, // Allow fetching and setting cookies
 });
 
 // Interceptor to add token if available (skip auth endpoints)
@@ -22,6 +23,34 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+// Interceptor to handle 401 Unauthenticated errors and auto-refresh the token
+api.interceptors.response.use(
+  (res) => res,
+  async (err) => {
+    // Check if error is 401, it is not a request to the auth endpoint itself, and we haven't retried yet.
+    if (
+      err.response?.status === 401 && 
+      !err.config._retry && 
+      !err.config.url?.startsWith("/auth")
+    ) {
+      err.config._retry = true;
+      try {
+        const res = await api.post("/auth/refresh");
+        const newAccessToken = res.data.access_token;
+        localStorage.setItem("access_token", newAccessToken);
+
+        err.config.headers.Authorization = `Bearer ${newAccessToken}`;
+        return api(err.config); // Retry original request
+      } catch (refreshErr) {
+        // If refresh fails, log the user out
+        localStorage.removeItem("access_token");
+        return Promise.reject(refreshErr);
+      }
+    }
+    return Promise.reject(err);
+  }
+);
+
 // ----------- AUTH ----------- //
 export const authAPI = {
   signup: (data, role) => {
@@ -33,7 +62,7 @@ export const authAPI = {
     console.log("API_BASE_URL:", API_BASE_URL);
     return api.post("/auth/login", data);
   },
-  refresh: (data) => api.post("/auth/refresh", data),
+  refresh: () => api.post("/auth/refresh"),
   googleLogin: (data) => api.post("/auth/google-login", data),
 };
 
@@ -63,8 +92,8 @@ export const serviceAPI = {
       headers: { "Content-Type": "multipart/form-data" },
     });
   },
-  update: (id, data, category) => {
-    const endpoint = `/services/${category}s/${id}`;
+  update: (id, data) => {
+    const endpoint = `/services/update/${id}`;
     return api.put(endpoint, data, {
       headers: { "Content-Type": "multipart/form-data" },
     });
@@ -122,4 +151,12 @@ export const reviewAPI = {
       },
     });
   },
+};
+export const userAPI = {
+  getProfile: () => api.get("/users/me"),
+  updateProfile: (data) => api.put("/users/me", data, {
+    headers: { "Content-Type": "multipart/form-data" },
+  }),
+  sendVerification: () => api.post("/users/send-verification"),
+  verify: (data) => api.post("/users/verify", data),
 };
