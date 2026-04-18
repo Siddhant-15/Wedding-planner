@@ -46,7 +46,6 @@ async def create_service(
             max_capacity=data.venue.max_capacity,
             parking_capacity=data.venue.parking_capacity,
             catering_options=data.venue.catering_options,
-            amenities=data.venue.amenities or {},
             venue_rules=data.venue.venue_rules or {},
         )
         db.add(venue)

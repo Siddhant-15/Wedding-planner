@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Star, Camera, X, Loader2, Send } from "lucide-react";
 import styles from "../styles/WriteReviewForm.module.css";
 
-import { reviewAPI } from "../utils/api";
+import { reviewService } from "../utils/api/services/review.service";
 import { useAuth } from "../context/AuthContext";
 
 const RatingCriteria = ({ label, value, onChange }) => {
@@ -129,8 +129,8 @@ export default function WriteReviewForm({ serviceName, serviceId, onReviewSubmit
     });
 
     try {
-      console.log("formData:",formData);
-      const response = await reviewAPI.add(formData);
+      console.log("formData:", formData);
+      const response = await reviewService.add(formData);
 
       // Prefer real data from backend when available
       const createdReview = response.data ?? {};
@@ -219,9 +219,8 @@ export default function WriteReviewForm({ serviceName, serviceId, onReviewSubmit
                 key={star}
                 type="button"
                 onClick={() => setForm({ ...form, overallRating: star })}
-                className={`${styles.starButtonLarge} ${
-                  form.overallRating === star ? styles.selected : ""
-                }`}
+                className={`${styles.starButtonLarge} ${form.overallRating === star ? styles.selected : ""
+                  }`}
               >
                 <Star
                   size={48}

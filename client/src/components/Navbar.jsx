@@ -323,7 +323,7 @@ function Navbar() {
               <Link to="/wishlist" className={styles.iconBtn} aria-label="Wishlist">
                 <div className={styles.iconWrapper}>
                   <Heart size={22} />
-                  {wishlistItems.length > 0 && <span className={styles.badge}>{wishlistItems.length}</span>}
+                  {wishlistItems?.length > 0 && <span className={styles.badge}>{wishlistItems?.length}</span>}
                 </div>
               </Link>
               <div ref={profileRef} className={styles.dropdown}>
@@ -437,9 +437,9 @@ function Navbar() {
                   <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                     <Heart size={20} />
                     <span>Wishlist</span>
-                    {wishlistItems.length > 0 && (
+                    {wishlistItems?.length > 0 && (
                       <span className={styles.badge} style={{ marginLeft: "auto" }}>
-                        {wishlistItems.length}
+                        {wishlistItems?.length}
                       </span>
                     )}
                   </div>
@@ -496,7 +496,7 @@ function Navbar() {
                       closeAllDropdowns();
                     }}
                   >
-                    Wishlist ({wishlistItems.length})
+                    Wishlist ({wishlistItems?.length})
                   </Link>
                 </div>
               </div>

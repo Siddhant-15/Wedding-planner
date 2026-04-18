@@ -15,8 +15,13 @@
 }
 
 @keyframes fadeInOverlay {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 /* Modal wrapper */
@@ -44,8 +49,15 @@
 }
 
 @keyframes slideUp {
-  from { transform: translateY(50px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
+  from {
+    transform: translateY(50px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
 
 /* Header */
@@ -221,8 +233,15 @@
 }
 
 @keyframes slideInRight {
-  from { transform: translateX(20px); opacity: 0; }
-  to { transform: translateX(0); opacity: 1; }
+  from {
+    transform: translateX(20px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
 }
 
 .label {
@@ -289,7 +308,8 @@ select:focus {
 }
 
 /* List input row (tags, amenities, etc.) */
-.listInputRow, .amenityInputRow {
+.listInputRow,
+.amenityInputRow {
   display: flex;
   gap: 0.75rem;
 }
@@ -310,13 +330,15 @@ select:focus {
   background: hsl(var(--brand) / 0.9);
 }
 
-.listItems, .amenitiesList {
+.listItems,
+.amenitiesList {
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem;
 }
 
-.badge, .amenityBadge {
+.badge,
+.amenityBadge {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
@@ -329,11 +351,13 @@ select:focus {
   transition: box-shadow 0.2s;
 }
 
-.badge:hover, .amenityBadge:hover {
+.badge:hover,
+.amenityBadge:hover {
   box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
 }
 
-.removeBtn, .removeAmenity {
+.removeBtn,
+.removeAmenity {
   background: transparent;
   border: none;
   cursor: pointer;
@@ -341,7 +365,8 @@ select:focus {
   transition: color 0.2s;
 }
 
-.removeBtn:hover, .removeAmenity:hover {
+.removeBtn:hover,
+.removeAmenity:hover {
   color: hsl(var(--destructive) / 0.8);
 }
 
@@ -451,7 +476,8 @@ select:focus {
   justify-content: space-between;
 }
 
-.submitBtn, .nextBtn {
+.submitBtn,
+.nextBtn {
   flex: 1;
   background: linear-gradient(135deg, hsl(var(--brand)), hsl(var(--brand) / 0.8));
   color: hsl(var(--primary-foreground));
@@ -464,12 +490,15 @@ select:focus {
   transition: transform 0.2s, box-shadow 0.2s;
 }
 
-.submitBtn:hover, .nextBtn:hover {
+.submitBtn:hover,
+.nextBtn:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-.cancelBtn, .backBtn, .draftBtn {
+.cancelBtn,
+.backBtn,
+.draftBtn {
   flex: 1;
   background: hsl(var(--secondary));
   color: hsl(var(--secondary-foreground));
@@ -482,7 +511,9 @@ select:focus {
   transition: transform 0.2s, background 0.2s;
 }
 
-.cancelBtn:hover, .backBtn:hover, .draftBtn:hover {
+.cancelBtn:hover,
+.backBtn:hover,
+.draftBtn:hover {
   background: hsl(var(--secondary) / 0.9);
   transform: translateY(-2px);
 }
@@ -621,7 +652,11 @@ select:focus {
     flex-direction: column;
   }
 
-  .submitBtn, .nextBtn, .cancelBtn, .backBtn, .draftBtn {
+  .submitBtn,
+  .nextBtn,
+  .cancelBtn,
+  .backBtn,
+  .draftBtn {
     width: 100%;
   }
 }
@@ -754,6 +789,7 @@ select:focus {
   padding: 1rem;
   border-radius: 8px;
 }
+
 .reviewVariantCard h4 {
   margin-bottom: 0.5rem;
   font-weight: 600;

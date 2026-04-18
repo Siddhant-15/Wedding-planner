@@ -151,9 +151,7 @@ const VendorServiceDetailsModal = ({ isOpen, onClose, service }) => {
               <p><b>Decoration:</b> {policyOptions.find(p => p.value === getRuleValue(venueDetails.venue_rules, "decoration"))?.label}</p>
               <p><b>Alcohol:</b> {alcoholOptions.find(a => a.value === getRuleValue(venueDetails.venue_rules, "alcohol"))?.label}</p>
 
-              {venueDetails.amenities?.length > 0 && (
-                <p><b>Venue Amenities:</b> {venueDetails.amenities.join(", ")}</p>
-              )}
+
             </div>
           )}
 

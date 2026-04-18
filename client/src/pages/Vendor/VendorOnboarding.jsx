@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
 import styles from "../../styles/VendorOnboarding.module.css";
-import { 
-  Building2, 
-  MapPin, 
-  UserCog, 
-  ClipboardCheck, 
-  ChevronRight, 
+import {
+  Building2,
+  MapPin,
+  UserCog,
+  ClipboardCheck,
+  ChevronRight,
   ChevronLeft,
   Check,
   AlignLeft,
@@ -16,7 +16,7 @@ import {
   Hash
 } from "lucide-react";
 import logo from "../../assets/logo.png";
-import { vendorAPI } from "../../utils/api";
+import { vendorService } from "../../utils/api/services/vendor.service";
 import { useNavigate } from "react-router-dom";
 import { showSuccess, showError } from "../../utils/toast";
 
@@ -42,7 +42,7 @@ const VendorOnboarding = () => {
     experience_years: "",
     contact_person: "",
     website: "",
-  });  
+  });
   const [errors, setErrors] = useState({});
   const [isPinFetching, setIsPinFetching] = useState(false);
 
@@ -118,7 +118,7 @@ const VendorOnboarding = () => {
     if (validateStep()) {
       try {
         const payload = { ...formData, experience_years: parseInt(formData.experience_years) || 0 };
-        const res = await vendorAPI.onboarding(payload);
+        const res = await vendorService.onboarding(payload);
         showSuccess(res.data.message || "Onboarding successful!");
         navigate("/vendor/dashboard");
       } catch (err) {
@@ -131,7 +131,7 @@ const VendorOnboarding = () => {
   const renderInput = (name, label, IconComp, type = "text", wrapperClass = "") => {
     const isTextarea = type === "textarea";
     const Element = isTextarea ? "textarea" : "input";
-    
+
     return (
       <div className={wrapperClass}>
         <div className={`${styles.inputWrapper} ${isTextarea ? styles.textareaWrapper : ""}`}>
@@ -149,8 +149,8 @@ const VendorOnboarding = () => {
             value={formData[name]}
             onChange={handleChange}
           />
-          <label 
-            htmlFor={name} 
+          <label
+            htmlFor={name}
             className={`${styles.floatingLabel} ${IconComp ? styles.labelWithIcon : ""}`}
           >
             {label}
@@ -207,7 +207,7 @@ const VendorOnboarding = () => {
         <div className={styles.stepContent}>
           {currentStep === 0 && (
             <div className={styles.formSection}>
-              <h2 className={styles.sectionTitle}><Building2 className={styles.titleIcon}/> Business Details</h2>
+              <h2 className={styles.sectionTitle}><Building2 className={styles.titleIcon} /> Business Details</h2>
               <div className={styles.formGroup}>
                 {renderInput("business_name", "Business Name", <Briefcase size={20} />)}
                 {renderInput("business_description", "Business Description", <AlignLeft size={20} />, "textarea")}
@@ -217,11 +217,11 @@ const VendorOnboarding = () => {
 
           {currentStep === 1 && (
             <div className={styles.formSection}>
-              <h2 className={styles.sectionTitle}><MapPin className={styles.titleIcon}/> Address Information</h2>
+              <h2 className={styles.sectionTitle}><MapPin className={styles.titleIcon} /> Address Information</h2>
               <div className={styles.formGroup}>
                 {renderInput("add_line1", "Address Line 1", <Map size={20} />)}
                 {renderInput("add_line2", "Address Line 2 (Optional)", <Map size={20} />)}
-                
+
                 <div className={styles.grid}>
                   {renderInput("pincode", "Pincode", <Hash size={20} />)}
                   {renderInput("country", "Country", <Globe size={20} />)}
@@ -237,7 +237,7 @@ const VendorOnboarding = () => {
 
           {currentStep === 2 && (
             <div className={styles.formSection}>
-              <h2 className={styles.sectionTitle}><UserCog className={styles.titleIcon}/> Contact & Experience</h2>
+              <h2 className={styles.sectionTitle}><UserCog className={styles.titleIcon} /> Contact & Experience</h2>
               <div className={styles.formGroup}>
                 {renderInput("contact_person", "Contact Person Name", <User size={20} />)}
                 <div className={styles.grid}>
@@ -250,7 +250,7 @@ const VendorOnboarding = () => {
 
           {currentStep === 3 && (
             <div className={styles.formSection}>
-              <h2 className={styles.sectionTitle}><ClipboardCheck className={styles.titleIcon}/> Review Your Details</h2>
+              <h2 className={styles.sectionTitle}><ClipboardCheck className={styles.titleIcon} /> Review Your Details</h2>
               <div className={styles.reviewBox}>
                 <div className={styles.reviewGrid}>
                   <div className={styles.reviewItem}>
@@ -294,7 +294,7 @@ const VendorOnboarding = () => {
           ) : (
             <div></div> // Spacing placeholder
           )}
-          
+
           {currentStep < steps.length - 1 ? (
             <button className={`${styles.btn} ${styles.continueBtn}`} onClick={nextStep} disabled={!isStepValid()}>
               Continue <ChevronRight size={20} />

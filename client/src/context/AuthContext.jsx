@@ -1,105 +1,121 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { authAPI } from "../utils/api"
+import { authService } from "../utils/api/services/auth.service";
 import jwtDecode from "jwt-decode";
 
 const AuthContext = createContext(undefined);
+
+// ✅ helper to extract token safely
+const extractToken = (res) => {
+  return res?.token || res?.data?.access_token;
+};
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // ✅ helper to set user from token
+  const setUserFromToken = (token, fallbackEmail = "") => {
+    try {
+      const decoded = jwtDecode(token);
+
+      let role = decoded.role || "customer";
+      if (Array.isArray(role)) role = role[0];
+
+      role = role.toString().trim().toLowerCase();
+
+      setUser({
+        id: decoded.sub,
+        email: decoded.email || fallbackEmail,
+        type: role,
+        exp: decoded.exp,
+      });
+    } catch (err) {
+      console.error("Token decode failed:", err);
+      localStorage.removeItem("access_token");
+      setUser(null);
+    }
+  };
+
   useEffect(() => {
     const initializeAuth = async () => {
-      // Restore user from token on app load
       const accessToken = localStorage.getItem("access_token");
-      
-      // If no access token but we might have a refresh token (HttpOnly cookie), try to refresh
+
+      // 🔁 Try refresh if no token
       if (!accessToken) {
         try {
-          const res = await authAPI.refresh();
-          const newAccessToken = res.data.access_token;
-          localStorage.setItem("access_token", newAccessToken);
-          const decoded = jwtDecode(newAccessToken);
-          setUser({
-            id: decoded.sub,
-            email: decoded.email || "",
-            type: decoded.role || "customer",
-            exp: decoded.exp,
-          });
+          const res = await authService.refresh();
+          const newToken = extractToken(res);
+
+          if (!newToken) throw new Error("No token in refresh");
+
+          localStorage.setItem("access_token", newToken);
+          setUserFromToken(newToken);
         } catch (err) {
-          // No valid refresh token either
+          // silent fail
         } finally {
           setLoading(false);
         }
         return;
       }
-      
+
       try {
         const decoded = jwtDecode(accessToken);
         const currentTime = Math.floor(Date.now() / 1000);
+
+        // ✅ valid token
         if (decoded.exp > currentTime) {
-          setUser({
-            id: decoded.sub,
-            email: decoded.email || "",
-            type: decoded.role || "customer",
-            exp: decoded.exp,
-          });
-          setLoading(false);
+          setUserFromToken(accessToken);
         } else {
-          // Token expired, attempt to refresh on load
-          authAPI.refresh().then(res => {
-            const newAccessToken = res.data.access_token;
-            localStorage.setItem("access_token", newAccessToken);
-            const newDecoded = jwtDecode(newAccessToken);
-            setUser({
-              id: newDecoded.sub,
-              email: newDecoded.email || "",
-              type: newDecoded.role || "customer",
-              exp: newDecoded.exp,
-            });
-          }).catch(err => {
-            console.error("Refresh on load failed:", err);
+          // 🔁 expired → refresh
+          try {
+            const res = await authService.refresh();
+            const newToken = extractToken(res);
+
+            if (!newToken) throw new Error("No token in refresh");
+
+            localStorage.setItem("access_token", newToken);
+            setUserFromToken(newToken);
+          } catch (err) {
+            console.error("Refresh failed:", err);
             localStorage.removeItem("access_token");
-          }).finally(() => {
-            setLoading(false);
-          });
+          }
         }
       } catch (err) {
         console.error("Invalid token:", err);
         localStorage.removeItem("access_token");
+      } finally {
         setLoading(false);
       }
     };
-    
+
     initializeAuth();
   }, []);
 
+  // 🔐 LOGIN
   const login = async (email, password, type) => {
     try {
-      const res = await authAPI.login({ email, password, role: type }); // Include role in payload if API expects it
-      localStorage.setItem("access_token", res.data.access_token);
-  
-      const decoded = jwtDecode(res.data.access_token);
-      let userRole = decoded.role || type; // Fallback to type if role is missing
-      if (Array.isArray(userRole)) {
-        userRole = userRole[0]; // Extract first element if array
-      }
-      userRole = userRole.toString().trim().toLowerCase();
-      if (!["customer", "vendor", "admin"].includes(userRole)) {
-        throw new Error("Invalid role in token");
-      }
-      setUser({
-        id: decoded.sub,
+      const res = await authService.login({
         email,
-        type: userRole,
-        exp: decoded.exp,
+        password,
+        role: type,
       });
+
+      const token = extractToken(res);
+
+      if (!token) {
+        throw new Error("Login failed: No token received");
+      }
+
+      localStorage.setItem("access_token", token);
+      setUserFromToken(token, email);
+
     } catch (err) {
-      console.error("Login failed:", err.response?.data || err.message);
+      console.error("Login failed:", err.message);
       throw err;
     }
   };
 
+  // 📝 REGISTER
   const register = async (firstName, lastName, email, phone, password, type) => {
     try {
       let payload = {
@@ -110,27 +126,28 @@ export function AuthProvider({ children }) {
         password,
       };
 
-      if (type === 'vendor') {
-        payload.business_name = ""; 
+      if (type === "vendor") {
+        payload.business_name = "";
       }
 
-      const res = await authAPI.signup(payload, type);
+      const res = await authService.signup(payload, type);
 
-      localStorage.setItem("access_token", res.data.access_token);
+      const token = extractToken(res);
 
-      const decoded = jwtDecode(res.data.access_token);
-      setUser({
-        id: decoded.sub,
-        email,
-        type: decoded.role || type,
-        exp: decoded.exp,
-      });
+      if (!token) {
+        throw new Error("Registration failed: No token received");
+      }
+
+      localStorage.setItem("access_token", token);
+      setUserFromToken(token, email);
+
     } catch (err) {
-      console.error("Registration failed:", err.response?.data || err.message);
+      console.error("Registration failed:", err.message);
       throw err;
     }
   };
 
+  // 🚪 LOGOUT
   const logout = () => {
     localStorage.removeItem("access_token");
     setUser(null);
@@ -153,10 +170,11 @@ export function AuthProvider({ children }) {
   );
 }
 
+// 🧠 HOOK
 export function useAuth() {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error("useAuth must be used within an AuthProvider");
+    throw new Error("useAuth must be used within AuthProvider");
   }
   return context;
 }

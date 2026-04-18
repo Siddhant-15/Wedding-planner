@@ -1,8 +1,8 @@
 // src/context/WishlistContext.jsx
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { wishlistAPI } from "../utils/api"
+import { wishlistService } from "../utils/api/services/wishlist.service";
 import { showError, showSuccess } from '@/utils/toast';
-import {useAuth} from "./AuthContext";
+import { useAuth } from "./AuthContext";
 
 const WishlistContext = createContext(undefined);
 
@@ -20,7 +20,7 @@ export const WishlistProvider = ({ children }) => {
     }
     try {
       setLoading(true);
-      const { data } = await wishlistAPI.getAll();
+      const { data } = await wishlistService.getAll();
       setItems(data);
     } catch (err) {
       if (isAuthenticated) {
@@ -38,7 +38,7 @@ export const WishlistProvider = ({ children }) => {
   const addToWishlist = async (serviceId) => {
     if (!isAuthenticated) return;
     try {
-      await wishlistAPI.add(serviceId);
+      await wishlistService.add(serviceId);
       await fetchWishlist();  // refresh
       showSuccess('Added to wishlist');
     } catch {
@@ -49,7 +49,7 @@ export const WishlistProvider = ({ children }) => {
   const removeFromWishlist = async (serviceId) => {
     if (!isAuthenticated) return;
     try {
-      await wishlistAPI.remove(serviceId);
+      await wishlistService.remove(serviceId);
       await fetchWishlist();
       showSuccess('Removed from wishlist');
     } catch {

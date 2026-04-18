@@ -15,7 +15,8 @@ import styles from "../../styles/ServiceDetail.module.css";
 import Navbar from "../../components/Navbar";
 
 // API
-import { CustomerServiceAPI, reviewAPI } from "../../utils/api";
+import { customerService } from "../../utils/api/services/customer.service";
+import { reviewService } from "../../utils/api/services/review.service";
 
 // Components
 import ImageGallery from "../../components/ImageGallery";
@@ -54,12 +55,12 @@ export default function ServiceDetail() {
       setError(null);
 
       try {
-        const data = await CustomerServiceAPI.getDetail(id);
+        const data = await customerService.getDetail(id);
         setService(data);
 
         // Fetch reviews – safely extract .data
         try {
-          const reviewRes = await reviewAPI.getAll(id);
+          const reviewRes = await reviewService.getAll(id);
           const reviewList = reviewRes?.data || []; // ← Extract .data here
 
           // Extra safety: ensure it's always an array

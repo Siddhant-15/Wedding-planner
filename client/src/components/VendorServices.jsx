@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { serviceAPI } from '../utils/api';
+import { serviceService } from '../utils/api/services/service.service';
 import { Plus, Eye, Trash2, Edit3, Calendar, MapPin } from 'lucide-react';
 import ConfirmModal from './Modals/ConfirmModal';
-import ServiceFormModal from './ServiceForm'
+import ServiceFormModal from './Modals/ServiceFormModal/ServiceFormModal'
 import VendorServiceDetailsModal from './Modals/ServiceDetailsModal';
 import styles from '../styles/VendorDashboard.module.css';
 
@@ -31,7 +31,7 @@ const VendorServices = ({ isServiceModalOpen, setIsServiceModalOpen, editingServ
 
   const fetchServices = async () => {
     try {
-      const { data } = await serviceAPI.getAll();
+      const { data } = await serviceService.getAll();
       setServices(data);
     } catch (error) {
       console.error('Failed to fetch services:', error);
@@ -40,7 +40,7 @@ const VendorServices = ({ isServiceModalOpen, setIsServiceModalOpen, editingServ
 
   const handleCreateService = async (formDataToSend) => {
     try {
-      const { data: newService } = await serviceAPI.create(formDataToSend);
+      const { data: newService } = await serviceService.create(formDataToSend);
       setServices((prev) => [...prev, newService]);
       setIsServiceModalOpen(false);
     } catch (error) {
@@ -50,7 +50,7 @@ const VendorServices = ({ isServiceModalOpen, setIsServiceModalOpen, editingServ
 
   const handleUpdateService = async (serviceData, serviceId) => {
     try {
-      const { data: updatedService } = await serviceAPI.update(serviceId || editingService.id, serviceData);
+      const { data: updatedService } = await serviceService.update(serviceId || editingService.id, serviceData);
       setServices((prev) =>
         prev.map((s) => (s.id === editingService.id ? updatedService : s))
       );
@@ -79,7 +79,7 @@ const VendorServices = ({ isServiceModalOpen, setIsServiceModalOpen, editingServ
   const confirmDelete = async () => {
     if (!serviceToDelete) return;
     try {
-      await serviceAPI.delete(serviceToDelete.id);
+      await serviceService.delete(serviceToDelete.id);
       setServices((prev) => prev.filter((s) => s.id !== serviceToDelete.id));
     } catch (err) {
       console.error('Failed to delete service:', err);
@@ -188,14 +188,14 @@ const VendorServices = ({ isServiceModalOpen, setIsServiceModalOpen, editingServ
                 <span>{service.bookings || 0} bookings</span>
               </div>
               <div className={styles.amenities}>
-                {(service.venue?.amenities || []).slice(0, 3).map((amenity, index) => (
+                {(service.metadata?.amenities || []).slice(0, 3).map((amenity, index) => (
                   <span key={index} className={styles.amenityBadge}>
                     {amenity}
                   </span>
                 ))}
-                {(service.venue?.amenities || []).length > 3 && (
+                {(service.metadata?.amenities || []).length > 3 && (
                   <span className={styles.amenityBadge}>
-                    +{service.venue.amenities.length - 3}
+                    +{(service.metadata?.amenities || []).length - 3}
                   </span>
                 )}
               </div>
