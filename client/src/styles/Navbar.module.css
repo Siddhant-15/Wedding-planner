@@ -137,7 +137,7 @@
     background: hsl(var(--muted) / 0.3);
     padding: 0.3rem 0.6rem;
     border-radius: 12px;
-    border: 1px solid hsl(var(--border));
+    /* border: 1px solid hsl(var(--border)); */
   }
 }
 
@@ -208,7 +208,7 @@
   visibility: hidden;
   pointer-events: none;
 
-  transition: 
+  transition:
     opacity 180ms ease-out,
     transform 180ms ease-out,
     visibility 0ms linear 180ms;
@@ -219,7 +219,7 @@
   transform: translateY(0) scale(1);
   visibility: visible;
   pointer-events: auto;
-  transition: 
+  transition:
     opacity 180ms ease-out,
     transform 180ms ease-out,
     visibility 0ms linear 0ms;
@@ -323,7 +323,7 @@
   transform: translateX(-100%);
   opacity: 0;
   visibility: hidden;
-  transition: 
+  transition:
     transform 380ms cubic-bezier(0.4, 0, 0.2, 1),
     opacity 380ms ease,
     visibility 380ms;
@@ -519,7 +519,8 @@
 }
 
 .drawerSectionContent.open {
-  max-height: 600px; /* adjust based on content */
+  max-height: 600px;
+  /* adjust based on content */
   opacity: 1;
 }
 
@@ -574,10 +575,175 @@
   }
 
   .right {
-    display: none; /* hide icons on mobile - they go to drawer */
+    display: none;
+    /* hide icons on mobile - they go to drawer */
   }
 
   .inner {
     padding: 0.5rem 0.75rem;
   }
+}
+
+
+/* ==================== PROFILE DROPDOWN IMPROVEMENTS ==================== */
+
+/* Make profile dropdown more polished */
+.dropdownMenu {
+  min-width: 220px;
+  /* Slightly wider for better readability */
+  padding: 6px 0;
+  /* Better internal spacing */
+  border-radius: 14px;
+  box-shadow: 0 12px 32px hsl(var(--foreground) / 0.12),
+    0 2px 8px hsl(var(--foreground) / 0.08);
+  border: 1px solid hsl(var(--border));
+}
+
+/* Profile dropdown items - more modern look */
+.dropdownItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0.85rem 1.25rem;
+  font-size: 0.95rem;
+  transition: all 180ms ease;
+  border-radius: 8px;
+  margin: 2px 6px;
+}
+
+.dropdownItem:hover {
+  background: hsl(var(--muted));
+  transform: translateX(4px);
+}
+
+.dropdownItem:last-child {
+  border-radius: 8px;
+  /* consistent rounding when using margin */
+}
+
+/* Special styling for Logout */
+.dropdownItem[style*="color: red"],
+.dropdownLogout {
+  color: hsl(var(--destructive)) !important;
+}
+
+.dropdownItem[style*="color: red"]:hover,
+.dropdownLogout:hover {
+  background: hsl(var(--destructive) / 0.08);
+}
+
+/* Divider (optional - add between sections if needed) */
+.dropdownDivider {
+  height: 1px;
+  background: hsl(var(--border));
+  margin: 6px 12px;
+}
+
+/* Better profile button (User icon) */
+.profileBtn {
+  position: relative;
+}
+
+.profileBtn::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  width: 10px;
+  height: 10px;
+  background: hsl(var(--success));
+  border: 2px solid hsl(var(--background));
+  border-radius: 50%;
+  opacity: 0.9;
+}
+
+
+/* ==================== STYLISH LOGOUT BUTTON ==================== */
+
+/* Desktop Dropdown Logout */
+.dropdownItem.logoutBtn {
+  color: hsl(var(--destructive));
+  font-weight: 600;
+  margin-top: 6px;
+  position: relative;
+  overflow: hidden;
+  transition: all 220ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.dropdownItem.logoutBtn:hover {
+  background: hsl(var(--destructive) / 0.08);
+  transform: translateX(6px);
+  color: hsl(var(--destructive));
+}
+
+.dropdownItem.logoutBtn:active {
+  transform: scale(0.97);
+}
+
+/* Red glow effect on hover */
+.dropdownItem.logoutBtn::before {
+  content: '';
+  position: absolute;
+  left: -100%;
+  top: 0;
+  width: 40%;
+  height: 100%;
+  background: linear-gradient(90deg,
+      transparent,
+      rgba(255, 255, 255, 0.3),
+      transparent);
+  transition: left 0.6s;
+}
+
+.dropdownItem.logoutBtn:hover::before {
+  left: 120%;
+}
+
+/* Mobile Drawer Logout - More Premium Look */
+.drawerLogout {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 1rem 1.5rem;
+  margin: 12px 16px 16px;
+  color: hsl(var(--destructive));
+  background: hsl(var(--destructive) / 0.08);
+  border: 1px solid hsl(var(--destructive) / 0.2);
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 1rem;
+  transition: all 250ms cubic-bezier(0.4, 0.0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.drawerLogout:hover {
+  background: hsl(var(--destructive) / 0.12);
+  border-color: hsl(var(--destructive) / 0.35);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 15px hsl(var(--destructive) / 0.15);
+}
+
+.drawerLogout:active {
+  transform: scale(0.98);
+}
+
+/* Shine effect for mobile logout */
+.drawerLogout::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -100%;
+  width: 50%;
+  height: 200%;
+  background: linear-gradient(120deg,
+      transparent,
+      rgba(255, 255, 255, 0.4),
+      transparent);
+  transition: 0.7s;
+}
+
+.drawerLogout:hover::before {
+  left: 150%;
 }

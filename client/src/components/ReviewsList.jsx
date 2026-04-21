@@ -6,7 +6,8 @@ import {
   ThumbsUp,
   ChevronDown,
   Image as ImageIcon,
-  Filter,
+  SlidersHorizontal,
+  MessageSquareQuote,
 } from "lucide-react";
 import { format } from "date-fns";
 import styles from "../styles/ReviewsList.module.css";
@@ -14,11 +15,10 @@ import styles from "../styles/ReviewsList.module.css";
 /* ---------- Rating Bar ---------- */
 const RatingBar = ({ rating, count, total }) => {
   const percentage = total ? (count / total) * 100 : 0;
-
   return (
     <div className={styles.ratingBar}>
       <span className={styles.ratingLabel}>{rating}</span>
-      <Star size={14} className={styles.starSmallGold} />
+      <Star size={12} className={styles.starSmallGold} fill="currentColor" />
       <div className={styles.barTrack}>
         <div className={styles.barFill} style={{ width: `${percentage}%` }} />
       </div>
@@ -32,24 +32,40 @@ const ReviewCard = ({ review }) => {
   const [expanded, setExpanded] = useState(false);
   const [helpful, setHelpful] = useState(false);
 
-  const shouldTruncate = (review.text?.length ?? 0) > 320;
+  const text = review.text || review.review_text || "";
+  const shouldTruncate = text.length > 320;
   const displayText =
     shouldTruncate && !expanded
-      ? review.text.slice(0, 320) + "..."
-      : review.text || "No review text provided.";
+      ? text.slice(0, 320) + "…"
+      : text || "No review text provided.";
+
+  const overall =
+    review.ratings?.overall ?? review.overall_rating ?? 0;
+
+  const eventType = review.eventType || review.event_type;
+  const eventDate = review.eventDate || review.event_date;
+  const createdAt = review.createdAt || review.created_at;
+  const isVerified = review.isVerified ?? review.is_verified;
+
+  const ratings = review.ratings || {
+    foodBeverage: review.food_beverage_rating,
+    serviceQuality: review.service_quality_rating,
+    ambiance: review.ambiance_rating,
+    valueForMoney: review.value_for_money_rating,
+  };
 
   return (
-    <div className={`${styles.reviewCard} ${expanded ? styles.expanded : ""}`}>
+    <article className={styles.reviewCard}>
       {/* Header */}
-      <div className={styles.cardHeader}>
+      <header className={styles.cardHeader}>
         <div className={styles.avatarWrapper}>
           <img
             src={review.user?.avatar || avatar}
             alt={review.user?.name || "User"}
             className={styles.avatar}
           />
-          {review.isVerified && (
-            <CheckCircle2 className={styles.verifiedIcon} size={16} />
+          {isVerified && (
+            <CheckCircle2 className={styles.verifiedIcon} size={14} fill="currentColor" />
           )}
         </div>
 
@@ -58,52 +74,45 @@ const ReviewCard = ({ review }) => {
             <span className={styles.userName}>
               {review.user?.name || "Anonymous"}
             </span>
-            {review.isVerified && (
-              <span className={styles.verifiedBadge}>Verified Guest</span>
+            {isVerified && (
+              <span className={styles.verifiedBadge}>
+                <CheckCircle2 size={10} /> Verified
+              </span>
             )}
           </div>
-          <span className={styles.userLocation}>
-            {review.user?.location || "—"}
-          </span>
-        </div>
-
-        <div className={styles.metaRight}>
-          <div className={styles.starsRow}>
-            {[1, 2, 3, 4, 5].map((s) => (
-              <Star
-                key={s}
-                size={16}
-                className={
-                  s <= (review.ratings?.overall || 0)
-                    ? styles.starGold
-                    : styles.starInactive
-                }
-              />
-            ))}
+          <div className={styles.subRow}>
+            <div className={styles.starsRow}>
+              {[1, 2, 3, 4, 5].map((s) => (
+                <Star
+                  key={s}
+                  size={13}
+                  className={s <= overall ? styles.starGold : styles.starInactive}
+                  fill={s <= overall ? "currentColor" : "none"}
+                />
+              ))}
+              <span className={styles.scoreInline}>{overall.toFixed(1)}</span>
+            </div>
+            <span className={styles.metaDot} />
+            <time className={styles.date}>
+              {createdAt ? format(new Date(createdAt), "MMM d, yyyy") : "—"}
+            </time>
           </div>
-          <time className={styles.date}>
-            {review.createdAt
-              ? format(new Date(review.createdAt), "MMM d, yyyy")
-              : "—"}
-          </time>
         </div>
-      </div>
+      </header>
 
-      {/* Event info */}
-      {(review.eventType || review.event_type) && (
+      {/* Event tag */}
+      {eventType && (
         <div className={styles.eventTag}>
-          <span className={styles.eventBadge}>
-            {review.eventType || review.event_type}
-          </span>
-          <span className={styles.eventDate}>
-            {review.eventDate || review.event_date
-              ? format(new Date(review.eventDate || review.event_date), "MMMM yyyy")
-              : ""}
-          </span>
+          <span className={styles.eventBadge}>{eventType}</span>
+          {eventDate && (
+            <span className={styles.eventDate}>
+              {format(new Date(eventDate), "MMMM yyyy")}
+            </span>
+          )}
         </div>
       )}
 
-      {/* Title & Text */}
+      {/* Title & body */}
       {review.title && <h3 className={styles.reviewTitle}>{review.title}</h3>}
       <p className={styles.reviewText}>{displayText}</p>
 
@@ -116,121 +125,146 @@ const ReviewCard = ({ review }) => {
         </button>
       )}
 
-      {/* Criteria */}
-      {review.ratings && (
-        <div className={styles.criteriaRow}>
-          <div>
-            Food & Beverage <strong>{review.ratings.foodBeverage ?? review.ratings.food_beverage ?? "—"}/5</strong>
+      {/* Sub-criteria */}
+      {(ratings.foodBeverage || ratings.serviceQuality ||
+        ratings.ambiance || ratings.valueForMoney) && (
+          <div className={styles.criteriaRow}>
+            {ratings.foodBeverage > 0 && (
+              <div className={styles.criteriaPill}>
+                <span>Food</span>
+                <strong>{ratings.foodBeverage}/5</strong>
+              </div>
+            )}
+            {ratings.serviceQuality > 0 && (
+              <div className={styles.criteriaPill}>
+                <span>Service</span>
+                <strong>{ratings.serviceQuality}/5</strong>
+              </div>
+            )}
+            {ratings.ambiance > 0 && (
+              <div className={styles.criteriaPill}>
+                <span>Ambiance</span>
+                <strong>{ratings.ambiance}/5</strong>
+              </div>
+            )}
+            {ratings.valueForMoney > 0 && (
+              <div className={styles.criteriaPill}>
+                <span>Value</span>
+                <strong>{ratings.valueForMoney}/5</strong>
+              </div>
+            )}
           </div>
-          <div>
-            Service <strong>{review.ratings.serviceQuality ?? review.ratings.service_quality ?? "—"}/5</strong>
-          </div>
-          <div>
-            Ambiance <strong>{review.ratings.ambiance ?? review.ratings.ambiance_rating ?? "—"}/5</strong>
-          </div>
-          <div>
-            Value <strong>{review.ratings.valueForMoney ?? review.ratings.value_for_money ?? "—"}/5</strong>
-          </div>
-        </div>
-      )}
+        )}
 
       {/* Photos */}
       {review.photos?.length > 0 && (
         <div className={styles.photoGrid}>
           {review.photos.map((photo, i) => (
             <div key={i} className={styles.photoItem}>
-              <img src={photo} alt={`Review photo ${i + 1}`} />
+              <img src={photo} alt={`Review ${i + 1}`} />
             </div>
           ))}
         </div>
       )}
 
-      {/* Vendor Response */}
+      {/* Vendor response */}
       {review.response && (
         <div className={styles.vendorResponse}>
-          <div className={styles.responseHeader}>Vendor Response</div>
+          <div className={styles.responseHeader}>
+            <MessageSquareQuote size={14} />
+            <span>Response from owner</span>
+          </div>
           <p>{review.response.text}</p>
-          <time>
-            {review.response.date
-              ? format(new Date(review.response.date), "MMM d, yyyy")
-              : "—"}
-          </time>
+          {review.response.date && (
+            <time>{format(new Date(review.response.date), "MMM d, yyyy")}</time>
+          )}
         </div>
       )}
 
       {/* Helpful */}
-      <button
-        className={`${styles.helpfulBtn} ${helpful ? styles.helpfulActive : ""}`}
-        onClick={() => setHelpful(!helpful)}
-      >
-        <ThumbsUp size={18} />
-        Helpful
-        <span>{(review.helpfulCount || 0) + (helpful ? 1 : 0)}</span>
-      </button>
-    </div>
+      <div className={styles.cardFooter}>
+        <button
+          className={`${styles.helpfulBtn} ${helpful ? styles.helpfulActive : ""}`}
+          onClick={() => setHelpful(!helpful)}
+        >
+          <ThumbsUp size={14} fill={helpful ? "currentColor" : "none"} />
+          Helpful
+          <span className={styles.helpfulCount}>
+            {(review.helpfulCount || review.helpful_count || 0) + (helpful ? 1 : 0)}
+          </span>
+        </button>
+      </div>
+    </article>
   );
 };
 
-/* ---------- Main Reviews List ---------- */
+/* ---------- Main ---------- */
 export default function ReviewsList({ reviews = [], overallRating, totalReviews }) {
   const [sortBy, setSortBy] = useState("recent");
   const [photosOnly, setPhotosOnly] = useState(false);
   const [showAll, setShowAll] = useState(false);
 
-  // Safeguard: always use array (handles axios response shape)
-  const safeReviews = Array.isArray(reviews?.data) 
-    ? reviews.data 
-    : Array.isArray(reviews) 
-      ? reviews 
+  const safeReviews = Array.isArray(reviews?.data)
+    ? reviews.data
+    : Array.isArray(reviews)
+      ? reviews
       : [];
 
-  // Calculate rating distribution for breakdown bars
   const ratingCounts = [0, 0, 0, 0, 0];
   safeReviews.forEach((r) => {
-    const overall = r.ratings?.overall || 0;
-    if (overall >= 1 && overall <= 5) {
-      ratingCounts[overall - 1]++;
-    }
+    const overall = r.ratings?.overall || r.overall_rating || 0;
+    if (overall >= 1 && overall <= 5) ratingCounts[overall - 1]++;
   });
 
   const filteredReviews = safeReviews
     .filter((r) => !photosOnly || (r.photos?.length ?? 0) > 0)
     .sort((a, b) => {
-      if (sortBy === "highest") return (b.ratings?.overall ?? 0) - (a.ratings?.overall ?? 0);
-      if (sortBy === "lowest") return (a.ratings?.overall ?? 0) - (b.ratings?.overall ?? 0);
-      if (sortBy === "helpful") return (b.helpfulCount ?? 0) - (a.helpfulCount ?? 0);
-      return new Date(b.createdAt) - new Date(a.createdAt);
+      const ao = a.ratings?.overall ?? a.overall_rating ?? 0;
+      const bo = b.ratings?.overall ?? b.overall_rating ?? 0;
+      if (sortBy === "highest") return bo - ao;
+      if (sortBy === "lowest") return ao - bo;
+      if (sortBy === "helpful")
+        return (b.helpfulCount ?? b.helpful_count ?? 0) -
+          (a.helpfulCount ?? a.helpful_count ?? 0);
+      return new Date(b.createdAt || b.created_at) -
+        new Date(a.createdAt || a.created_at);
     });
 
   const displayed = showAll ? filteredReviews : filteredReviews.slice(0, 4);
+  const score = overallRating != null ? Number(overallRating) : 0;
 
   return (
-    <div className={styles.reviewsContainer}>
+    <section className={styles.reviewsContainer}>
       {/* Summary */}
       <div className={styles.summaryHeader}>
         <div className={styles.overallScore}>
-          <h2 className={styles.scoreValue}>
-            {overallRating != null ? overallRating.toFixed(1) : "—"}
-          </h2>
+          <div className={styles.scoreTop}>
+            <h2 className={styles.scoreValue}>
+              {score ? score.toFixed(1) : "—"}
+            </h2>
+            <span className={styles.scoreOutOf}>/ 5</span>
+          </div>
           <div className={styles.scoreStars}>
             {[1, 2, 3, 4, 5].map((s) => (
               <Star
                 key={s}
-                size={28}
+                size={20}
                 className={
-                  s <= Math.round(overallRating || 0)
+                  s <= Math.round(score)
                     ? styles.starGoldLarge
                     : styles.starMutedLarge
                 }
+                fill={s <= Math.round(score) ? "currentColor" : "none"}
               />
             ))}
           </div>
           <p className={styles.reviewCount}>
-            Based on {totalReviews || safeReviews.length} reviews
+            Based on{" "}
+            <strong>{totalReviews || safeReviews.length}</strong> review
+            {(totalReviews || safeReviews.length) !== 1 ? "s" : ""}
           </p>
         </div>
 
-        {/* Rating Breakdown Bars */}
         <div className={styles.ratingBreakdown}>
           {[5, 4, 3, 2, 1].map((rating) => (
             <RatingBar
@@ -246,34 +280,41 @@ export default function ReviewsList({ reviews = [], overallRating, totalReviews 
       {/* Filters */}
       <div className={styles.filtersBar}>
         <div className={styles.filterLeft}>
-          <Filter size={18} />
-          <span>Sort by</span>
+          <SlidersHorizontal size={14} />
+          <span>Filter</span>
         </div>
 
-        <select
-          value={sortBy}
-          onChange={(e) => setSortBy(e.target.value)}
-          className={styles.sortSelect}
-        >
-          <option value="recent">Most Recent</option>
-          <option value="highest">Highest Rated</option>
-          <option value="lowest">Lowest Rated</option>
-          <option value="helpful">Most Helpful</option>
-        </select>
+        <div className={styles.filterControls}>
+          <div className={styles.selectWrapper}>
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className={styles.sortSelect}
+            >
+              <option value="recent">Most Recent</option>
+              <option value="highest">Highest Rated</option>
+              <option value="lowest">Lowest Rated</option>
+              <option value="helpful">Most Helpful</option>
+            </select>
+            <ChevronDown size={14} className={styles.selectChevron} />
+          </div>
 
-        <button
-          className={`${styles.photoFilterBtn} ${photosOnly ? styles.active : ""}`}
-          onClick={() => setPhotosOnly(!photosOnly)}
-        >
-          <ImageIcon size={18} />
-          With Photos
-        </button>
+          <button
+            className={`${styles.photoFilterBtn} ${photosOnly ? styles.active : ""}`}
+            onClick={() => setPhotosOnly(!photosOnly)}
+          >
+            <ImageIcon size={14} />
+            With photos
+          </button>
+        </div>
       </div>
 
       {/* Reviews */}
       {displayed.length === 0 ? (
         <div className={styles.emptyState}>
-          <p>No reviews yet. Be the first to share your experience!</p>
+          <MessageSquareQuote size={28} />
+          <p>No reviews yet.</p>
+          <span>Be the first to share your experience.</span>
         </div>
       ) : (
         <div className={styles.reviewsGrid}>
@@ -289,11 +330,11 @@ export default function ReviewsList({ reviews = [], overallRating, totalReviews 
             className={styles.showMoreBtn}
             onClick={() => setShowAll(true)}
           >
-            Show All {filteredReviews.length} Reviews
-            <ChevronDown size={18} />
+            Show all {filteredReviews.length} reviews
+            <ChevronDown size={16} />
           </button>
         </div>
       )}
-    </div>
+    </section>
   );
 }

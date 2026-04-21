@@ -30,7 +30,7 @@ const ADMIN_NAV_LINKS = [
 ];
 
 const SERVICE_LINKS = [
-  { label: "Wedding Venues", href: "/services/wedding-venues" },
+  { label: "Venues", href: "/services/wedding-venues" },
   { label: "DJs", href: "/services/djs" },
   { label: "Event Management", href: "/services/event-management" },
   { label: "Catering", href: "/services/catering" },
@@ -315,47 +315,103 @@ function Navbar() {
 
         {/* Icons – only on desktop */}
         <div className={styles.right}>
+          {/* Improved Profile Dropdown - Desktop */}
           {!isMobile && isAuthenticated && (
             <>
-              <button className={styles.iconBtn} onClick={() => setSearchOpen(true)} aria-label="Search">
-                <Search size={22} />
-              </button>
-              <Link to="/wishlist" className={styles.iconBtn} aria-label="Wishlist">
-                <div className={styles.iconWrapper}>
-                  <Heart size={22} />
-                  {wishlistItems?.length > 0 && <span className={styles.badge}>{wishlistItems?.length}</span>}
-                </div>
-              </Link>
+              {/* Search & Wishlist - Show only for Customers */}
+              {user?.type === "customer" && (
+                <>
+                  <button
+                    className={styles.iconBtn}
+                    onClick={() => setSearchOpen(true)}
+                    aria-label="Search"
+                  >
+                    <Search size={22} />
+                  </button>
+
+                  <Link to="/wishlist" className={styles.iconBtn} aria-label="Wishlist">
+                    <div className={styles.iconWrapper}>
+                      <Heart size={22} />
+                      {wishlistItems?.length > 0 && (
+                        <span className={styles.badge}>{wishlistItems.length}</span>
+                      )}
+                    </div>
+                  </Link>
+                </>
+              )}
+
+              {/* Profile Dropdown */}
               <div ref={profileRef} className={styles.dropdown}>
                 <button
-                  className={`${styles.iconBtn} ${styles.dropdownToggle}`}
+                  className={`${styles.iconBtn} ${styles.profileBtn} ${styles.dropdownToggle}`}
                   onClick={toggleProfile}
                   aria-label="Profile"
                 >
                   <User size={22} />
                 </button>
+
                 <div
                   className={`${styles.dropdownMenu} ${profileDropdownOpen ? styles.open : ""}`}
-                  style={{ right: 0, left: "auto" }}
+                  style={{ right: 0, left: "auto", minWidth: "220px" }}
                 >
-                  <Link to="/my-bookings" className={styles.dropdownItem} onClick={closeAllDropdowns}>
-                    My Bookings
+                  <Link
+                    to="/my-bookings"
+                    className={styles.dropdownItem}
+                    onClick={closeAllDropdowns}
+                  >
+                    📅 My Bookings
                   </Link>
-                  <Link to="/payments" className={styles.dropdownItem} onClick={closeAllDropdowns}>
-                    Payments
+
+                  <Link
+                    to="/payments"
+                    className={styles.dropdownItem}
+                    onClick={closeAllDropdowns}
+                  >
+                    💳 Payments
                   </Link>
-                  <Link to="/profile" className={styles.dropdownItem} onClick={closeAllDropdowns}>
-                    Profile Settings
+
+                  <Link
+                    to="/profile"
+                    className={styles.dropdownItem}
+                    onClick={closeAllDropdowns}
+                  >
+                    ⚙️ Profile Settings
                   </Link>
+
+                  {/* Optional: Show different options for Vendor */}
+                  {user?.type === "vendor" && (
+                    <>
+                      <div className={styles.dropdownDivider}></div>
+                      <Link
+                        to="/vendor/my-services"
+                        className={styles.dropdownItem}
+                        onClick={closeAllDropdowns}
+                      >
+                        🛠️ My Services
+                      </Link>
+                      <Link
+                        to="/vendor/analytics"
+                        className={styles.dropdownItem}
+                        onClick={closeAllDropdowns}
+                      >
+                        📊 Analytics
+                      </Link>
+                    </>
+                  )}
+
+                  {/* Divider before Logout */}
+                  <div className={styles.dropdownDivider}></div>
+
+                  {/* Logout Button - Desktop */}
                   <button
                     onClick={() => {
                       logout();
                       closeAllDropdowns();
                     }}
-                    className={styles.dropdownItem}
-                    style={{ color: "red" }}
+                    className={`${styles.dropdownItem} ${styles.logoutBtn}`}
                   >
-                    <HiOutlineLogout style={{ marginRight: 8 }} /> Logout
+                    <HiOutlineLogout size={20} />
+                    <span>Logout</span>
                   </button>
                 </div>
               </div>
@@ -553,7 +609,8 @@ function Navbar() {
                     }}
                     className={styles.drawerLogout}
                   >
-                    <HiOutlineLogout size={20} /> Logout
+                    <HiOutlineLogout size={22} />
+                    <span>Logout Account</span>
                   </button>
                 </div>
               </div>

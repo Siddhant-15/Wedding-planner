@@ -9,7 +9,8 @@ from app.Dependencies.Auth import get_current_user
 from app.models.models import Service, Vendor
 from app.schemas.customer_services import (
     ServiceDetailResponse, ServiceCardSchema, VenueDetailSchema,
-    ServiceVariantDetailSchema, VendorCardSchema, UnavailableDateSchema
+    ServiceVariantDetailSchema, VendorCardSchema, UnavailableDateSchema,
+    CateringDetailSchema, DjDetailSchema, PhotographyDetailSchema, EventManagementDetailSchema, MakeupArtistDetailSchema
 )
 
 customerservicerouter = APIRouter()
@@ -31,7 +32,7 @@ async def get_service_cards(
             joinedload(Service.venue),
             joinedload(Service.variants),
             joinedload(Service.media),
-            joinedload(Service.unavailable_dates)
+            # No need to load all type-specific details in list view for performance
         )
         .filter(
             Service.service_type == service_type,
@@ -49,9 +50,9 @@ async def get_service_cards(
         count_query = count_query.filter(Service.city.ilike(f"%{city}%"))
 
     query = query.order_by(desc(Service.created_at))
-    
+
     count_result = await db.execute(count_query)
-    total = count_result.scalar()
+    total = count_result.scalar_one()
 
     result = await db.execute(query.offset(skip).limit(limit))
     services = result.scalars().unique().all()
@@ -59,15 +60,12 @@ async def get_service_cards(
     results = []
     for service in services:
         images = [
-    media.media_url
-    for media in sorted(service.media, key=lambda x: x.display_order)
-]
-        
-        venue_data = None
-        if service.venue:
-            venue_data = VenueDetailSchema.from_orm(service.venue)
-            
-        variants_data = [ServiceVariantDetailSchema.from_orm(v) for v in service.variants]
+            media.media_url
+            for media in sorted(service.media, key=lambda x: x.display_order)
+        ]
+
+        venue_data = VenueDetailSchema.model_validate(service.venue) if service.venue else None
+        variants_data = [ServiceVariantDetailSchema.model_validate(v) for v in service.variants]
 
         card_data = ServiceCardSchema(
             id=str(service.id),
@@ -80,9 +78,9 @@ async def get_service_cards(
             add_line1=service.add_line1,
             add_line2=service.add_line2,
             country=service.country,
-            latitude=service.latitude,
-            longitude=service.longitude,
-            vendor_name=service.vendor.business_name if service.vendor.business_name else "Unknown",
+            latitude=float(service.latitude) if service.latitude else None,
+            longitude=float(service.longitude) if service.longitude else None,
+            vendor_name=service.vendor.business_name or "Unknown",
             vendor_id=str(service.vendor.id),
             service_type=service.service_type,
             venue=venue_data,
@@ -107,14 +105,20 @@ async def get_service_detail(
     db: AsyncSession = Depends(get_db),
     current_user: dict = Depends(get_current_user)
 ) -> ServiceDetailResponse:
+    
     result = await db.execute(
         select(Service)
         .options(
-            joinedload(Service.vendor),       
-            joinedload(Service.venue),        
-            selectinload(Service.variants),    
-            selectinload(Service.media),       
-            selectinload(Service.unavailable_dates)
+            joinedload(Service.vendor),
+            joinedload(Service.venue),
+            joinedload(Service.catering),
+            joinedload(Service.dj),
+            joinedload(Service.photography),
+            joinedload(Service.event_management),
+            joinedload(Service.makeup_artist),
+            selectinload(Service.variants),
+            selectinload(Service.media),
+            selectinload(Service.unavailable_dates),
         )
         .filter(
             Service.id == service_id,
@@ -129,42 +133,36 @@ async def get_service_detail(
             detail="Service not found or unavailable"
         )
 
+    # Sort images: cover first, then by display_order
     images = [
-    m.media_url
-    for m in sorted(service.media, key=lambda x: (not x.is_cover, x.display_order))
-]
-    
-    venue_data = None
-    if service.venue:
-        venue_data = VenueDetailSchema.from_orm(service.venue)
-        
-    variants_data = [ServiceVariantDetailSchema.from_orm(v) for v in service.variants]
+        m.media_url
+        for m in sorted(
+            service.media,
+            key=lambda x: (not x.is_cover, x.display_order)
+        )
+    ]
 
-    unavailable_dates_data = [UnavailableDateSchema.from_orm(d) for d in service.unavailable_dates] if service.unavailable_dates else []
+    venue_data = VenueDetailSchema.model_validate(service.venue) if service.venue else None
+    variants_data = [ServiceVariantDetailSchema.model_validate(v) for v in service.variants]
 
-    vendor_data = VendorCardSchema(
-        id=str(service.vendor.id),
-        name=service.vendor.business_name,
-        description=service.vendor.business_description,
-        phone=service.vendor.phone,
-        email=service.vendor.email,
-        experience=service.vendor.experience_years,
-        city=service.vendor.city,
-        state=service.vendor.state,
-        add_line1=service.vendor.add_line1,
-        add_line2=service.vendor.add_line2,
-        country=service.vendor.country,
-        pincode=service.vendor.pincode,
-        contact_person=service.vendor.contact_person,
-        website=service.vendor.website,
-        avatar=service.vendor.avatar
-    )
+    unavailable_dates_data = [
+        UnavailableDateSchema.model_validate(d) for d in service.unavailable_dates
+    ]
+
+    # Service type specific data
+    catering_data = CateringDetailSchema.model_validate(service.catering) if service.catering else None
+    dj_data = DjDetailSchema.model_validate(service.dj) if service.dj else None
+    photography_data = PhotographyDetailSchema.model_validate(service.photography) if service.photography else None
+    event_data = EventManagementDetailSchema.model_validate(service.event_management) if service.event_management else None
+    makeup_data = MakeupArtistDetailSchema.model_validate(service.makeup_artist) if service.makeup_artist else None
+
+    vendor_data = VendorCardSchema.model_validate(service.vendor)
 
     return ServiceDetailResponse(
         id=str(service.id),
         name=service.service_name,
         description=service.description,
-        long_description=service.description,
+        long_description=service.description,           # You can add a separate long_description column later
         images=images,
         area=service.area or "",
         city=service.city,
@@ -172,19 +170,24 @@ async def get_service_detail(
         add_line1=service.add_line1,
         add_line2=service.add_line2,
         country=service.country,
-        latitude=service.latitude,
-        longitude=service.longitude,
-        vendor_name=service.vendor.business_name,
+        latitude=float(service.latitude) if service.latitude else None,
+        longitude=float(service.longitude) if service.longitude else None,
+        vendor_name=service.vendor.business_name or "Unknown",
         vendor_id=str(service.vendor.id),
         service_type=service.service_type,
         venue=venue_data,
         variants=variants_data,
         pincode=service.pincode,
         metadata=service.metadata_,
-        featured=False,
+        featured=False,                                 # Add featured column later if needed
         created_at=service.created_at,
         updated_at=service.updated_at,
         vendor=vendor_data,
+        catering=catering_data,
+        dj=dj_data,
+        photography=photography_data,
+        event_management=event_data,
+        makeup_artist=makeup_data,
+        unavailable_dates=unavailable_dates_data,
         user_role=current_user.get("role") if current_user else None,
-        unavailable_dates=unavailable_dates_data
     )

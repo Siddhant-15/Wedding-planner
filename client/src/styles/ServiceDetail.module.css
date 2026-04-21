@@ -1,15 +1,22 @@
+/* ================================================
+   ServiceDetail.module.css - Clean & Professional
+   ================================================ */
+
 .page {
   background: hsl(var(--background));
   min-height: 100vh;
-  padding-bottom: 80px; /* space for mobile bar */
+  padding-bottom: 80px;
 }
 
 .container {
-  max-width: 1400px;
+  max-width: 1480px;
   margin: 0 auto;
-  padding: 24px 16px;
+  padding: 20px 16px 40px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
+/* Back Link */
 .backLink {
   display: inline-flex;
   align-items: center;
@@ -17,8 +24,7 @@
   color: hsl(var(--muted-foreground));
   text-decoration: none;
   font-weight: 500;
-  margin-bottom: 24px;
-  transition: color 0.2s;
+  margin-bottom: 20px;
 }
 
 .backLink:hover {
@@ -28,13 +34,15 @@
 /* Main Grid */
 .mainGrid {
   display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: 40px;
+  grid-template-columns: 1.8fr 1fr;
+  gap: 10px;
+  width: 100%;
 }
 
-@media (max-width: 1024px) {
+@media (max-width: 1100px) {
   .mainGrid {
     grid-template-columns: 1fr;
+    gap: 28px;
   }
 }
 
@@ -42,23 +50,29 @@
 .leftColumn {
   display: flex;
   flex-direction: column;
-  gap: 32px;
+  gap: 24px;
+  width: 100%;
+  min-width: 0;
+  /* Important to prevent overflow */
 }
 
+/* Gallery */
 .galleryWrapper {
   border-radius: 20px;
   overflow: hidden;
-  box-shadow: var(--shadow-soft);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  width: 100%;
 }
 
 /* Content Card */
 .contentCard {
   background: hsl(var(--card));
   border-radius: 20px;
-  padding: 32px;
+  padding: 28px 32px;
   border: 1px solid hsl(var(--border));
-  box-shadow: 0 8px 24px hsl(var(--brand) / 0.08);
-  transition: transform 0.3s ease;
+  box-shadow: 0 8px 25px hsl(var(--brand) / 0.06);
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .contentCard:hover {
@@ -67,8 +81,8 @@
 
 .badges {
   display: flex;
-  gap: 12px;
-  margin-bottom: 16px;
+  gap: 10px;
+  margin-bottom: 12px;
   flex-wrap: wrap;
 }
 
@@ -100,29 +114,22 @@
 }
 
 .serviceTitle {
-  font-family: var(--font-heading);
-  font-size: 2.8rem;
+  font-size: clamp(2.1rem, 5vw, 2.75rem);
   font-weight: 700;
-  color: hsl(var(--foreground));
-  margin: 0 0 16px;
+  line-height: 1.15;
+  margin: 0 0 14px;
 }
 
 .metaRow {
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 18px;
   flex-wrap: wrap;
-  margin-bottom: 24px;
-  font-size: 1.05rem;
-  color: hsl(var(--muted-foreground));
+  margin-bottom: 22px;
+  font-size: 1.02rem;
 }
 
-.location {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
+.location,
 .metaItem {
   display: flex;
   align-items: center;
@@ -130,29 +137,29 @@
 }
 
 .description {
-  line-height: 1.7;
+  line-height: 1.75;
+  font-size: 1.06rem;
+  margin-bottom: 28px;
   color: hsl(var(--foreground));
-  font-size: 1.05rem;
-  margin-bottom: 32px;
 }
 
 .priceBlock {
-  margin: 24px 0;
+  margin: 20px 0 24px;
 }
 
 .price {
-  font-size: 2.4rem;
+  font-size: clamp(2rem, 4.5vw, 2.4rem);
   font-weight: 700;
   color: hsl(var(--brand));
 }
 
 .priceNote {
-  font-size: 0.95rem;
+  font-size: 0.93rem;
   color: hsl(var(--muted-foreground));
 }
 
 .actionButtons {
-  margin-top: 24px;
+  margin-top: 20px;
 }
 
 .wishlistBtn {
@@ -178,39 +185,60 @@
   border-color: hsl(var(--brand));
 }
 
-/* Right Column – Sticky */
+/* Consistent Section Cards */
+.variantsSection,
+.leftColumn>div:not(.galleryWrapper):not(.contentCard):not(.reviewsSection) {
+  background: hsl(var(--card));
+  border-radius: 20px;
+  padding: 28px 32px;
+  border: 1px solid hsl(var(--border));
+  width: 100%;
+  box-sizing: border-box;
+}
+
+
+.sectionTitle {
+  font-size: 1.85rem;
+  font-weight: 700;
+  margin-bottom: 20px;
+}
+
+/* Variants */
+.variantsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+  width: 100%;
+}
+
+.variantCard {
+  padding: 20px;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Right Column - Sticky Sidebar */
 .rightColumn {
   position: relative;
+  width: 100%;
 }
 
 .stickySidebar {
   position: sticky;
-  top: 100px;
-  background: hsl(var(--card));
-  /* border-radius: 20px; */
-  padding: 24px;
-  /* border: 1px solid hsl(var(--border)); */
-  /* box-shadow: var(--shadow-soft); */
+  top: 90px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  /* width: 100%; */
 }
 
-/* Reviews Section */
-.reviewsSection {
-  margin-top: 40px;
-  background: hsl(var(--card));
-  /* border-radius: 20px; */
-  padding: 32px;
-  /* border: 1px solid hsl(var(--border)); */
-}
-
-.sectionTitle {
-  font-family: var(--font-heading);
-  font-size: 2.2rem;
-  color: hsl(var(--foreground));
-  margin-bottom: 24px;
-}
-
+/* Reviews */
 .writeReviewWrapper {
-  margin-top: 48px;
+  margin-top: 40px;
   padding-top: 32px;
   border-top: 1px solid hsl(var(--border));
 }
@@ -258,14 +286,42 @@
   border-radius: 12px;
   text-decoration: none;
   font-weight: 600;
-  transition: background 0.2s;
 }
 
 .backHome:hover {
   background: hsl(var(--brand) / 0.9);
 }
 
-/* Animations */
-@keyframes spin {
-  to { transform: rotate(360deg); }
+/* Global Fix - No Horizontal Scroll */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body,
+html {
+  overflow-x: hidden;
+  width: 100%;
+}
+
+/* Mobile Optimizations */
+@media (max-width: 768px) {
+  .container {
+    padding: 16px 12px 70px;
+  }
+
+  .contentCard,
+  .variantsSection,
+  .reviewsSection {
+    padding: 24px 20px;
+  }
+
+  .serviceTitle {
+    font-size: 2.1rem;
+  }
+
+  .mainGrid {
+    gap: 24px;
+  }
 }

@@ -4,25 +4,31 @@
 .galleryContainer {
   display: flex;
   flex-direction: column;
-  gap: 20px;                    /* increased gap between hero and thumbnails */
+  gap: 20px;
+  /* increased gap between hero and thumbnails */
   border-radius: 20px;
   overflow: hidden;
   background: hsl(var(--card));
   box-shadow: var(--shadow-soft);
   border: 1px solid hsl(var(--border));
-  padding: 16px;                /* added internal padding for better spacing */
+  /* padding: 16px;             */
 }
 
 /* Hero / Main Image – Made Smaller */
 .heroWrapper {
   position: relative;
-  aspect-ratio: 16 / 10;        /* wider & shorter – more modern & balanced */
-  max-height: 420px;            /* significantly reduced height – cleaner look */
+  aspect-ratio: 16 / 10;
+  /* wider & shorter – more modern & balanced */
+  max-height: 420px;
+  /* significantly reduced height – cleaner look */
   overflow: hidden;
-  border-radius: 16px;          /* slightly softer corners */
-  margin: 0 auto;               /* centered if container is wider */
+  border-radius: 16px;
+  /* slightly softer corners */
+  margin: 0 auto;
+  /* centered if container is wider */
   width: 100%;
-  max-width: 1000px;            /* prevents stretching too wide on large screens */
+  max-width: 1000px;
+  /* prevents stretching too wide on large screens */
 }
 
 .heroImageBox {
@@ -41,7 +47,8 @@
 }
 
 .heroImageBox:hover .heroImage {
-  transform: scale(1.08);       /* slightly larger zoom for elegance */
+  transform: scale(1.08);
+  /* slightly larger zoom for elegance */
 }
 
 /* Overlay Elements */
@@ -50,12 +57,10 @@
   inset: 0;
   opacity: 0;
   transition: opacity 0.4s ease;
-  background: linear-gradient(
-    to bottom,
-    rgba(0,0,0,0.18) 0%,
-    transparent 45%,
-    rgba(0,0,0,0.45) 100%
-  );
+  background: linear-gradient(to bottom,
+      rgba(0, 0, 0, 0.18) 0%,
+      transparent 45%,
+      rgba(0, 0, 0, 0.45) 100%);
 }
 
 .heroImageBox:hover .imageOverlay {
@@ -74,7 +79,7 @@
 }
 
 .counter {
-  background: rgba(0,0,0,0.6);
+  background: rgba(0, 0, 0, 0.6);
   color: white;
   padding: 6px 12px;
   border-radius: 999px;
@@ -84,7 +89,7 @@
 }
 
 .zoomButton {
-  background: rgba(255,255,255,0.92);
+  background: rgba(255, 255, 255, 0.92);
   border: none;
   border-radius: 50%;
   width: 48px;
@@ -95,7 +100,7 @@
   cursor: pointer;
   transition: all 0.3s ease;
   backdrop-filter: blur(6px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .zoomButton:hover {
@@ -108,7 +113,7 @@
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  background: rgba(255,255,255,0.88);
+  background: rgba(255, 255, 255, 0.88);
   border: none;
   border-radius: 50%;
   width: 52px;
@@ -120,15 +125,20 @@
   opacity: 0;
   transition: all 0.35s ease;
   backdrop-filter: blur(6px);
-  box-shadow: 0 6px 16px rgba(0,0,0,0.18);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.18);
 }
 
 .heroImageBox:hover .navButton {
   opacity: 1;
 }
 
-.navLeft { left: 20px; }
-.navRight { right: 20px; }
+.navLeft {
+  left: 20px;
+}
+
+.navRight {
+  right: 20px;
+}
 
 .navButton:hover {
   background: white;
@@ -137,14 +147,15 @@
 
 /* Thumbnails – More breathing room */
 .thumbnailsContainer {
-  padding: 0px 12px;              /* increased side padding */
+  padding: 0px 12px;
+  /* increased side padding */
 }
 
 .thumbnailsScroll {
   display: flex;
-  gap: 16px;                    
+  gap: 16px;
   overflow-x: auto;
-  padding: 12px 0;        
+  padding: 12px 0;
   scrollbar-width: thin;
 }
 
@@ -158,7 +169,8 @@
 }
 
 .thumbnail {
-  flex: 0 0 90px;              /* slightly larger thumbnails for better touch targets */
+  flex: 0 0 90px;
+  /* slightly larger thumbnails for better touch targets */
   height: 68px;
   border-radius: 12px;
   overflow: hidden;
@@ -166,7 +178,7 @@
   cursor: pointer;
   transition: all 0.3s ease;
   opacity: 0.78;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
   margin-left: 10px;
 }
 
@@ -190,7 +202,7 @@
 .lightboxOverlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.94);
+  background: rgba(0, 0, 0, 0.94);
   backdrop-filter: blur(10px);
   z-index: 1000;
   display: flex;
@@ -200,8 +212,13 @@
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to   { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 .lightboxContent {
@@ -218,7 +235,7 @@
   position: absolute;
   top: 28px;
   right: 28px;
-  background: rgba(255,255,255,0.18);
+  background: rgba(255, 255, 255, 0.18);
   color: white;
   border: none;
   border-radius: 50%;
@@ -233,7 +250,7 @@
 }
 
 .lightboxClose:hover {
-  background: rgba(255,255,255,0.35);
+  background: rgba(255, 255, 255, 0.35);
   transform: scale(1.12);
 }
 
@@ -242,7 +259,7 @@
   top: 28px;
   left: 28px;
   color: white;
-  background: rgba(0,0,0,0.55);
+  background: rgba(0, 0, 0, 0.55);
   padding: 8px 16px;
   border-radius: 999px;
   font-size: 1rem;
@@ -254,7 +271,7 @@
   max-height: 82vh;
   object-fit: contain;
   border-radius: 16px;
-  box-shadow: 0 30px 80px rgba(0,0,0,0.7);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.7);
   transition: transform 0.5s ease;
 }
 
@@ -262,7 +279,7 @@
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  background: rgba(255,255,255,0.18);
+  background: rgba(255, 255, 255, 0.18);
   color: white;
   border: none;
   border-radius: 50%;
@@ -277,12 +294,17 @@
 }
 
 .lightboxNav:hover {
-  background: rgba(255,255,255,0.35);
+  background: rgba(255, 255, 255, 0.35);
   transform: translateY(-50%) scale(1.18);
 }
 
-.lightboxNavLeft { left: 32px; }
-.lightboxNavRight { right: 32px; }
+.lightboxNavLeft {
+  left: 32px;
+}
+
+.lightboxNavRight {
+  right: 32px;
+}
 
 .lightboxThumbnails {
   position: absolute;
@@ -292,7 +314,7 @@
   max-width: 90vw;
   overflow-x: auto;
   padding: 16px;
-  background: rgba(0,0,0,0.45);
+  background: rgba(0, 0, 0, 0.45);
   border-radius: 20px;
   backdrop-filter: blur(10px);
 }

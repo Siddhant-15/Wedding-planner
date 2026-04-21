@@ -1,5 +1,3 @@
-// src/components/services/ServiceFormModal/formDataInitialState.js
-
 export const initialFormData = {
     title: "",
     description: "",
@@ -13,16 +11,36 @@ export const initialFormData = {
     pincode: "",
     geo_point: { lat: "", lon: "" },
     category: "",
+
+    // ================= VARIANTS =================
     variants: [
         {
             variant_name: "Basic Package",
-            pricing_type: "BASE_PRICE",
+
+            // Common
+            pricing_type: "BASE_PRICE", // used for non-venue
+            pricing_mode: "",          // used for venue
+
+            // Default pricing
             price: "",
+            price_with_video: "",
+
+            // Catering / Venue (per plate)
+            veg_price: "",
+            non_veg_price: "",
+            is_veg_only: false,
+
+            // Venue rental
+            rental_price: "",
+
             is_default: true,
             inclusions: ""
         }
     ],
+
     amenities: [],
+
+    // ================= VENUE =================
     capacity_min: "",
     capacity_max: "",
     hall_type: "",
@@ -35,43 +53,66 @@ export const initialFormData = {
         alcohol_policy: "",
         other_policies: []
     },
+
+    // ================= CATERING =================
     cuisine_types: [],
-    veg_price_per_head: "",
-    nonveg_price_per_head: "",
+    special_diets_supported: [],
     min_order: "",
     max_order: "",
-    service_style: "",
+    service_styles_multi: [],
     staff_included: false,
     crockery_cutlery_included: false,
     tasting_available: false,
+
+    // ================= DJ =================
     genres_supported: [],
     duration_hours: "",
     equipment: [],
     lighting_included: false,
     mc_host_available: false,
     setup_time_required: "",
+
+    // ================= PHOTOGRAPHY =================
     photography_types: [],
-    hours_covered: "",
-    photos_delivered: "",
-    edited_photos_count: "",
-    delivery_time_days: "",
-    videography_included: false,
-    drone_available: false,
+    videography_available: false,
+
+    coverage_hours: "",
+    overtime_rate_per_hour: "",
+
+    photo_delivery_count: "",
+    video_delivery_duration_minutes: "",
+    edited_photos_included: true,
+    raw_photos_provided: false,
     album_included: false,
-    event_types: [],
+    album_pages: "",
+
+    drone_shoot_available: false,
+
     team_size: "",
-    includes: [],
-    package_modal: "",
-    vendor_network_size: "",
-    experience_years: "",
-    min_budget: "",
-    max_budget: "",
-    languages_supported: [],
+    second_shooter_included: false,
+
     editing_styles: [],
+
+    // ================= EVENT MANAGEMENT =================
+    event_types: [],
+
+    // ================= MAKEUP ARTIST =================
     makeup_types: [],
+    specialization: "",
     brands_used: [],
+    premium_products_used: true,
+    service_duration_minutes: "",
     travel_to_client: true,
+    travel_cost_per_km: "",
+    base_city: "",
     hairstyling_included: true,
-    service_styles_multi: [],
-    special_diets_supported: [],
+    draping_included: false,
+    trial_available: false,
+
+    // ================= SHARED =================
+    experience_years: "",
+
+    // ================= LEGACY =================
+    veg_price_per_head: "",
+    nonveg_price_per_head: "",
 };

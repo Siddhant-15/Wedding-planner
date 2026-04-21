@@ -1,7 +1,7 @@
 // src/components/services/ServiceFormModal/formConstants.js
 
 export const serviceTypes = [
-    { value: "venue", label: "Wedding Venue" },
+    { value: "venue", label: "Venue" },
     { value: "dj", label: "DJ" },
     { value: "event_management", label: "Event Management" },
     { value: "catering", label: "Catering" },

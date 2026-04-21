@@ -10,6 +10,7 @@ import {
     packageModals
 } from '../formConstants';
 import styles from '../../../../styles/ServiceForm.module.css';
+import InfoTooltip from '../../../Common/InfoTooltip';
 
 
 const MAX_LIMITS = {
@@ -77,6 +78,13 @@ const StepSpecificDetails = ({
         handleInputChange(field, num);
     };
 
+    const venuePolicies = formData.venue_policies || {
+        decoration_policy: "",
+        catering_policy: "",
+        alcohol_policy: "",
+        other_policies: [],
+    };
+
     const handleAddItem = (field, value, setValue) => {
         const trimmed = typeof value === 'string' ? value.trim() : value;
         if (trimmed && !(formData[field] || []).includes(trimmed)) {
@@ -126,147 +134,215 @@ const StepSpecificDetails = ({
         switch (formData.category) {
             case "venue":
                 return (
-                    <>
-                        {/* BASIC DETAILS */}
-                        <div className={styles.fieldGroup}>
-                            <label className={styles.label}>Minimum Capacity</label>
-                            <input
-                                type="number"
-                                value={formData.capacity_min}
-                                onChange={(e) => handleInputChange("capacity_min", e.target.value)}
-                                className={styles.input}
-                            />
+                    <div className={styles.stepContent}>
+
+                        {/* BASIC DETAILS GRID */}
+                        <div className={styles.grid}>
+
+                            <div className={styles.fieldGroup}>
+                                <label className={styles.label}>
+                                    Minimum Capacity
+                                    <InfoTooltip text="Minimum number of guests allowed" />
+                                </label>
+                                <input
+                                    type="number"
+                                    value={formData.capacity_min || ""}
+                                    onChange={(e) =>
+                                        handleNumberChange("capacity_min", e.target.value)
+                                    }
+                                    className={styles.input}
+                                />
+                                {renderError("capacity_min")}
+                            </div>
+
+                            <div className={styles.fieldGroup}>
+                                <label className={styles.label}>
+                                    Maximum Capacity
+                                    <InfoTooltip text="Maximum number of guests allowed" />
+                                </label>
+                                <input
+                                    type="number"
+                                    value={formData.capacity_max || ""}
+                                    onChange={(e) =>
+                                        handleNumberChange("capacity_max", e.target.value)
+                                    }
+                                    className={styles.input}
+                                />
+                                {renderError("capacity_max")}
+                            </div>
+
+                            <div className={styles.fieldGroup}>
+                                <label className={styles.label}>
+                                    Hall Type
+                                    <InfoTooltip text="Type of venue like banquet, lawn, etc." />
+                                </label>
+                                <select
+                                    value={formData.hall_type || ""}
+                                    onChange={(e) =>
+                                        handleInputChange("hall_type", e.target.value)
+                                    }
+                                    className={styles.input}
+                                >
+                                    <option value="">Select</option>
+                                    {hallTypes.map((type) => (
+                                        <option key={type.value} value={type.value}>
+                                            {type.label}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div className={styles.fieldGroup}>
+                                <label className={styles.label}>
+                                    Indoor / Outdoor
+                                    <InfoTooltip text="Specify whether venue is indoor or outdoor" />
+                                </label>
+                                <select
+                                    value={formData.indoor_outdoor || ""}
+                                    onChange={(e) =>
+                                        handleInputChange("indoor_outdoor", e.target.value)
+                                    }
+                                    className={styles.input}
+                                >
+                                    <option value="">Select</option>
+                                    {indoorOutdoorOptions.map((opt) => (
+                                        <option key={opt.value} value={opt.value}>
+                                            {opt.label}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div className={styles.fieldGroup}>
+                                <label className={styles.label}>
+                                    Square Feet
+                                    <InfoTooltip text="Total area of the venue" />
+                                </label>
+                                <input
+                                    type="number"
+                                    value={formData.square_feet || ""}
+                                    onChange={(e) =>
+                                        handleNumberChange("square_feet", e.target.value)
+                                    }
+                                    className={styles.input}
+                                />
+                                {renderError("square_feet")}
+                            </div>
+
+                            <div className={styles.fieldGroup}>
+                                <label className={styles.label}>
+                                    Parking Capacity
+                                    <InfoTooltip text="Number of vehicles that can be parked" />
+                                </label>
+                                <input
+                                    type="number"
+                                    value={formData.parking_capacity || ""}
+                                    onChange={(e) =>
+                                        handleNumberChange("parking_capacity", e.target.value)
+                                    }
+                                    className={styles.input}
+                                />
+                                {renderError("parking_capacity")}
+                            </div>
                         </div>
 
-                        <div className={styles.fieldGroup}>
-                            <label className={styles.label}>Maximum Capacity</label>
-                            <input
-                                type="number"
-                                value={formData.capacity_max}
-                                onChange={(e) => handleInputChange("capacity_max", e.target.value)}
-                                className={styles.input}
-                            />
-                        </div>
-
-                        <div className={styles.fieldGroup}>
-                            <label className={styles.label}>Hall Type</label>
-                            <select
-                                value={formData.hall_type}
-                                onChange={(e) => handleInputChange("hall_type", e.target.value)}
-                                className={styles.input}
-                            >
-                                <option value="">Select</option>
-                                {hallTypes.map((type) => (
-                                    <option key={type.value} value={type.value}>{type.label}</option>
-                                ))}
-                            </select>
-                        </div>
-
-                        <div className={styles.fieldGroup}>
-                            <label className={styles.label}>Indoor / Outdoor</label>
-                            <select
-                                value={formData.indoor_outdoor}
-                                onChange={(e) => handleInputChange("indoor_outdoor", e.target.value)}
-                                className={styles.input}
-                            >
-                                <option value="">Select</option>
-                                {indoorOutdoorOptions.map((opt) => (
-                                    <option key={opt.value} value={opt.value}>{opt.label}</option>
-                                ))}
-                            </select>
-                        </div>
-
-                        <div className={styles.fieldGroup}>
-                            <label className={styles.label}>Square Feet</label>
-                            <input
-                                type="number"
-                                value={formData.square_feet}
-                                onChange={(e) => handleInputChange("square_feet", e.target.value)}
-                                className={styles.input}
-                            />
-                        </div>
-
-                        <div className={styles.fieldGroup}>
-                            <label className={styles.label}>Parking Capacity</label>
-                            <input
-                                type="number"
-                                value={formData.parking_capacity}
-                                onChange={(e) => handleInputChange("parking_capacity", e.target.value)}
-                                className={styles.input}
-                            />
-                        </div>
-
-                        {/* ================= VENUE POLICIES ================= */}
+                        {/* ---------- VENUE POLICIES ---------- */}
                         <div className={styles.section}>
                             <h3 className={styles.sectionTitle}>Venue Policies</h3>
 
-                            {/* Policy Grid */}
                             <div className={styles.policyGrid}>
+
                                 <div className={styles.fieldGroup}>
-                                    <label className={styles.label}>Decoration</label>
+                                    <label className={styles.label}>
+                                        Decoration
+                                        <InfoTooltip text="Whether outside decorators are allowed" />
+                                    </label>
                                     <select
-                                        value={formData.venue_policies.decoration_policy}
+                                        value={venuePolicies.decoration_policy}
                                         onChange={(e) =>
-                                            handleNestedChange("venue_policies", "decoration_policy", e.target.value)
+                                            handleNestedChange(
+                                                "venue_policies",
+                                                "decoration_policy",
+                                                e.target.value
+                                            )
                                         }
                                         className={styles.input}
                                     >
                                         <option value="">Select</option>
                                         {policyOptions.map((opt) => (
-                                            <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                            <option key={opt.value} value={opt.value}>
+                                                {opt.label}
+                                            </option>
                                         ))}
                                     </select>
                                 </div>
 
                                 <div className={styles.fieldGroup}>
-                                    <label className={styles.label}>Catering</label>
+                                    <label className={styles.label}>
+                                        Catering
+                                        <InfoTooltip text="Whether outside catering is allowed" />
+                                    </label>
                                     <select
-                                        value={formData.venue_policies.catering_policy}
+                                        value={venuePolicies.catering_policy}
                                         onChange={(e) =>
-                                            handleNestedChange("venue_policies", "catering_policy", e.target.value)
+                                            handleNestedChange(
+                                                "venue_policies",
+                                                "catering_policy",
+                                                e.target.value
+                                            )
                                         }
                                         className={styles.input}
                                     >
                                         <option value="">Select</option>
                                         {policyOptions.map((opt) => (
-                                            <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                            <option key={opt.value} value={opt.value}>
+                                                {opt.label}
+                                            </option>
                                         ))}
                                     </select>
                                 </div>
 
                                 <div className={styles.fieldGroup}>
-                                    <label className={styles.label}>Alcohol</label>
+                                    <label className={styles.label}>
+                                        Alcohol
+                                        <InfoTooltip text="Venue alcohol policy" />
+                                    </label>
                                     <select
-                                        value={formData.venue_policies.alcohol_policy}
+                                        value={venuePolicies.alcohol_policy}
                                         onChange={(e) =>
-                                            handleNestedChange("venue_policies", "alcohol_policy", e.target.value)
+                                            handleNestedChange(
+                                                "venue_policies",
+                                                "alcohol_policy",
+                                                e.target.value
+                                            )
                                         }
                                         className={styles.input}
                                     >
                                         <option value="">Select</option>
                                         {alcoholOptions.map((opt) => (
-                                            <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                            <option key={opt.value} value={opt.value}>
+                                                {opt.label}
+                                            </option>
                                         ))}
                                     </select>
                                 </div>
                             </div>
 
-                            {/* OTHER POLICIES (DYNAMIC) */}
+                            {/* RULES */}
                             <div className={styles.rulesSection}>
                                 <h4 className={styles.subTitle}>Other Policies / Rules</h4>
 
-                                {formData.venue_policies.other_policies.map((rule, index) => (
+                                {(venuePolicies.other_policies || []).map((rule, index) => (
                                     <div key={index} className={styles.ruleRow}>
                                         <input
                                             type="text"
-                                            placeholder="Title (e.g., Music Timing)"
+                                            placeholder="Title"
                                             value={rule.title}
                                             onChange={(e) =>
                                                 handleRuleChange(index, "title", e.target.value)
                                             }
                                             className={styles.input}
                                         />
-
                                         <input
                                             type="text"
                                             placeholder="Description"
@@ -276,7 +352,6 @@ const StepSpecificDetails = ({
                                             }
                                             className={styles.input}
                                         />
-
                                         <button
                                             type="button"
                                             onClick={() => removeRule(index)}
@@ -296,8 +371,9 @@ const StepSpecificDetails = ({
                                 </button>
                             </div>
                         </div>
-                    </>
-                ); case "catering":
+                    </div>
+                );
+            case "catering":
                 return (
                     <>
                         {/* Cuisine Types */}
@@ -373,7 +449,7 @@ const StepSpecificDetails = ({
                         </div>
 
                         {/* Pricing Fields */}
-                        <div className={styles.fieldGroup}>
+                        {/* <div className={styles.fieldGroup}>
                             <label className={styles.label}>Veg Price per Head (₹)</label>
                             <input
                                 type="number"
@@ -397,7 +473,7 @@ const StepSpecificDetails = ({
                                 min="0"
                                 step="any"
                             />
-                        </div>
+                        </div> */}
 
                         <div className={styles.fieldGroup}>
                             <label className={styles.label}>Minimum Order</label>
@@ -569,48 +645,234 @@ const StepSpecificDetails = ({
             case "photography":
                 return (
                     <>
+                        {/* ── Photography Types ── */}
                         <div className={styles.fieldGroup}>
-                            <label className={styles.label}>Package Type</label>
-                            <div className={styles.listInputRow}>
-                                <input
-                                    type="text"
-                                    value={newListItem}
-                                    onChange={(e) => setNewListItem(e.target.value)}
-                                    placeholder="Add package type"
-                                    className={styles.input}
-                                    onKeyPress={(e) => e.key === "Enter" && (e.preventDefault(), handleAddItem("photography_types", newListItem, setNewListItem))}
-                                />
-                                <button type="button" onClick={() => handleAddItem("photography_types", newListItem, setNewListItem)} className={styles.addBtn}>Add</button>
-                            </div>
-                            <div className={styles.listItems}>
-                                {(formData.photography_types || []).map((item) => (
-                                    <span key={item} className={styles.badge}>
-                                        {item}
-                                        <button type="button" onClick={() => handleRemoveItem("photography_types", item)} className={styles.removeBtn}>×</button>
-                                    </span>
+                            <label className={styles.label}>Photography Types</label>
+                            <div className={styles.photoTypeGrid}>
+                                {[
+                                    { value: "wedding", label: "💍 Wedding" },
+                                    { value: "pre_wedding", label: "🌸 Pre-Wedding" },
+                                    { value: "candid", label: "📸 Candid" },
+                                    { value: "traditional", label: "🏛️ Traditional" },
+                                    { value: "fashion", label: "✨ Fashion" },
+                                    { value: "portrait", label: "🎭 Portrait" },
+                                    { value: "maternity", label: "🤰 Maternity" },
+                                    { value: "newborn", label: "👶 Newborn" },
+                                ].map((type) => (
+                                    <label key={type.value} className={`${styles.photoTypeChip} ${(formData.photography_types || []).includes(type.value) ? styles.photoTypeChipActive : ""}`}>
+                                        <input
+                                            type="checkbox"
+                                            style={{ display: "none" }}
+                                            checked={(formData.photography_types || []).includes(type.value)}
+                                            onChange={(e) => {
+                                                const current = formData.photography_types || [];
+                                                handleInputChange(
+                                                    "photography_types",
+                                                    e.target.checked
+                                                        ? [...current, type.value]
+                                                        : current.filter((v) => v !== type.value)
+                                                );
+                                            }}
+                                        />
+                                        {type.label}
+                                    </label>
                                 ))}
                             </div>
                         </div>
 
-                        <div className={styles.fieldGroup}>
-                            <label className={styles.label}>Hours Covered</label>
-                            <input type="number" value={formData.hours_covered} onChange={(e) => handleInputChange("hours_covered", e.target.value)} placeholder="e.g., 8" className={styles.input} min="0" />
+                        {/* ── Coverage & Duration ── */}
+                        <div className={styles.photoSectionDivider}>
+                            <span>⏱ Duration & Coverage</span>
+                        </div>
+                        <div className={styles.grid}>
+                            <div className={styles.fieldGroup}>
+                                <label className={styles.label}>Coverage Hours</label>
+                                <input
+                                    type="number"
+                                    value={formData.coverage_hours || ""}
+                                    onChange={(e) => handleNumberChange("coverage_hours", e.target.value)}
+                                    placeholder="e.g. 8"
+                                    className={styles.input}
+                                    min="0"
+                                    step="0.5"
+                                />
+                            </div>
+                            <div className={styles.fieldGroup}>
+                                <label className={styles.label}>Overtime Rate / Hour (₹)</label>
+                                <input
+                                    type="number"
+                                    value={formData.overtime_rate_per_hour || ""}
+                                    onChange={(e) => handleNumberChange("overtime_rate_per_hour", e.target.value)}
+                                    placeholder="e.g. 2000"
+                                    className={styles.input}
+                                    min="0"
+                                />
+                            </div>
                         </div>
 
-                        <div className={styles.checkboxGroup}>
-                            <label>
-                                <input type="checkbox" checked={formData.videography_included} onChange={(e) => handleInputChange("videography_included", e.target.checked)} />
-                                Videography Included
-                            </label>
-                            <label>
-                                <input type="checkbox" checked={formData.drone_available} onChange={(e) => handleInputChange("drone_available", e.target.checked)} />
-                                Drone Available
-                            </label>
-                            <label>
-                                <input type="checkbox" checked={formData.album_included} onChange={(e) => handleInputChange("album_included", e.target.checked)} />
-                                Album Included
+                        {/* ── Team ── */}
+                        <div className={styles.photoSectionDivider}>
+                            <span>👥 Team</span>
+                        </div>
+                        <div className={styles.grid}>
+                            <div className={styles.fieldGroup}>
+                                <label className={styles.label}>Team Size</label>
+                                <input
+                                    type="number"
+                                    value={formData.team_size || ""}
+                                    onChange={(e) => handleNumberChange("team_size", e.target.value)}
+                                    placeholder="e.g. 2"
+                                    className={styles.input}
+                                    min="1"
+                                />
+                                {renderError("team_size")}
+                            </div>
+                        </div>
+                        <div className={styles.photoToggleCard}>
+                            <div className={styles.photoToggleLeft}>
+                                <span className={styles.photoToggleIcon}>🎯</span>
+                                <div>
+                                    <p className={styles.photoToggleTitle}>Second Shooter</p>
+                                    <p className={styles.photoToggleDesc}>Additional photographer for wider coverage</p>
+                                </div>
+                            </div>
+                            <label className={styles.toggleSwitch}>
+                                <input
+                                    type="checkbox"
+                                    checked={!!formData.second_shooter_included}
+                                    onChange={(e) => handleInputChange("second_shooter_included", e.target.checked)}
+                                />
+                                <span className={styles.toggleSlider} />
                             </label>
                         </div>
+
+                        {/* ── Deliverables ── */}
+                        <div className={styles.photoSectionDivider}>
+                            <span>📦 Deliverables</span>
+                        </div>
+                        <div className={styles.grid}>
+                            <div className={styles.fieldGroup}>
+                                <label className={styles.label}>Photos Delivered (count)</label>
+                                <input
+                                    type="number"
+                                    value={formData.photo_delivery_count || ""}
+                                    onChange={(e) => handleInputChange("photo_delivery_count", e.target.value)}
+                                    placeholder="e.g. 500"
+                                    className={styles.input}
+                                    min="0"
+                                />
+                            </div>
+                            {formData.videography_available && (
+                                <div className={styles.fieldGroup}>
+                                    <label className={styles.label}>Video Duration (minutes)</label>
+                                    <input
+                                        type="number"
+                                        value={formData.video_delivery_duration_minutes || ""}
+                                        onChange={(e) => handleInputChange("video_delivery_duration_minutes", e.target.value)}
+                                        placeholder="e.g. 15"
+                                        className={styles.input}
+                                        min="0"
+                                    />
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Toggle cards */}
+                        <div className={styles.photoToggleGrid}>
+                            {[
+                                { field: "edited_photos_included", icon: "🎨", title: "Edited Photos Included", desc: "Post-processed & colour-graded" },
+                                { field: "raw_photos_provided", icon: "📂", title: "RAW Files Provided", desc: "Uncompressed original files" },
+                                { field: "drone_shoot_available", icon: "🚁", title: "Drone Shoot Available", desc: "Aerial photography & videography" },
+                            ].map(({ field, icon, title, desc }) => (
+                                <div key={field} className={`${styles.photoToggleCard} ${formData[field] ? styles.photoToggleCardActive : ""}`}>
+                                    <div className={styles.photoToggleLeft}>
+                                        <span className={styles.photoToggleIcon}>{icon}</span>
+                                        <div>
+                                            <p className={styles.photoToggleTitle}>{title}</p>
+                                            <p className={styles.photoToggleDesc}>{desc}</p>
+                                        </div>
+                                    </div>
+                                    <label className={styles.toggleSwitch}>
+                                        <input
+                                            type="checkbox"
+                                            checked={!!formData[field]}
+                                            onChange={(e) => handleInputChange(field, e.target.checked)}
+                                        />
+                                        <span className={styles.toggleSlider} />
+                                    </label>
+                                </div>
+                            ))}
+
+                            {/* Album toggle — expands album_pages when on */}
+                            <div className={`${styles.photoToggleCard} ${formData.album_included ? styles.photoToggleCardActive : ""}`}>
+                                <div className={styles.photoToggleLeft}>
+                                    <span className={styles.photoToggleIcon}>📖</span>
+                                    <div>
+                                        <p className={styles.photoToggleTitle}>Album Included</p>
+                                        <p className={styles.photoToggleDesc}>Printed photo album</p>
+                                    </div>
+                                </div>
+                                <label className={styles.toggleSwitch}>
+                                    <input
+                                        type="checkbox"
+                                        checked={!!formData.album_included}
+                                        onChange={(e) => handleInputChange("album_included", e.target.checked)}
+                                    />
+                                    <span className={styles.toggleSlider} />
+                                </label>
+                            </div>
+                        </div>
+
+                        {formData.album_included && (
+                            <div className={styles.fieldGroup}>
+                                <label className={styles.label}>Album Pages</label>
+                                <input
+                                    type="number"
+                                    value={formData.album_pages || ""}
+                                    onChange={(e) => handleInputChange("album_pages", e.target.value)}
+                                    placeholder="e.g. 40"
+                                    className={styles.input}
+                                    min="0"
+                                />
+                            </div>
+                        )}
+
+                        {/* ── Editing Styles ── */}
+                        <div className={styles.photoSectionDivider}>
+                            <span>🎨 Editing Style</span>
+                        </div>
+                        <div className={styles.photoTypeGrid}>
+                            {[
+                                { value: "cinematic", label: "🎬 Cinematic" },
+                                { value: "traditional", label: "🏛️ Traditional" },
+                                { value: "documentary", label: "📽️ Documentary" },
+                                { value: "fine_art", label: "🖼️ Fine Art" },
+                                { value: "dark_moody", label: "🌑 Dark & Moody" },
+                                { value: "bright_airy", label: "☁️ Bright & Airy" },
+                            ].map((style) => (
+                                <label
+                                    key={style.value}
+                                    className={`${styles.photoTypeChip} ${(formData.editing_styles || []).includes(style.value) ? styles.photoTypeChipActive : ""}`}
+                                >
+                                    <input
+                                        type="checkbox"
+                                        style={{ display: "none" }}
+                                        checked={(formData.editing_styles || []).includes(style.value)}
+                                        onChange={(e) => {
+                                            const current = formData.editing_styles || [];
+                                            handleInputChange(
+                                                "editing_styles",
+                                                e.target.checked
+                                                    ? [...current, style.value]
+                                                    : current.filter((v) => v !== style.value)
+                                            );
+                                        }}
+                                    />
+                                    {style.label}
+                                </label>
+                            ))}
+                        </div>
+
                     </>
                 );
 

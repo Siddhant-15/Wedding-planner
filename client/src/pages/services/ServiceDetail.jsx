@@ -5,12 +5,10 @@ import {
   MapPin,
   Heart,
   Home,
-  Calendar,
   Users,
-  Utensils,
 } from "lucide-react";
 
-import { showSuccess, showInfo } from "../../utils/toast";
+import { showSuccess } from "../../utils/toast";
 import styles from "../../styles/ServiceDetail.module.css";
 import Navbar from "../../components/Navbar";
 
@@ -24,6 +22,7 @@ import StarRating from "../../components/StarRating";
 import AvailabilityForm from "../../components/AvailabilityForm";
 import VendorCard from "../../components/VendorCard";
 import VenueSpecsCard from "../../components/VenueSpecsCard";
+import CateringSpecsCard from "../../components/CateringSpecsCard";
 import AddressCard from "../../components/AdddressCard";
 import WriteReviewForm from "../../components/WriteReviewForm";
 import ReviewsList from "../../components/ReviewsList";
@@ -42,7 +41,7 @@ export default function ServiceDetail() {
   const { id } = useParams();
 
   const [service, setService] = useState(null);
-  const [reviews, setReviews] = useState([]); // always array
+  const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [inWishlist, setInWishlist] = useState(false);
@@ -58,16 +57,13 @@ export default function ServiceDetail() {
         const data = await customerService.getDetail(id);
         setService(data);
 
-        // Fetch reviews – safely extract .data
         try {
           const reviewRes = await reviewService.getAll(id);
-          const reviewList = reviewRes?.data || []; // ← Extract .data here
-
-          // Extra safety: ensure it's always an array
+          const reviewList = reviewRes?.data || [];
           setReviews(Array.isArray(reviewList) ? reviewList : []);
         } catch (reviewErr) {
           console.warn("Reviews fetch failed:", reviewErr);
-          setReviews([]); // fallback
+          setReviews([]);
         }
       } catch (err) {
         console.error(err);
@@ -80,18 +76,69 @@ export default function ServiceDetail() {
     if (id) fetchService();
   }, [id]);
 
+  // ==================== IMPROVED PRICING LOGIC ====================
   const getStartingPrice = (service) => {
-    if (service.price) return service.price;
+    if (!service) return null;
 
+    const type = service.service_type?.toLowerCase();
+
+    // Special handling for Catering
+    if (type === "catering") {
+      const { catering } = service;
+
+      if (catering?.veg_price_per_head) {
+        return catering.veg_price_per_head;
+      }
+      if (catering?.non_veg_price_per_head) {
+        return catering.non_veg_price_per_head;
+      }
+      if (catering?.min_order) {
+        // Fallback: show min order size
+        return `Min ${catering.min_order} guests`;
+      }
+    }
+
+    // For other services: Try to get price from variants
     if (service.variants?.length > 0) {
-      const prices = service.variants
-        .map(v => v.pricing?.base_price)
-        .filter(Boolean);
+      const prices = [];
 
-      return prices.length ? Math.min(...prices) : null;
+      service.variants.forEach((v) => {
+        const p = v.pricing;
+        if (p?.base_price) prices.push(p.base_price);
+        if (p?.per_plate) prices.push(p.per_plate);
+        if (p?.per_head) prices.push(p.per_head);
+        if (p?.veg_price) prices.push(p.veg_price);
+        if (p?.non_veg_price) prices.push(p.non_veg_price);
+      });
+
+      if (prices.length > 0) {
+        return Math.min(...prices);
+      }
     }
 
     return null;
+  };
+
+  // Get display price text for main price block
+  const getPriceDisplay = (service) => {
+    const type = service.service_type?.toLowerCase();
+
+    if (type === "catering") {
+      const c = service.catering;
+      if (c?.veg_price_per_head || c?.non_veg_price_per_head) {
+        let text = "";
+        if (c.veg_price_per_head) text += `Veg: ₹${c.veg_price_per_head}`;
+        if (c.non_veg_price_per_head) {
+          text += text ? " | " : "";
+          text += `Non-Veg: ₹${c.non_veg_price_per_head}`;
+        }
+        return text || "Price on request";
+      }
+    }
+
+    // Default for other services
+    const starting = getStartingPrice(service);
+    return formatPrice(starting);
   };
 
   const handleReviewSubmitted = (newReview) => {
@@ -130,6 +177,23 @@ export default function ServiceDetail() {
     );
   }
 
+  const renderServiceSpecificCard = () => {
+    const type = service.service_type?.toLowerCase();
+
+    switch (type) {
+      case "venue":
+        return service.venue && <VenueSpecsCard venue={service.venue} />;
+      case "catering":
+        return service.catering && <CateringSpecsCard catering={service.catering} />;
+      case "dj":
+        return service.dj && <DjSpecsCard dj={service.dj} />;        // TODO: Create later
+      case "photography":
+        return service.photography && <PhotographySpecsCard photography={service.photography} />;
+      default:
+        return null;
+    }
+  };
+
   return (
     <div className={styles.page}>
       <Navbar />
@@ -150,7 +214,7 @@ export default function ServiceDetail() {
             <div className={styles.contentCard}>
               <div className={styles.badges}>
                 <span className={styles.badge}>
-                  <Home size={14} /> {service.service_type || "Venue"}
+                  <Home size={14} /> {service.service_type || "Service"}
                 </span>
                 {service.verified && <span className={styles.verifiedBadge}>Verified</span>}
                 {service.featured && <span className={styles.featuredBadge}>Featured</span>}
@@ -164,22 +228,22 @@ export default function ServiceDetail() {
                   <MapPin size={16} />
                   {service.city}, {service.state}
                 </span>
-                {service.capacity && (
-                  <span className={styles.metaItem}>
-                    <Users size={16} /> Up to {service.capacity} guests
-                  </span>
-                )}
               </div>
 
               <div className={styles.description}>
                 <p>{service.long_description || service.description}</p>
               </div>
 
+              {/* ==================== UPDATED PRICE BLOCK ==================== */}
               <div className={styles.priceBlock}>
                 <div className={styles.price}>
-                  {formatPrice(service.price)}
+                  {getPriceDisplay(service)}
                 </div>
-                <span className={styles.priceNote}>Starting price • Taxes extra</span>
+                <span className={styles.priceNote}>
+                  {service.service_type?.toLowerCase() === "catering"
+                    ? "Per head • Taxes extra"
+                    : "Starting price • Taxes extra"}
+                </span>
               </div>
 
               <div className={styles.actionButtons}>
@@ -193,34 +257,47 @@ export default function ServiceDetail() {
               </div>
             </div>
 
-            {/* Venue Specs, Address, Amenities, Tags */}
-            {service.service_type?.toLowerCase() === "venue" && service.venue && (
-              <VenueSpecsCard venue={service.venue} />
-            )}
+            {/* Service Type Specific Card */}
+            {renderServiceSpecificCard()}
 
+            {/* Variants / Packages Section */}
             {service.variants?.length > 0 && (
-              <div className={styles.variantsSection} style={{ marginTop: '2rem' }}>
-                <h2 className={styles.sectionTitle} style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '1rem', color: '#1f2937' }}>Available Packages & Pricing</h2>
-                <div className={styles.variantsGrid} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1rem' }}>
+              <div className={styles.variantsSection} style={{ marginTop: "2rem" }}>
+                <h2 className={styles.sectionTitle}>
+                  Available Packages & Pricing
+                </h2>
+                <div className={styles.variantsGrid}>
                   {service.variants.map((v) => (
-                    <div key={v.id || v.variant_name} style={{ padding: '1.25rem', border: '1px solid #e5e7eb', borderRadius: '12px', background: '#fff', boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
-                        <h3 style={{ fontSize: '1.1rem', fontWeight: '600', color: '#111827' }}>{v.variant_name}</h3>
-                        <span style={{ background: '#fef3c7', color: '#d97706', padding: '0.2rem 0.6rem', borderRadius: '20px', fontSize: '0.8rem', fontWeight: 500 }}>
+                    <div key={v.id || v.variant_name} className={styles.variantCard}>
+                      <div className={styles.variantHeader}>
+                        <h3>{v.variant_name}</h3>
+                        <span className={styles.pricingTypeBadge}>
                           {v.pricing_type}
                         </span>
                       </div>
-                      <p style={{ fontSize: '0.9rem', color: '#6b7280', marginBottom: '1rem' }}>{v.description}</p>
 
-                      <div style={{ fontSize: '1.25rem', fontWeight: 700, color: '#4f46e5', marginBottom: '1rem' }}>
-                        {v.pricing?.base_price ? `₹${v.pricing.base_price.toLocaleString()}` : v.pricing?.per_plate ? `₹${v.pricing.per_plate.toLocaleString()}/plate` : 'Custom Pricing'}
+                      <p className={styles.variantDesc}>{v.description}</p>
+
+                      {/* Dynamic Pricing Display */}
+                      <div className={styles.variantPrice}>
+                        {v.pricing?.base_price && `₹${v.pricing.base_price.toLocaleString()}`}
+                        {v.pricing?.per_plate && `₹${v.pricing.per_plate.toLocaleString()}/plate`}
+                        {v.pricing?.veg_price && `Veg: ₹${v.pricing.veg_price}`}
+                        {v.pricing?.non_veg_price &&
+                          ` | Non-Veg: ₹${v.pricing.non_veg_price}`}
+                        {!v.pricing?.base_price &&
+                          !v.pricing?.per_plate &&
+                          !v.pricing?.veg_price &&
+                          "Custom Pricing"}
                       </div>
 
-                      {v.inclusions && v.inclusions.length > 0 && (
-                        <div>
-                          <p style={{ fontSize: '0.85rem', fontWeight: 600, color: '#374151', paddingBottom: '0.2rem' }}>Includes:</p>
-                          <ul style={{ fontSize: '0.85rem', color: '#4b5563', paddingLeft: '1rem', margin: 0 }}>
-                            {v.inclusions.slice(0, 4).map((inc, i) => <li key={i}>{inc}</li>)}
+                      {v.inclusions?.length > 0 && (
+                        <div className={styles.inclusions}>
+                          <p>Includes:</p>
+                          <ul>
+                            {v.inclusions.slice(0, 5).map((inc, i) => (
+                              <li key={i}>{inc}</li>
+                            ))}
                           </ul>
                         </div>
                       )}
@@ -232,13 +309,8 @@ export default function ServiceDetail() {
 
             <AddressCard {...service} />
 
-            {service.amenities?.length > 0 && (
-              <AmenitiesCard amenities={service.amenities} />
-            )}
-
-            {service.tags?.length > 0 && (
-              <TagsCard tags={service.tags} />
-            )}
+            {service.amenities?.length > 0 && <AmenitiesCard amenities={service.amenities} />}
+            {service.tags?.length > 0 && <TagsCard tags={service.tags} />}
 
             {/* Reviews Section */}
             <div className={styles.reviewsSection}>
@@ -249,13 +321,11 @@ export default function ServiceDetail() {
                 totalReviews={service.review_count || reviews.length}
               />
 
-              <div className={styles.writeReviewWrapper}>
-                <WriteReviewForm
-                  serviceName={service.name}
-                  serviceId={service.id}
-                  onReviewSubmitted={handleReviewSubmitted}
-                />
-              </div>
+              <WriteReviewForm
+                serviceName={service.name}
+                serviceId={service.id}
+                onReviewSubmitted={handleReviewSubmitted}
+              />
             </div>
           </div>
 
