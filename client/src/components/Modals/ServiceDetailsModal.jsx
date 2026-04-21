@@ -483,20 +483,62 @@ const VendorServiceDetailsModal = ({ isOpen, onClose, service }) => {
                     <div className={styles.packageHeader}>
                       <h4 className={styles.packageName}>{variant.variant_name}</h4>
 
-                      {service.service_type === "photography" ? (
+                      {/* 🎯 VENUE */}
+                      {service.service_type === "venue" ? (
                         <div className={styles.priceContainer}>
-                          {variant.pricing?.base_price && (
+
+                          {/* Rental */}
+                          {variant.pricing?.base_price != null && (
+                            <span className={styles.price}>
+                              ₹{variant.pricing.base_price.toLocaleString("en-IN")}
+                              {variant.pricing_type && (
+                                <small>
+                                  {" "}
+                                  / {pricingTypes[variant.pricing_type] || variant.pricing_type}
+                                </small>
+                              )}
+                            </span>
+                          )}
+
+                          {/* Per Plate */}
+                          {(variant.pricing?.veg_price != null ||
+                            variant.pricing?.non_veg_price != null) && (
+                              <div className={styles.priceRow}>
+                                {variant.pricing?.veg_price != null && (
+                                  <span className={styles.vegPrice}>
+                                    Veg ₹{variant.pricing.veg_price.toLocaleString("en-IN")}
+                                    {variant.pricing_type === "per_head" && <small>/head</small>}
+                                  </span>
+                                )}
+
+                                {variant.pricing?.non_veg_price != null && (
+                                  <span className={styles.nonVegPrice}>
+                                    Non-Veg ₹{variant.pricing.non_veg_price.toLocaleString("en-IN")}
+                                    {variant.pricing_type === "per_head" && <small>/head</small>}
+                                  </span>
+                                )}
+                              </div>
+                            )}
+                        </div>
+                      ) : service.service_type === "photography" ? (
+
+                        /* 📸 PHOTOGRAPHY */
+                        <div className={styles.priceContainer}>
+                          {variant.pricing?.base_price != null && (
                             <span className={styles.price}>
                               📸 ₹{variant.pricing.base_price.toLocaleString("en-IN")}
                             </span>
                           )}
-                          {variant.pricing?.price_with_video && (
+                          {variant.pricing?.price_with_video != null && (
                             <span className={styles.price}>
                               🎥 ₹{variant.pricing.price_with_video.toLocaleString("en-IN")}
                             </span>
                           )}
                         </div>
-                      ) : isCatering ? (
+
+                      ) : service.service_type === "catering" ? (
+
+                        /* 🍽️ CATERING */
                         <div className={styles.priceContainer}>
                           {variant.pricing?.veg_price != null && (
                             <span className={styles.vegPrice}>
@@ -511,11 +553,17 @@ const VendorServiceDetailsModal = ({ isOpen, onClose, service }) => {
                             </span>
                           )}
                         </div>
+
                       ) : (
+
+                        /* 💰 DEFAULT */
                         <span className={styles.price}>
-                          ₹{variant.pricing?.base_price?.toLocaleString("en-IN")}
+                          ₹{variant.pricing?.base_price?.toLocaleString("en-IN") || "—"}
                           {variant.pricing_type && (
-                            <small> / {pricingTypes[variant.pricing_type] || variant.pricing_type}</small>
+                            <small>
+                              {" "}
+                              / {pricingTypes[variant.pricing_type] || variant.pricing_type}
+                            </small>
                           )}
                         </span>
                       )}
@@ -592,9 +640,9 @@ const VendorServiceDetailsModal = ({ isOpen, onClose, service }) => {
               </div>
             </div>
           </div>
-        </div>
+        </div >
       </div >
-    </div >
+    </div>
   );
 };
 
