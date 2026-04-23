@@ -38,7 +38,7 @@ const formatPrice = (price) => {
 };
 
 export default function ServiceDetail() {
-  const { id } = useParams();
+  const { id, serviceType } = useParams();
 
   const [service, setService] = useState(null);
   const [reviews, setReviews] = useState([]);

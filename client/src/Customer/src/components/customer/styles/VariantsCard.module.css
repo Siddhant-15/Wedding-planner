@@ -1,0 +1,25 @@
+.card { background: hsl(var(--card)); border:1px solid hsl(var(--border));
+  border-radius:16px; padding:24px; }
+.title { display:flex; align-items:center; gap:8px; font-size:1.15rem; font-weight:600; margin:0 0 16px; }
+.titleIcon { color: hsl(var(--brand)); }
+.tabs { display:flex; flex-wrap:wrap; gap:8px; padding-bottom:16px; border-bottom:1px solid hsl(var(--border)); }
+.tab { padding:8px 14px; border:1px solid hsl(var(--border)); background:transparent;
+  border-radius:8px; font-size:.85rem; font-weight:500; cursor:pointer; transition: all .15s ease;
+  color: hsl(var(--foreground)); }
+.tab:hover { border-color: hsl(var(--brand)); color: hsl(var(--brand)); }
+.tabActive { background: hsl(var(--brand)); color: hsl(var(--brand-foreground)); border-color: hsl(var(--brand)); }
+.body { padding-top:18px; display:flex; flex-direction:column; gap:18px; }
+.priceRow { display:flex; flex-wrap:wrap; gap:18px; align-items:center; }
+.priceBlock { display:flex; flex-direction:column; }
+.priceLabel { font-size:.7rem; text-transform:uppercase; color: hsl(var(--muted-foreground)); letter-spacing:.04em; }
+.priceValue { font-size:1.25rem; font-weight:700; color: hsl(var(--brand)); }
+.modeBadge { margin-left:auto; padding:4px 10px; background: hsl(var(--muted)); border-radius:999px;
+  font-size:.7rem; color: hsl(var(--muted-foreground)); text-transform:uppercase; letter-spacing:.04em; }
+.desc { color: hsl(var(--muted-foreground)); font-size:.9rem; line-height:1.5; margin:0; }
+.section { display:flex; flex-direction:column; gap:8px; }
+.sectionTitle { font-size:.82rem; font-weight:600; text-transform:uppercase; letter-spacing:.05em; margin:0;
+  color: hsl(var(--muted-foreground)); }
+.list { list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:6px; }
+.list li { display:inline-flex; align-items:center; gap:8px; font-size:.88rem; color: hsl(var(--foreground)); }
+.iconYes { color: hsl(var(--success)); }
+.iconNo { color: hsl(var(--destructive)); }

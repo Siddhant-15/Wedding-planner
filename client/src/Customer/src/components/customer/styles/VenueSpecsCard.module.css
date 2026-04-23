@@ -1,0 +1,31 @@
+.card { background: hsl(var(--card)); border:1px solid hsl(var(--border));
+  border-radius:16px; padding:24px; }
+.title { display:flex; align-items:center; gap:8px; font-size:1.15rem; font-weight:600; margin:0 0 18px; }
+.titleIcon { color: hsl(var(--brand)); }
+.specsGrid { display:grid; gap:12px; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
+.specItem { display:flex; gap:12px; align-items:center; padding:14px; border:1px solid hsl(var(--border));
+  border-radius:12px; background: hsl(var(--muted)); transition: border-color .15s ease; }
+.specItem:hover { border-color: hsl(var(--brand) / .4); }
+.specIcon { color: hsl(var(--brand)); flex-shrink:0; }
+.specContent { display:flex; flex-direction:column; }
+.specValue { font-size:1.05rem; font-weight:700; margin:0; color: hsl(var(--foreground)); }
+.specLabel { font-size:.74rem; text-transform:uppercase; color: hsl(var(--muted-foreground));
+  letter-spacing:.04em; margin:0; }
+.policiesSection { margin-top:22px; padding-top:18px; border-top:1px solid hsl(var(--border)); }
+.sectionTitle { font-size:.95rem; font-weight:600; margin:0 0 12px; }
+.policiesGrid { display:flex; flex-direction:column; gap:10px; }
+.policyRow { display:flex; align-items:center; justify-content:space-between; gap:12px;
+  padding:10px 12px; border:1px solid hsl(var(--border)); border-radius:10px; background: hsl(var(--background)); }
+.policyLabel { display:inline-flex; align-items:center; gap:8px; font-size:.88rem; color: hsl(var(--foreground)); }
+.policyBadge { display:inline-flex; align-items:center; gap:5px; padding:5px 10px; border-radius:999px;
+  font-size:.78rem; font-weight:600; }
+.allowed { background: hsl(var(--success) / .12); color: hsl(var(--success)); }
+.inHouse { background: hsl(var(--warning) / .15); color: hsl(var(--warning)); }
+.notAllowed { background: hsl(var(--destructive) / .12); color: hsl(var(--destructive)); }
+.otherPolicies { margin-top:14px; }
+.otherTitle { font-size:.82rem; font-weight:600; margin:0 0 8px; color: hsl(var(--muted-foreground)); }
+.otherPoliciesList { list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:8px; }
+.otherPolicyItem { padding:10px 12px; background: hsl(var(--muted));
+  border-left:3px solid hsl(var(--brand)); border-radius:8px; }
+.policyTitleText { font-weight:600; font-size:.88rem; color: hsl(var(--foreground)); }
+.policyDesc { font-size:.82rem; color: hsl(var(--muted-foreground)); margin-top:2px; }

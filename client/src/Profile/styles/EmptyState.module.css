@@ -1,0 +1,42 @@
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 4rem 1.5rem;
+  background: hsl(var(--background));
+  border: 1px dashed hsl(var(--border));
+  border-radius: 16px;
+}
+
+.iconWrap {
+  width: 72px;
+  height: 72px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: hsl(var(--brand) / 0.08);
+  color: hsl(var(--brand));
+  margin-bottom: 1.25rem;
+}
+
+.title {
+  font-family: var(--font-heading);
+  font-size: 1.35rem;
+  font-weight: 600;
+  color: hsl(var(--foreground));
+  margin: 0 0 0.5rem;
+}
+
+.description {
+  margin: 0 0 1.25rem;
+  color: hsl(var(--muted-foreground));
+  font-size: 0.95rem;
+  max-width: 380px;
+  line-height: 1.5;
+}
+
+.action {
+  margin-top: 0.5rem;
+}

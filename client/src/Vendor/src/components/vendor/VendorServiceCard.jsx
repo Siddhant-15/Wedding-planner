@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { ChevronLeft, ChevronRight, Eye, Pencil, Trash2, MapPin, Star, ImageOff } from "lucide-react";
-import styles from '../../styles/VendorServiceCard.module.css'
+import styles from "../../styles/VendorServiceCard.module.css"
 
 const CATEGORY_LABELS = {
   venue: "Venue",
@@ -13,6 +13,9 @@ const CATEGORY_LABELS = {
 
 export default function VendorServiceCard({ service, onView, onEdit, onDelete }) {
   const [idx, setIdx] = useState(0);
+  if (!service) {
+    return null; // or skeleton loader
+  }
   const images = service.media || [];
   const next = (e) => { e.stopPropagation(); setIdx((p) => (p + 1) % images.length); };
   const prev = (e) => { e.stopPropagation(); setIdx((p) => (p - 1 + images.length) % images.length); };

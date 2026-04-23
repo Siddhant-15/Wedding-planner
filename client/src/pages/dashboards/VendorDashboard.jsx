@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import Navbar from '@/components/Navbar';
-// import VendorServices from '../../components/VendorServices';
+import Navbar from "../../navbar/components/Navbar";
 import VendorServiceCard from '../../Vendor/src/components/vendor/VendorServiceCard';
 import { Plus, Settings, Eye, BarChart3, TrendingUp, Users } from 'lucide-react';
 import styles from '../../styles/VendorDashboard.module.css'

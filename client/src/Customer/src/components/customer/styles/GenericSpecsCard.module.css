@@ -1,0 +1,11 @@
+.card { background: hsl(var(--card)); border:1px solid hsl(var(--border)); border-radius:16px; padding:24px; }
+.title { display:flex; align-items:center; gap:8px; font-size:1.15rem; font-weight:600; margin:0 0 16px; }
+.titleIcon { color: hsl(var(--brand)); }
+.list { display:grid; gap:8px; margin:0; }
+.row { display:grid; grid-template-columns: 180px 1fr; gap:14px; padding:10px 12px;
+  background: hsl(var(--muted)); border:1px solid hsl(var(--border)); border-radius:10px; }
+.key { font-size:.82rem; color: hsl(var(--muted-foreground)); margin:0; font-weight:500; }
+.val { font-size:.88rem; color: hsl(var(--foreground)); margin:0; font-weight:600; }
+@media (max-width: 540px) {
+  .row { grid-template-columns: 1fr; gap:2px; }
+}

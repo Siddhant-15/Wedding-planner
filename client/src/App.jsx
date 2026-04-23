@@ -13,26 +13,45 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
-import WeddingVenues from "./pages/services/WeddingVenues";
-import DJs from "./pages/services/DJs";
-import EventManagement from "./pages/services/EventManagement";
-import Catering from "./pages/services/Catering";
-import Photography from "./pages/services/Photography";
-import MyBookings from "./pages/MyBookings";
 
-// dashboards
-import VendorDashboard from "./pages/dashboards/VendorDashboard";
-import AdminDashboard from "./pages/dashboards/AdminDashboard";
+import WeddingVenues from "./Customer/src/pages/customer/WeddingVenues";
+import DJs from "./Customer/src/pages/customer/DJs";
+import EventManagement from "./Customer/src/pages/customer/EventManagement";
+import Catering from "./Customer/src/pages/customer/Catering";
+import Photography from "./Customer/src/pages/customer/Photography";
+import MakeupArtist from "./Customer/src/pages/customer/MakeupArtist";
+
+import ServiceDetail from "./Customer/src/pages/customer/ServiceDetail";
+
 import CustomerDashboard from "./pages/dashboards/CustomerDashboard";
-// import VendorPage from "./pages/Vendor/VendorPage";
-import VendorPage from './Vendor/src/pages/VendorPage';
-import Wishlist from "./pages/Wishlist";
+import VendorDashboard from "./pages/dashboards/VendorDashboard";
+import VendorPage from "./Vendor/src/pages/VendorPage";
+
+// 🔐 Protected pages
+import MyAccount from "./Profile/MyAccount"
+import Payments from "./Profile/Payments";
+import MyBookings from "./Profile/MyBookings";
+import ProfileSettings from "./Profile/ProfileSettings";
+
 import Lottie from "lottie-react";
 import loadingAnimation from "@/assets/animations/loading.json";
-import ServiceDetail from "./pages/services/ServiceDetail";
-import ProfileSettings from "./pages/ProfileSettings";
 
 const queryClient = new QueryClient();
+
+
+// 🔒 Protected Route Wrapper
+function ProtectedRoute({ children, isAuthenticated, user, allowedRoles }) {
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (allowedRoles && !allowedRoles.includes(user?.type)) {
+    return <Navigate to="/" replace />;
+  }
+
+  return children;
+}
+
 
 // 🔑 Role-based router wrapper
 function RoleBasedRoutes() {
@@ -73,7 +92,7 @@ function RoleBasedRoutes() {
 
   return (
     <Routes>
-      {/* Root route: Redirect based on user role or show Index for unauthenticated users */}
+      {/* Root route */}
       <Route
         path="/"
         element={
@@ -94,28 +113,7 @@ function RoleBasedRoutes() {
         }
       />
 
-      {/* Dashboard routes */}
-      <Route
-        path="/vendor/*"
-        element={
-          isAuthenticated && user?.type === "vendor" ? (
-            <VendorPage />
-          ) : (
-            <Navigate to="/login" replace />
-          )
-        }
-      />
-
-      <Route
-        path="/admin/dashboard"
-        element={
-          isAuthenticated && user?.type === "admin" ? (
-            <AdminDashboard />
-          ) : (
-            <Navigate to="/login" replace />
-          )
-        }
-      />
+      {/* Customer dashboard */}
       <Route
         path="/customer/dashboard"
         element={
@@ -127,22 +125,86 @@ function RoleBasedRoutes() {
         }
       />
 
-      {/* Public routes */}
+
+      {/* Vendor dashboard */}
+      <Route
+        path="/vendor/dashboard"
+        element={
+          <ProtectedRoute
+            isAuthenticated={isAuthenticated}
+            user={user}
+            allowedRoles={["vendor"]}
+          >
+            <VendorPage />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* 🔒 Protected Routes */}
+      <Route
+        path="/my-account"
+        element={
+          <ProtectedRoute isAuthenticated={isAuthenticated} user={user}>
+            <MyAccount />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/payment"
+        element={
+          <ProtectedRoute
+            isAuthenticated={isAuthenticated}
+            user={user}
+            allowedRoles={["customer"]}
+          >
+            <Payments />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/booking"
+        element={
+          <ProtectedRoute
+            isAuthenticated={isAuthenticated}
+            user={user}
+            allowedRoles={["customer"]}
+          >
+            <MyBookings />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/profile-settings"
+        element={
+          <ProtectedRoute isAuthenticated={isAuthenticated} user={user}>
+            <ProfileSettings />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* 🌐 Public routes */}
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
-      <Route path="/services/wedding-venues" element={<WeddingVenues />} />
-      <Route path="/services/djs" element={<DJs />} />
-      <Route path="/services/event-management" element={<EventManagement />} />
+
+      <Route path="/services/venue" element={<WeddingVenues />} />
+      <Route path="/services/dj" element={<DJs />} />
+      <Route path="/services/event_management" element={<EventManagement />} />
       <Route path="/services/catering" element={<Catering />} />
       <Route path="/services/photography" element={<Photography />} />
-      <Route path="/service/:id" element={<ServiceDetail />} />
-      <Route path="/my-bookings" element={<MyBookings />} />
-      <Route path="/profile" element={<ProfileSettings />} />
-      <Route path="/wishlist" element={<Wishlist />} />
+      <Route path="/services/makeup_artist" element={<MakeupArtist />} />
+
+      {/* 🔥 Dynamic Service Route */}
+      <Route path="/services/:serviceType/:id" element={<ServiceDetail />} />
+
+      {/* 404 */}
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
 }
+
 
 function App() {
   return (

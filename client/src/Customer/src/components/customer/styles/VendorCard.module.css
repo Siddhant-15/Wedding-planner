@@ -1,0 +1,30 @@
+.card { background: hsl(var(--card)); border:1px solid hsl(var(--border));
+  border-radius:16px; padding:22px; display:flex; flex-direction:column; gap:16px; }
+.header { display:flex; gap:14px; align-items:flex-start; }
+.vendorInfo { display:flex; gap:12px; flex:1; }
+.avatar { width:56px; height:56px; border-radius:14px; background: hsl(var(--muted));
+  display:flex; align-items:center; justify-content:center; color: hsl(var(--brand));
+  overflow:hidden; flex-shrink:0; }
+.avatarImage { width:100%; height:100%; object-fit:cover; }
+.avatarIcon { color: hsl(var(--brand)); }
+.info { display:flex; flex-direction:column; gap:4px; }
+.nameRow { display:flex; align-items:center; gap:6px; }
+.vendorName { font-size:1.05rem; font-weight:600; margin:0; color: hsl(var(--foreground)); }
+.location { font-size:.82rem; color: hsl(var(--muted-foreground)); margin:0; }
+.description { font-size:.88rem; color: hsl(var(--muted-foreground)); line-height:1.5; margin:0;
+  display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
+.stats { display:flex; align-items:center; gap:14px; padding:12px 0; border-top:1px solid hsl(var(--border));
+  border-bottom:1px solid hsl(var(--border)); flex-wrap:wrap; }
+.stat { display:flex; flex-direction:column; }
+.statValue { font-size:1.1rem; font-weight:700; color: hsl(var(--foreground)); }
+.statLabel { font-size:.7rem; text-transform:uppercase; letter-spacing:.04em; color: hsl(var(--muted-foreground)); }
+.responseTime { display:inline-flex; align-items:center; gap:6px; color: hsl(var(--success));
+  font-size:.82rem; margin-left:auto; }
+.actions { display:grid; grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); gap:8px; }
+.actionBtn { display:flex; flex-direction:column; align-items:center; gap:4px; padding:10px 6px;
+  border:1px solid hsl(var(--border)); border-radius:10px; background:transparent;
+  cursor:pointer; color: hsl(var(--foreground)); font-size:.78rem; font-weight:500;
+  transition: all .15s ease; }
+.actionBtn:hover:not(:disabled) { border-color: hsl(var(--brand)); color: hsl(var(--brand));
+  background: hsl(var(--brand) / .05); }
+.actionBtn:disabled { opacity:.5; cursor:not-allowed; }
