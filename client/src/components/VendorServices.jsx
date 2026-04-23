@@ -3,7 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Eye, Trash2, Edit3, MapPin, Heart, Sparkles, ChevronLeft, ChevronRight } from 'lucide-react';
 import ConfirmModal from './Modals/ConfirmModal';
-import ServiceFormModal from './Modals/ServiceFormModal/ServiceFormModal';
+// import ServiceFormModal from './Modals/ServiceFormModal/ServiceFormModal';
+import ServiceFormModal from '../Vendor/src/components/vendor/ServiceFormModal';
 import VendorServiceDetailsModal from './Modals/ServiceDetailsModal';
 import styles from '../styles/VendorDashboard.module.css';
 import { serviceService } from '../utils/api/services/service.service';
@@ -291,14 +292,6 @@ const VendorServices = ({
                   {service.is_active ? 'Active' : 'Inactive'}
                 </span>
 
-                {/* <button
-                  className={styles.favoriteBtn}
-                  onClick={(e) => e.stopPropagation()}
-                  aria-label="Save"
-                  tabIndex={-1}
-                >
-                  <Heart size={16} />
-                </button> */}
               </div>
 
               <div className={styles.serviceContent}>

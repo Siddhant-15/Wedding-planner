@@ -1,0 +1,46 @@
+.wrapper {
+  border: 1px solid hsl(var(--border));
+  border-radius: 8px;
+  background: hsl(var(--background));
+  padding: 6px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.wrapper:focus-within {
+  border-color: hsl(var(--brand));
+  box-shadow: 0 0 0 3px hsl(var(--brand) / 0.12);
+}
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  background: hsl(var(--brand) / 0.08);
+  color: hsl(var(--brand));
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+.tag button {
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  display: inline-flex;
+  padding: 0;
+}
+.input {
+  flex: 1;
+  min-width: 120px;
+  border: none;
+  outline: none;
+  padding: 6px 4px;
+  background: transparent;
+  font-size: 0.875rem;
+  color: hsl(var(--foreground));
+}

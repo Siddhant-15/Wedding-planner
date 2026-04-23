@@ -1,0 +1,12 @@
+.label {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: hsl(var(--foreground));
+  margin-bottom: 6px;
+}
+.required {
+  color: hsl(var(--destructive));
+  margin-left: 2px;
+}

@@ -24,7 +24,8 @@ import MyBookings from "./pages/MyBookings";
 import VendorDashboard from "./pages/dashboards/VendorDashboard";
 import AdminDashboard from "./pages/dashboards/AdminDashboard";
 import CustomerDashboard from "./pages/dashboards/CustomerDashboard";
-import VendorPage from "./pages/Vendor/VendorPage";
+// import VendorPage from "./pages/Vendor/VendorPage";
+import VendorPage from './Vendor/src/pages/VendorPage';
 import Wishlist from "./pages/Wishlist";
 import Lottie from "lottie-react";
 import loadingAnimation from "@/assets/animations/loading.json";
@@ -82,8 +83,8 @@ function RoleBasedRoutes() {
                 user.type === "vendor"
                   ? "/vendor/dashboard"
                   : user.type === "admin"
-                  ? "/admin/dashboard"
-                  : "/customer/dashboard"
+                    ? "/admin/dashboard"
+                    : "/customer/dashboard"
               }
               replace
             />
@@ -134,10 +135,10 @@ function RoleBasedRoutes() {
       <Route path="/services/event-management" element={<EventManagement />} />
       <Route path="/services/catering" element={<Catering />} />
       <Route path="/services/photography" element={<Photography />} />
-      <Route path="/service/:id" element={<ServiceDetail/>} />
+      <Route path="/service/:id" element={<ServiceDetail />} />
       <Route path="/my-bookings" element={<MyBookings />} />
-      <Route path="/profile" element={<ProfileSettings/>} />
-      <Route path="/wishlist" element={<Wishlist/>}/>
+      <Route path="/profile" element={<ProfileSettings />} />
+      <Route path="/wishlist" element={<Wishlist />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
@@ -147,15 +148,15 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-          <WishlistProvider>
-            <TooltipProvider>
-              <ToastProvider />
-              <Sonner />
-              <BrowserRouter>
-                <RoleBasedRoutes />
-              </BrowserRouter>
-            </TooltipProvider>
-          </WishlistProvider>
+        <WishlistProvider>
+          <TooltipProvider>
+            <ToastProvider />
+            <Sonner />
+            <BrowserRouter>
+              <RoleBasedRoutes />
+            </BrowserRouter>
+          </TooltipProvider>
+        </WishlistProvider>
       </AuthProvider>
     </QueryClientProvider>
   );

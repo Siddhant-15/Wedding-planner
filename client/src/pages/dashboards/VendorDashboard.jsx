@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import Navbar from '@/components/Navbar';
-import VendorServices from '../../components/VendorServices';
+// import VendorServices from '../../components/VendorServices';
+import VendorServiceCard from '../../Vendor/src/components/vendor/VendorServiceCard';
 import { Plus, Settings, Eye, BarChart3, TrendingUp, Users } from 'lucide-react';
 import styles from '../../styles/VendorDashboard.module.css'
 import ServiceStats from '../../components/VendorServiceStats';
@@ -34,7 +35,7 @@ const VendorDashboard = () => {
       </div>
 
       <ServiceStats stats={stats} />
-      <VendorServices
+      <VendorServiceCard
         isServiceModalOpen={isServiceModalOpen}
         setIsServiceModalOpen={setIsServiceModalOpen}
         editingService={editingService}
