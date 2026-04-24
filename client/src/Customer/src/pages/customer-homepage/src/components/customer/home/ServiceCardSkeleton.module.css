@@ -1,0 +1,54 @@
+.card {
+  background: #fff;
+  border: 1px solid #ececec;
+  border-radius: 16px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+@keyframes shimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+
+.image,
+.line,
+.btn {
+  background: linear-gradient(90deg, #f1f1f1 0%, #e7e7e7 50%, #f1f1f1 100%);
+  background-size: 800px 100%;
+  animation: shimmer 1.4s infinite linear;
+  border-radius: 8px;
+}
+
+.image {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  border-radius: 0;
+}
+
+.body {
+  padding: 14px 16px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.line { height: 12px; }
+.lineLg { width: 75%; height: 14px; }
+.lineMd { width: 55%; }
+.lineSm { width: 35%; }
+.linePill { width: 50px; height: 22px; border-radius: 8px; }
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 4px;
+}
+
+.btn {
+  height: 38px;
+  margin-top: 8px;
+  border-radius: 10px;
+}

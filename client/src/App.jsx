@@ -23,7 +23,8 @@ import MakeupArtist from "./Customer/src/pages/customer/MakeupArtist";
 
 import ServiceDetail from "./Customer/src/pages/customer/ServiceDetail";
 
-import CustomerDashboard from "./pages/dashboards/CustomerDashboard";
+// import CustomerDashboard from "./pages/dashboards/CustomerDashboard";
+import HomeDashboard from "./Customer/src/pages/customer-homepage/src/pages/customer/HomePage";
 import VendorDashboard from "./pages/dashboards/VendorDashboard";
 import VendorPage from "./Vendor/src/pages/VendorPage";
 
@@ -118,7 +119,8 @@ function RoleBasedRoutes() {
         path="/customer/dashboard"
         element={
           isAuthenticated && user?.type === "customer" ? (
-            <CustomerDashboard />
+            // <CustomerDashboard />
+            <HomeDashboard />
           ) : (
             <Navigate to="/login" replace />
           )
