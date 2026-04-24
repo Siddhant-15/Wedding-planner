@@ -2,7 +2,7 @@
 import React from 'react';
 import { Pencil } from 'lucide-react';
 import { SERVICE_CATEGORIES } from '../../../constants/serviceConstants';
-import styles from "../../../styles/FormStep.module.css";
+import styles from "../../../styles/StepReview.module.css";
 
 const Row = ({ label, value }) => (
   <div className={styles.row}>

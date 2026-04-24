@@ -76,9 +76,9 @@ export const SERVICE_LINKS = [
 ];
 
 export const AUTH_LINKS = [
-  { label: "Sign in as Customer", to: "/login/customer", desc: "Plan your dream wedding" },
-  { label: "Sign in as Vendor", to: "/login/vendor", desc: "Grow your business with us" },
-  { label: "Sign in as Admin", to: "/login/admin", desc: "Platform administration" },
+  { label: "Sign in as Customer", to: "/login", desc: "Plan your dream wedding" },
+  { label: "Sign in as Vendor", to: "/login", desc: "Grow your business with us" },
+  { label: "Sign in as Admin", to: "/login", desc: "Platform administration" },
 ];
 
 export const ACCOUNT_LINKS = [

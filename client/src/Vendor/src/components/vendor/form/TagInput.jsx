@@ -1,7 +1,7 @@
 // src/components/vendor/form/TagInput.jsx
 import React, { useState } from 'react';
 import { X } from 'lucide-react';
-import styles from "../../../styles/FormStep.module.css";
+import styles from "../../../styles/TagInput.module.css";
 
 const TagInput = ({ values = [], onChange, placeholder }) => {
   const [draft, setDraft] = useState('');
