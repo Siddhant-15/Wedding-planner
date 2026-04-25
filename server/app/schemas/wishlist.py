@@ -1,32 +1,58 @@
 # app/schemas/wishlist.py
-from uuid import UUID
-from datetime import datetime
+
 from pydantic import BaseModel, Field
 from typing import Optional, List
+from datetime import datetime
 
-class WishlistItemCreate(BaseModel):
-    service_id: UUID
 
-class ServiceInWishlist(BaseModel):
-    id: UUID
-    title: str
-    base_price: int  # in paise
-    images: List[str]
-    vendor_id: UUID
-    category: str = Field(..., alias="service_type")
-    rating: Optional[float] = None
-    city: Optional[str] = None
-    state: Optional[str] = None
+class WishlistBase(BaseModel):
+    name: str = Field(..., min_length=1, max_length=150)
+    description: Optional[str] = None
+    is_public: bool = False
+
+
+class WishlistCreate(WishlistBase):
+    pass
+
+
+class WishlistUpdate(BaseModel):
+    name: Optional[str] = Field(None, min_length=1, max_length=150)
+    description: Optional[str] = None
+    is_public: Optional[bool] = None
+
+
+class WishlistResponse(WishlistBase):
+    id: int
+    user_id: int
+    is_default: bool
+    created_at: datetime
+    updated_at: datetime
 
     class Config:
         from_attributes = True
-        populate_by_name = True
 
-class WishlistItemOut(BaseModel):
-    id: UUID
-    service_id: UUID
+
+# ------------------------
+# Wishlist Items
+# ------------------------
+
+class WishlistItemCreate(BaseModel):
+    wishlist_id: int
+    service_id: int
+
+
+class WishlistItemUpdate(BaseModel):
+    note: Optional[str] = None
+    priority: Optional[int] = Field(None, ge=0, le=3)
+
+
+class WishlistItemResponse(BaseModel):
+    id: int
+    wishlist_id: int
+    service_id: int
+    note: Optional[str]
+    priority: int
     created_at: datetime
-    service: ServiceInWishlist
 
     class Config:
         from_attributes = True

@@ -7,9 +7,8 @@ from sqlalchemy import (
 )
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
-from sqlalchemy import CheckConstraint
+from sqlalchemy import CheckConstraint, Column
 from sqlalchemy.dialects.postgresql import ARRAY
-
 
 class Base(DeclarativeBase):
     """Base class for all models"""
@@ -57,9 +56,9 @@ class Customer(Base):
     )
     last_login: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True))
 
-    wishlist_items: Mapped[list["WishlistItem"]] = relationship(
-        "WishlistItem", back_populates="customer", cascade="all, delete-orphan"
-    )
+    wishlists: Mapped[List["Wishlist"]] = relationship(
+    "Wishlist", back_populates="customer", cascade="all, delete-orphan"
+)
     reviews: Mapped[list["Review"]] = relationship(
         "Review", back_populates="customer", cascade="all, delete-orphan"
     )
@@ -590,27 +589,60 @@ class ServiceVariant(Base):
         Index("idx_variant_pricing_type", "pricing_type"),
     )
 
+class Wishlist(Base):
+    __tablename__ = "wishlists"
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
+    user_id: Mapped[int] = mapped_column(
+        BigInteger, ForeignKey("customer.id", ondelete="CASCADE"), nullable=False
+    )
+
+    name: Mapped[str] = mapped_column(String(150), nullable=False)
+    description: Mapped[Optional[str]] = mapped_column(Text)
+    is_default: Mapped[bool] = mapped_column(Boolean, server_default="false")
+    is_public: Mapped[bool] = mapped_column(Boolean, server_default="false")
+
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
+
+    items: Mapped[List["WishlistItem"]] = relationship(
+        "WishlistItem", back_populates="wishlist", cascade="all, delete-orphan"
+    )
+
+    customer: Mapped["Customer"] = relationship(
+    "Customer", back_populates="wishlists"
+)
 
 class WishlistItem(Base):
     __tablename__ = "wishlist_items"
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
-    user_id: Mapped[int] = mapped_column(
-        BigInteger, ForeignKey("customer.id", ondelete="CASCADE"), nullable=False, index=True
+    wishlist_id: Mapped[int] = mapped_column(
+        BigInteger, ForeignKey("wishlists.id", ondelete="CASCADE"), nullable=False
     )
     service_id: Mapped[int] = mapped_column(
         BigInteger, ForeignKey("services.id", ondelete="CASCADE"), nullable=False
     )
+
+    note: Mapped[Optional[str]] = mapped_column(Text)
+    priority: Mapped[int] = mapped_column(SmallInteger, server_default="0")
+
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )
 
-    customer: Mapped["Customer"] = relationship("Customer", back_populates="wishlist_items")
-    service: Mapped["Service"] = relationship("Service")
+    wishlist: Mapped["Wishlist"] = relationship(
+        "Wishlist", back_populates="items"
+    )
 
     __table_args__ = (
-        UniqueConstraint("user_id", "service_id", name="uq_user_service_wishlist"),
+        UniqueConstraint("wishlist_id", "service_id", name="uq_wishlist_service"),
     )
+    service: Mapped["Service"] = relationship("Service")
 
 
 class UnavailableDate(Base):

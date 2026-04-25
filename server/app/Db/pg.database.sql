@@ -174,15 +174,32 @@ ON service_variants(pricing_type);
 CREATE INDEX idx_variant_pricing_json 
 ON service_variants USING GIN (pricing jsonb_path_ops);
 
-CREATE TABLE wishlist_items (
+CREATE TABLE wishlists (
     id              BIGSERIAL PRIMARY KEY,
     user_id         BIGINT NOT NULL REFERENCES customer(id) ON DELETE CASCADE,
-    service_id      BIGINT NOT NULL REFERENCES services(id) ON DELETE CASCADE,
+    
+    name            VARCHAR(150) NOT NULL,
+    description     TEXT,
+
+    is_default      BOOLEAN DEFAULT FALSE,
+    is_public       BOOLEAN DEFAULT FALSE,
+
     created_at      TIMESTAMPTZ DEFAULT NOW(),
-    UNIQUE (user_id, service_id)
+    updated_at      TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX idx_wishlist_user ON wishlist_items(user_id);
+CREATE TABLE favorites (
+    id              BIGSERIAL PRIMARY KEY,
+    wishlist_id     BIGINT NOT NULL REFERENCES wishlists(id) ON DELETE CASCADE,
+    service_id      BIGINT NOT NULL REFERENCES services(id) ON DELETE CASCADE,
+
+    note            TEXT,
+    priority        SMALLINT DEFAULT 0, -- 1 high, 2 medium, 3 low
+
+    created_at      TIMESTAMPTZ DEFAULT NOW(),
+
+    UNIQUE (wishlist_id, service_id)
+);
 
 CREATE TABLE unavailable_dates (
     id              BIGSERIAL PRIMARY KEY,

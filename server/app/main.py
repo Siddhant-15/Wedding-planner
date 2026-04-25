@@ -14,9 +14,9 @@ from app.Db.db import startup_db, shutdown_db
 from app.routers.auth import AuthRouter
 from app.routers.service import servicerouter
 from app.routers.customer_services import customerservicerouter
-from app.routers.wishlist import wishlistrouter
 from app.routers.vendor import vendorrouter
 from app.routers.review import Reviewrouter
+from app.routers.wishlist_routes import wishlistrouter
 
 
 # ─── Logging ────────────────────────────────────────────────────────────────
