@@ -9,6 +9,22 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/context/AuthContext";
 import { WishlistProvider } from "@/context/WishlistContext";
 
+// ✅ Admin imports
+import { AdminAuthProvider } from "./Admin/src/context/AdminAuthContext";
+import ProtectedAdminRoute from "./Admin/src/components/admin/layout/ProtectedAdminRoute";
+import AdminLayout from "./Admin/src/components/admin/layout/AdminLayout";
+import AdminLogin from "./Admin/src/pages/admin/AdminLogin";
+import Dashboard from "./Admin/src/pages/admin/Dashboard";
+import Vendors from "./Admin/src/pages/admin/Vendors";
+import Services from "./Admin/src/pages/admin/Services";
+import Bookings from "./Admin/src/pages/admin/Bookings";
+import Reviews from "./Admin/src/pages/admin/Reviews";
+import Reports from "./Admin/src/pages/admin/Reports";
+import Featured from "./Admin/src/pages/admin/Featured";
+import Analytics from "./Admin/src/pages/admin/Analytics";
+import Settings from "./Admin/src/pages/admin/Settings";
+
+// Customer & others
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
@@ -20,16 +36,13 @@ import EventManagement from "./Customer/src/pages/customer/EventManagement";
 import Catering from "./Customer/src/pages/customer/Catering";
 import Photography from "./Customer/src/pages/customer/Photography";
 import MakeupArtist from "./Customer/src/pages/customer/MakeupArtist";
-
 import ServiceDetail from "./Customer/src/pages/customer/ServiceDetail";
 
-// import CustomerDashboard from "./pages/dashboards/CustomerDashboard";
 import HomeDashboard from "./Customer/src/pages/customer-homepage/src/pages/customer/HomePage";
-import VendorDashboard from "./pages/dashboards/VendorDashboard";
 import VendorPage from "./Vendor/src/pages/VendorPage";
 
-// 🔐 Protected pages
-import MyAccount from "./Profile/MyAccount"
+// Protected pages
+import MyAccount from "./Profile/MyAccount";
 import Payments from "./Profile/Payments";
 import MyBookings from "./Profile/MyBookings";
 import ProfileSettings from "./Profile/ProfileSettings";
@@ -42,9 +55,7 @@ const queryClient = new QueryClient();
 
 // 🔒 Protected Route Wrapper
 function ProtectedRoute({ children, isAuthenticated, user, allowedRoles }) {
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
-  }
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
 
   if (allowedRoles && !allowedRoles.includes(user?.type)) {
     return <Navigate to="/" replace />;
@@ -54,46 +65,45 @@ function ProtectedRoute({ children, isAuthenticated, user, allowedRoles }) {
 }
 
 
-// 🔑 Role-based router wrapper
+// 🔑 Role-based router
 function RoleBasedRoutes() {
   const { user, isAuthenticated, loading } = useAuth();
 
   if (loading) {
     return (
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          height: "100vh",
-          width: "100vw",
-          backgroundColor: "#ffffff",
-          flexDirection: "column",
-        }}
-      >
-        <Lottie
-          animationData={loadingAnimation}
-          loop
-          autoplay
-          style={{ width: 200, height: 200 }}
-        />
-        <p
-          style={{
-            marginTop: 16,
-            fontSize: 16,
-            color: "#555555",
-            fontFamily: "Arial, sans-serif",
-          }}
-        >
-          Loading, please wait...
-        </p>
+      <div style={{ display: "flex", justifyContent: "center", height: "100vh", alignItems: "center", flexDirection: "column" }}>
+        <Lottie animationData={loadingAnimation} loop autoplay style={{ width: 200 }} />
+        <p>Loading, please wait...</p>
       </div>
     );
   }
 
   return (
     <Routes>
-      {/* Root route */}
+
+      {/* ✅ Admin Routes */}
+      <Route path="/admin/login" element={<AdminLogin />} />
+
+      <Route
+        path="/admin/*"
+        element={
+          <ProtectedAdminRoute>
+            <AdminLayout />
+          </ProtectedAdminRoute>
+        }
+      >
+        <Route path="dashboard" element={<Dashboard />} />
+        <Route path="vendors" element={<Vendors />} />
+        <Route path="services" element={<Services />} />
+        <Route path="bookings" element={<Bookings />} />
+        <Route path="reviews" element={<Reviews />} />
+        <Route path="reports" element={<Reports />} />
+        <Route path="featured" element={<Featured />} />
+        <Route path="analytics" element={<Analytics />} />
+        <Route path="settings" element={<Settings />} />
+      </Route>
+
+      {/* Root */}
       <Route
         path="/"
         element={
@@ -114,80 +124,48 @@ function RoleBasedRoutes() {
         }
       />
 
-      {/* Customer dashboard */}
+      {/* Customer */}
       <Route
         path="/customer/dashboard"
         element={
-          isAuthenticated && user?.type === "customer" ? (
-            // <CustomerDashboard />
-            <HomeDashboard />
-          ) : (
-            <Navigate to="/login" replace />
-          )
+          isAuthenticated && user?.type === "customer"
+            ? <HomeDashboard />
+            : <Navigate to="/login" replace />
         }
       />
 
-
-      {/* Vendor dashboard */}
+      {/* Vendor */}
       <Route
         path="/vendor/dashboard"
         element={
-          <ProtectedRoute
-            isAuthenticated={isAuthenticated}
-            user={user}
-            allowedRoles={["vendor"]}
-          >
+          <ProtectedRoute isAuthenticated={isAuthenticated} user={user} allowedRoles={["vendor"]}>
             <VendorPage />
           </ProtectedRoute>
         }
       />
 
-      {/* 🔒 Protected Routes */}
-      <Route
-        path="/my-account"
-        element={
-          <ProtectedRoute isAuthenticated={isAuthenticated} user={user}>
-            <MyAccount />
-          </ProtectedRoute>
-        }
-      />
+      {/* Protected */}
+      <Route path="/my-account" element={<ProtectedRoute isAuthenticated={isAuthenticated} user={user}><MyAccount /></ProtectedRoute>} />
 
-      <Route
-        path="/payment"
-        element={
-          <ProtectedRoute
-            isAuthenticated={isAuthenticated}
-            user={user}
-            allowedRoles={["customer"]}
-          >
-            <Payments />
-          </ProtectedRoute>
-        }
-      />
+      <Route path="/payment" element={
+        <ProtectedRoute isAuthenticated={isAuthenticated} user={user} allowedRoles={["customer"]}>
+          <Payments />
+        </ProtectedRoute>
+      } />
 
-      <Route
-        path="/booking"
-        element={
-          <ProtectedRoute
-            isAuthenticated={isAuthenticated}
-            user={user}
-            allowedRoles={["customer"]}
-          >
-            <MyBookings />
-          </ProtectedRoute>
-        }
-      />
+      <Route path="/booking" element={
+        <ProtectedRoute isAuthenticated={isAuthenticated} user={user} allowedRoles={["customer"]}>
+          <MyBookings />
+        </ProtectedRoute>
+      } />
 
-      <Route
-        path="/profile-settings"
-        element={
-          <ProtectedRoute isAuthenticated={isAuthenticated} user={user}>
-            <ProfileSettings />
-          </ProtectedRoute>
-        }
-      />
+      <Route path="/profile-settings" element={
+        <ProtectedRoute isAuthenticated={isAuthenticated} user={user}>
+          <ProfileSettings />
+        </ProtectedRoute>
+      } />
 
-      {/* 🌐 Public routes */}
+      {/* Public */}
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
 
@@ -198,10 +176,8 @@ function RoleBasedRoutes() {
       <Route path="/services/photography" element={<Photography />} />
       <Route path="/services/makeup_artist" element={<MakeupArtist />} />
 
-      {/* 🔥 Dynamic Service Route */}
       <Route path="/services/:serviceType/:id" element={<ServiceDetail />} />
 
-      {/* 404 */}
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
@@ -212,15 +188,17 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <WishlistProvider>
-          <TooltipProvider>
-            <ToastProvider />
-            <Sonner />
-            <BrowserRouter>
-              <RoleBasedRoutes />
-            </BrowserRouter>
-          </TooltipProvider>
-        </WishlistProvider>
+        <AdminAuthProvider> {/* ✅ added */}
+          <WishlistProvider>
+            <TooltipProvider>
+              <ToastProvider />
+              <Sonner />
+              <BrowserRouter>
+                <RoleBasedRoutes />
+              </BrowserRouter>
+            </TooltipProvider>
+          </WishlistProvider>
+        </AdminAuthProvider>
       </AuthProvider>
     </QueryClientProvider>
   );

@@ -1,0 +1,4 @@
+.wrap { padding: 48px 24px; text-align: center; color: var(--text-muted); }
+.icon { font-size: 36px; margin-bottom: 8px; }
+.title { font-weight: 600; color: var(--text); margin-bottom: 4px; }
+.text { font-size: 13px; }

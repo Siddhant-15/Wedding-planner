@@ -1,0 +1,81 @@
+.sidebar {
+  position: fixed;
+  top: 0; left: 0; bottom: 0;
+  width: var(--sidebar-w);
+  background: #0f172a;
+  color: #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  z-index: 40;
+  transition: width .2s ease, transform .25s ease;
+}
+.collapsed { width: var(--sidebar-w-collapsed); }
+
+.brand {
+  display: flex; align-items: center; gap: 12px;
+  padding: 18px 20px;
+  border-bottom: 1px solid rgba(255,255,255,.06);
+}
+.logo {
+  width: 34px; height: 34px; border-radius: 8px;
+  background: var(--brand);
+  color: #fff; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  flex: none;
+}
+.brandText { font-weight: 700; font-size: 15px; letter-spacing: .2px; }
+
+.nav { padding: 12px 10px; flex: 1; overflow-y: auto; }
+.item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 12px; margin: 2px 0;
+  border-radius: 8px;
+  color: #cbd5e1;
+  font-size: 14px;
+  transition: background .15s ease, color .15s ease;
+  white-space: nowrap;
+}
+.item:hover { background: rgba(255,255,255,.05); color: #fff; }
+.active { background: var(--brand); color: #fff !important; }
+.active:hover { background: var(--brand-600); }
+.icon { width: 20px; text-align: center; font-size: 15px; }
+.label { font-weight: 500; }
+
+.footer {
+  border-top: 1px solid rgba(255,255,255,.06);
+  padding: 10px;
+  display: flex; align-items: center; gap: 6px;
+}
+.logout {
+  flex: 1;
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 12px;
+  background: transparent; border: 0;
+  color: #fca5a5;
+  border-radius: 8px;
+  font-size: 14px; font-weight: 500;
+}
+.logout:hover { background: rgba(239,68,68,.1); color: #fee2e2; }
+.collapseBtn {
+  width: 32px; height: 32px;
+  background: rgba(255,255,255,.06);
+  border: 0; border-radius: 8px;
+  color: #e2e8f0; font-size: 18px;
+}
+.collapseBtn:hover { background: rgba(255,255,255,.12); }
+
+.backdrop { display: none; }
+
+@media (max-width: 900px) {
+  .sidebar {
+    transform: translateX(-100%);
+    width: var(--sidebar-w);
+  }
+  .open { transform: translateX(0); }
+  .collapsed { width: var(--sidebar-w); }
+  .backdrop {
+    display: block; position: fixed; inset: 0;
+    background: rgba(15,23,42,.45); z-index: 39;
+  }
+  .collapseBtn { display: none; }
+}
