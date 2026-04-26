@@ -10,7 +10,7 @@ import {
   Ban,
   CheckCircle
 } from 'lucide-react';
-import Navbar from "../../navbar/components/Navbar";
+// import Navbar from "../../navbar/components/Navbar";
 import styles from "../../styles/AdminDashboard.module.css"
 
 const AdminDashboard = () => {
@@ -97,7 +97,7 @@ const AdminDashboard = () => {
 
   return (
     <div className={styles.dashboard}>
-      <Navbar />
+      {/* <Navbar /> */}
 
       <div className={styles.container}>
         {/* Header */}

@@ -1,5 +1,5 @@
 import React from "react";
-import Navbar from "../navbar/components/Navbar";
+// import Navbar from "../navbar/components/Navbar";
 import HeroSlider from "@/components/HeroSlider";
 import ServicesSection from "@/components/ServicesSection";
 import VenuesCarousel from "@/components/VenuesCarousel";
@@ -25,7 +25,7 @@ const jsonLd = {
 function Index() {
   return (
     <>
-      <Navbar />
+      {/* <Navbar /> */}
       <main>
         <HeroSlider />
         <ServicesSection />

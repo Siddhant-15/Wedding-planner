@@ -12,7 +12,7 @@ import {
   CreditCard,
   Camera,
 } from "lucide-react";
-import NavBar from "../navbar/components/Navbar";
+// import NavBar from "../navbar/components/Navbar";
 import PageShell from "./components/PageShell";
 import SideNav from "./components/SideNav";
 import { MOCK_USER, MOCK_BOOKINGS, MOCK_PAYMENTS } from "./data/mockData";
@@ -33,7 +33,7 @@ function MyAccount() {
 
   return (
     <>
-      <NavBar />
+      {/* <NavBar /> */}
       <PageShell
         title="My Account"
         subtitle="Your personal hub — overview, profile details, and quick links."

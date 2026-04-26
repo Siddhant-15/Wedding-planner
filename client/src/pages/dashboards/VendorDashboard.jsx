@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import Navbar from "../../navbar/components/Navbar";
+// import Navbar from "../../navbar/components/Navbar";
 import VendorServiceCard from '../../Vendor/src/components/vendor/VendorServiceCard';
 import { Plus, Settings, Eye, BarChart3, TrendingUp, Users } from 'lucide-react';
 import styles from '../../styles/VendorDashboard.module.css'
@@ -20,7 +20,7 @@ const VendorDashboard = () => {
 
   return (
     <div className={styles.dashboard}>
-      <Navbar />
+      {/* <Navbar /> */}
       {/* Header */}
       <div className={styles.header}>
         <div>

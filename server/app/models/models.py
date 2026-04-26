@@ -618,7 +618,7 @@ class Wishlist(Base):
 )
 
 class WishlistItem(Base):
-    __tablename__ = "wishlist_items"
+    __tablename__ = "favorites"
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
     wishlist_id: Mapped[int] = mapped_column(

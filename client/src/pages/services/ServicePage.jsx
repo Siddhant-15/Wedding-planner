@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Filter } from "lucide-react";
-import Navbar from "@/components/Navbar";
+// import Navbar from "@/components/Navbar";
 import FilterSidebar from "@/components/FilterSidebar";
 import { customerService } from "../../utils/api/services/customer.service";
 import styles from "../../styles/ServicePage.module.css";
@@ -69,7 +69,7 @@ export default function ServicesPage({
 
   return (
     <div className={styles.container}>
-      <Navbar />
+      {/* <Navbar /> */}
       <div className={styles.pageWrapper}>
         <div className={styles.hero}>
           <h1 className={styles.title}>{title}</h1>

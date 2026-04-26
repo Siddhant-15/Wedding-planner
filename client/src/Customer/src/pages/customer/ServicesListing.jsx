@@ -6,7 +6,7 @@ import FilterSidebar from "../../components/customer/cards/FilterSidebar";
 import { customerService } from "../../../../utils/api/services/customer.service";
 import { getStartingPrice } from "../../utils/format";
 import styles from "../../styles/ServicesListing.module.css"
-import Navbar from "../../../../navbar/components/Navbar";
+// import Navbar from "../../../../navbar/components/Navbar";
 
 const SERVICE_LABELS = {
   venue: "Wedding Venues",
@@ -118,7 +118,7 @@ export default function ServicesListing({ serviceType = "" }) {
   return (
     <div className={styles.page}>
       <div className={styles.container}>
-        <Navbar />
+        {/* <Navbar /> */}
         <header className={styles.header}>
           <h1 className={styles.title}>
             Discover {SERVICE_LABELS[serviceType] || "Wedding Services"}

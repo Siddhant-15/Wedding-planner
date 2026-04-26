@@ -14,7 +14,7 @@ import GenericSpecsCard from "../../components/customer/specs/GenericSpecsCard";
 import AvailabilityForm from "../../components/customer/forms/AvailabilityForm";
 import ReviewsList from "../../components/customer/reviews/ReviewsList";
 import WriteReviewForm from "../../components/customer/reviews/WriteReviewForm";
-import Navbar from "../../../../navbar/components/Navbar";
+// import Navbar from "../../../../navbar/components/Navbar";
 import Modal from "../../../../components/ui/Modal";
 
 import { customerService } from "../../../../utils/api/services/customer.service";
@@ -132,7 +132,7 @@ export default function ServiceDetail() {
   return (
     <div className={styles.page}>
       <div className={styles.container}>
-        <Navbar />
+        {/* <Navbar /> */}
         <Link to={`/services/${service.service_type}`} className={styles.back}><ArrowLeft size={16} /> Back</Link>
 
         <header className={styles.header}>

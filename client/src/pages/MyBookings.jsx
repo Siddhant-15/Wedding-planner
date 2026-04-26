@@ -10,7 +10,7 @@ import {
   Download
 } from "lucide-react";
 
-import Navbar from "@/components/Navbar";
+// import Navbar from "@/components/Navbar";
 import { Button } from "@/components/ui/button"; // If you also want to remove Tailwind from these, tell me
 import Badge from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -113,7 +113,7 @@ export default function MyBookings() {
 
   return (
     <>
-      <Navbar />
+      {/* <Navbar /> */}
       <div className={styles.pageWrapper}>
         <div className={styles.container}>
           <div className={styles.header}>

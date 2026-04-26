@@ -1,4 +1,3 @@
-// App.jsx
 import React from "react";
 import { ToastProvider } from "@/components/ui/Toast";
 import { Toaster as Sonner } from "@/components/ui/Sonner";
@@ -7,7 +6,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 import { AuthProvider, useAuth } from "@/context/AuthContext";
-import { WishlistProvider } from "@/context/WishlistContext";
 
 // ✅ Admin imports
 import { AdminAuthProvider } from "./Admin/src/context/AdminAuthContext";
@@ -40,6 +38,10 @@ import ServiceDetail from "./Customer/src/pages/customer/ServiceDetail";
 
 import HomeDashboard from "./Customer/src/pages/customer-homepage/src/pages/customer/HomePage";
 import VendorPage from "./Vendor/src/pages/VendorPage";
+import CustomerLayout from "./Customer/src/Layout/CustomerLayout";
+import VendorLayout from "./Vendor/src/Layout/VendorLayout";
+import WishlistsPage from "./Wishlist/src/pages/customer/wishlist/WishlistsPage";
+import WishlistDetailPage from "./Wishlist/src/pages/customer/wishlist/WishlistDetailPage";
 
 // Protected pages
 import MyAccount from "./Profile/MyAccount";
@@ -124,40 +126,50 @@ function RoleBasedRoutes() {
         }
       />
 
-      {/* Customer */}
+      {/* ===================== */}
+      {/* ✅ CUSTOMER ROUTES */}
+      {/* ===================== */}
       <Route
-        path="/customer/dashboard"
+        path="/customer"
         element={
-          isAuthenticated && user?.type === "customer"
-            ? <HomeDashboard />
-            : <Navigate to="/login" replace />
+          isAuthenticated && user?.type === "customer" ? (
+            <CustomerLayout />
+          ) : (
+            <Navigate to="/login" replace />
+          )
         }
-      />
+      >
+        <Route path="dashboard" element={<HomeDashboard />} />
+        <Route path="booking" element={<MyBookings />} />
+        <Route path="payment" element={<Payments />} />
+        <Route path="wishlist" element={<WishlistsPage />} />
+        <Route path="wishlist/:id" element={<WishlistDetailPage />} />
+        <Route path="services/venue" element={<WeddingVenues />} />
+        <Route path="services/dj" element={<DJs />} />
+        <Route path="services/event_management" element={<EventManagement />} />
+        <Route path="services/catering" element={<Catering />} />
+        <Route path="services/photography" element={<Photography />} />
+        <Route path="services/makeup_artist" element={<MakeupArtist />} />
+        <Route path="services/:serviceType/:id" element={<ServiceDetail />} />
+      </Route>
 
       {/* Vendor */}
       <Route
-        path="/vendor/dashboard"
         element={
-          <ProtectedRoute isAuthenticated={isAuthenticated} user={user} allowedRoles={["vendor"]}>
-            <VendorPage />
+          <ProtectedRoute
+            isAuthenticated={isAuthenticated}
+            user={user}
+            allowedRoles={["vendor"]}
+          >
+            <VendorLayout />
           </ProtectedRoute>
         }
-      />
+      >
+        <Route path="/vendor/dashboard" element={<VendorPage />} />
+      </Route>
 
-      {/* Protected */}
+      {/* Other Protected */}
       <Route path="/my-account" element={<ProtectedRoute isAuthenticated={isAuthenticated} user={user}><MyAccount /></ProtectedRoute>} />
-
-      <Route path="/payment" element={
-        <ProtectedRoute isAuthenticated={isAuthenticated} user={user} allowedRoles={["customer"]}>
-          <Payments />
-        </ProtectedRoute>
-      } />
-
-      <Route path="/booking" element={
-        <ProtectedRoute isAuthenticated={isAuthenticated} user={user} allowedRoles={["customer"]}>
-          <MyBookings />
-        </ProtectedRoute>
-      } />
 
       <Route path="/profile-settings" element={
         <ProtectedRoute isAuthenticated={isAuthenticated} user={user}>
@@ -169,14 +181,14 @@ function RoleBasedRoutes() {
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
 
-      <Route path="/services/venue" element={<WeddingVenues />} />
+      {/* <Route path="/services/venue" element={<WeddingVenues />} />
       <Route path="/services/dj" element={<DJs />} />
       <Route path="/services/event_management" element={<EventManagement />} />
       <Route path="/services/catering" element={<Catering />} />
       <Route path="/services/photography" element={<Photography />} />
       <Route path="/services/makeup_artist" element={<MakeupArtist />} />
 
-      <Route path="/services/:serviceType/:id" element={<ServiceDetail />} />
+      <Route path="/services/:serviceType/:id" element={<ServiceDetail />} /> */}
 
       <Route path="*" element={<NotFound />} />
     </Routes>
@@ -188,16 +200,14 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <AdminAuthProvider> {/* ✅ added */}
-          <WishlistProvider>
-            <TooltipProvider>
-              <ToastProvider />
-              <Sonner />
-              <BrowserRouter>
-                <RoleBasedRoutes />
-              </BrowserRouter>
-            </TooltipProvider>
-          </WishlistProvider>
+        <AdminAuthProvider>
+          <TooltipProvider>
+            <ToastProvider />
+            <Sonner />
+            <BrowserRouter>
+              <RoleBasedRoutes />
+            </BrowserRouter>
+          </TooltipProvider>
         </AdminAuthProvider>
       </AuthProvider>
     </QueryClientProvider>

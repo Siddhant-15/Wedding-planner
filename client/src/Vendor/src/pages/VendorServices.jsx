@@ -6,7 +6,7 @@ import VendorServiceDetailsModal from "../components/vendor/VendorServiceDetails
 import ServiceFormModal from "../components/vendor/ServiceFormModal";
 import ConfirmModal from "../components/vendor/ConfirmModal";
 import { serviceService } from "../../../utils/api/services/service.service";
-import Navbar from "../../../navbar/components/Navbar";
+// import Navbar from "../../../navbar/components/Navbar";
 import ServiceStats from "../../../components/VendorServiceStats";
 import { buildServiceFormData } from "../utils/buildServiceFormData";
 import { normalizeService } from "../utils/normalizeService";
@@ -181,7 +181,7 @@ export default function VendorServices() {
   return (
     <div className={styles.page}>
       <div className={styles.container}>
-        <Navbar />
+        {/* <Navbar /> */}
         <header className={styles.header}>
           <div>
             <h1 className={styles.title}>Vendor Dashboard</h1>

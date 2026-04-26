@@ -1,0 +1,289 @@
+.card {
+  background: #fff;
+  border: 1px solid #eef2f7;
+  border-radius: 16px;
+  overflow: visible;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 30px rgba(15, 23, 42, 0.10);
+  border-color: #e2e8f0;
+}
+
+.imageWrap {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  background: #f1f5f9;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.imageWrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+}
+
+.imageWrap:hover img {
+  transform: scale(1.04);
+}
+
+.imageFallback {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #94a3b8;
+  font-size: 13px;
+}
+
+.priority {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 9px;
+  border-radius: 999px;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+}
+
+.body {
+  padding: 14px 16px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.headRow {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.name {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: #0f172a;
+  cursor: pointer;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  line-height: 1.3;
+}
+
+.name:hover {
+  color: #e11d48;
+}
+
+.vendor {
+  margin: 0;
+  color: #64748b;
+  font-size: 13px;
+}
+
+.location {
+  margin: 2px 0 0;
+  color: #475569;
+  font-size: 13px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.price {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-top: 8px;
+  padding-top: 10px;
+  border-top: 1px dashed #e2e8f0;
+}
+
+.priceLabel {
+  color: #94a3b8;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.price strong {
+  color: #0f172a;
+  font-size: 15px;
+}
+
+.menuWrap {
+  position: relative;
+}
+
+.menuBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  color: #64748b;
+  font-size: 18px;
+  line-height: 1;
+}
+
+.menuBtn:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+.menu {
+  position: absolute;
+  top: 32px;
+  right: 0;
+  z-index: 6;
+  background: #fff;
+  border: 1px solid #eef2f7;
+  border-radius: 12px;
+  padding: 6px;
+  box-shadow: 0 16px 36px rgba(15, 23, 42, 0.14);
+  min-width: 180px;
+  display: flex;
+  flex-direction: column;
+}
+
+.menu button {
+  background: none;
+  border: none;
+  text-align: left;
+  padding: 9px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  color: #0f172a;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.menu button:hover {
+  background: #f1f5f9;
+}
+
+.menuActive {
+  background: rgba(225, 29, 72, 0.06) !important;
+  color: #e11d48 !important;
+  font-weight: 600;
+}
+
+.menuLabel {
+  font-size: 11px;
+  text-transform: uppercase;
+  color: #94a3b8;
+  padding: 8px 12px 4px;
+  letter-spacing: 0.04em;
+}
+
+.dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+}
+
+.divider {
+  height: 1px;
+  background: #f1f5f9;
+  margin: 4px 0;
+}
+
+.menuDanger {
+  color: #dc2626 !important;
+}
+
+.menuDanger:hover {
+  background: rgba(220, 38, 38, 0.08) !important;
+}
+
+.noteWrap {
+  margin-top: 10px;
+}
+
+.note {
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  color: #78350f;
+  padding: 9px 11px;
+  border-radius: 10px;
+  font-size: 13px;
+  margin: 0;
+  cursor: pointer;
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  line-height: 1.4;
+}
+
+.noteIcon {
+  flex-shrink: 0;
+}
+
+.noteInput {
+  width: 100%;
+  padding: 10px 11px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: 13px;
+  resize: vertical;
+  font-family: inherit;
+  color: #0f172a;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.noteInput:focus {
+  outline: none;
+  border-color: #e11d48;
+  box-shadow: 0 0 0 3px rgba(225, 29, 72, 0.12);
+}
+
+.noteActions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+  justify-content: flex-end;
+}
+
+.btnGhost,
+.btnPrimary {
+  padding: 7px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+
+.btnGhost {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+.btnGhost:hover {
+  background: #e2e8f0;
+}
+
+.btnPrimary {
+  background: #e11d48;
+  color: #fff;
+}
+
+.btnPrimary:hover {
+  background: #be123c;
+}

@@ -10,7 +10,7 @@ import {
 
 import { showSuccess } from "../../utils/toast";
 import styles from "../../styles/ServiceDetail.module.css";
-import Navbar from "../../components/Navbar";
+// import Navbar from "../../components/Navbar";
 
 // API
 import { customerService } from "../../utils/api/services/customer.service";
@@ -196,7 +196,7 @@ export default function ServiceDetail() {
 
   return (
     <div className={styles.page}>
-      <Navbar />
+      {/* <Navbar /> */}
 
       <div className={styles.container}>
         <Link to="/" className={styles.backLink}>

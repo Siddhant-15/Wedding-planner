@@ -1,5 +1,5 @@
 import React from "react";
-import Navbar from "../../../../../../../navbar/components/Navbar";
+// import Navbar from "../../../../../../../navbar/components/Navbar";
 import HeroSection from "../../components/customer/home/HeroSection";
 import CategorySection from "../../components/customer/home/CategorySection";
 import ServiceSection from "../../components/customer/home/ServiceSection";
@@ -16,7 +16,7 @@ export default function HomePage({ user }) {
 
   return (
     <div className={styles.page}>
-      <Navbar />
+      {/* <Navbar /> */}
       <HeroSection />
 
       <CategorySection />

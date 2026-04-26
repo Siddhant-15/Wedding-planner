@@ -30,8 +30,9 @@ export const ENDPOINTS = {
     },
 
     WISHLIST: {
-        BASE: "/wishlist/",
-        ITEM: (id) => `/wishlist/${id}`,
+        BASE: "/wishlists",
+        ITEMS: "/wishlists/items",
+        ITEM: (itemId) => `/wishlists/items/${itemId}`,
     },
 
     REVIEWS: {

@@ -1,7 +1,7 @@
 # app/schemas/wishlist.py
 
 from pydantic import BaseModel, Field
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
 from datetime import datetime
 
 
@@ -14,17 +14,35 @@ class WishlistBase(BaseModel):
 class WishlistCreate(WishlistBase):
     pass
 
+class WishlistItemAddResponse(BaseModel):
+    id: int
+    wishlist_id: int
+    service_id: int
+    note: Optional[str] = None
+    priority: Optional[str] = None
+    service: Optional[dict] = None
+
+    class Config:
+        from_attributes = True
+
 
 class WishlistUpdate(BaseModel):
     name: Optional[str] = Field(None, min_length=1, max_length=150)
     description: Optional[str] = None
     is_public: Optional[bool] = None
 
+class WishlistItemResponse(BaseModel):
+    id: int
+    service_id: int
+
+    class Config:
+        from_attributes = True
 
 class WishlistResponse(WishlistBase):
     id: int
     user_id: int
     is_default: bool
+    items: list[WishlistItemResponse] = [] 
     created_at: datetime
     updated_at: datetime
 
@@ -56,3 +74,28 @@ class WishlistItemResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class ServiceMiniResponse(BaseModel):
+    id: int
+    name: str
+    image: Optional[str]
+    location: Optional[str]
+    pricing: Optional[Dict[str, Any]]
+
+
+class WishlistItemResponse(BaseModel):
+    id: int
+    service_id: int
+    wishlist_id: int
+    note: Optional[str]
+    priority: Optional[str]
+    service: ServiceMiniResponse
+
+
+class WishlistDetailResponse(BaseModel):
+    id: int
+    name: str
+    description: Optional[str]
+    is_public: bool
+    items: List[WishlistItemResponse]

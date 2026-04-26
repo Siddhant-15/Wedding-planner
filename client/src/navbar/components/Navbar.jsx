@@ -139,7 +139,7 @@ function Navbar() {
                 {isAuthenticated && user?.type === "customer" && (
                   <IconButton
                     ariaLabel="Wishlist"
-                    onClick={() => navigate("/wishlist")}
+                    onClick={() => navigate("/customer/wishlist")}
                     badge={wishlistCount}
                   >
                     <Heart size={20} />

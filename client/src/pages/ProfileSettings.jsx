@@ -4,7 +4,7 @@ import { User, MapPin, Phone, Mail, Camera, CheckCircle, AlertCircle, Loader2, S
 import styles from "../styles/ProfileSettings.module.css";  // Module CSS below
 import { useAuth } from "../context/AuthContext";
 import { userService } from "../utils/api/services/user.service";
-import Navbar from "../components/Navbar";
+// import Navbar from "../components/Navbar";
 
 export default function ProfileSettings() {
   const { user, setUser } = useAuth();
@@ -112,7 +112,7 @@ export default function ProfileSettings() {
 
   return (
     <>
-      <Navbar />
+      {/* <Navbar /> */}
       <div className={styles.container}>
         <h1 className={styles.title}>Profile Settings</h1>
 
