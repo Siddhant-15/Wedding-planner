@@ -17,15 +17,36 @@
 .back {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
+
+  background: transparent;
+  border: none;
+
   color: hsl(var(--muted-foreground));
-  text-decoration: none;
-  font-size: .88rem;
-  align-self: flex-start;
+  font-size: 0.9rem;
+  font-weight: 500;
+
+  cursor: pointer;
+  padding: 4px 2px;
+
+  transition: all 0.25s ease;
 }
 
 .back:hover {
   color: hsl(var(--brand));
+  transform: translateX(-4px);
+}
+
+.back:active {
+  transform: translateX(-2px) scale(0.96);
+}
+
+.back svg {
+  transition: transform 0.25s ease;
+}
+
+.back:hover svg {
+  transform: translateX(-4px);
 }
 
 .header {

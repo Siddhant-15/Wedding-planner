@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useWishlist } from "../../../context/WishlistContext";
 import WishlistItemCard from "../../../components/customer/wishlist/WishlistItemCard";
@@ -13,8 +13,6 @@ const WishlistDetailPage = () => {
   const navigate = useNavigate();
   const {
     wishlists,
-    items: allItems,
-    refresh,
     removeItem,
     restoreItem,
     moveItem,
@@ -23,18 +21,58 @@ const WishlistDetailPage = () => {
     deleteWishlist,
   } = useWishlist();
 
-  const [list, setList] = useState(null);
+  const [listMeta, setListMeta] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [renameOpen, setRenameOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [filter, setFilter] = useState("all"); // all|high|medium|low
+  const [wishlist, setWishlist] = useState(null);
+  const [items, setItems] = useState([]);
+
+  const contextItems = items;
+  const filteredItems = useMemo(() => {
+    if (filter === "all") return items;
+    return items.filter((i) => i.priority === filter);
+  }, [items, filter]);
 
   const load = async () => {
-    setLoading(true); setError(null);
+    setLoading(true);
+    setError(null);
+
     try {
       const data = await wishlistService.getDetail(id);
-      setList(data);
+      console.log("Wishlist detail:", data);
+
+      setWishlist(data);
+      setListMeta({
+        id: data.id,
+        name: data.name,
+        description: data.description,
+        is_public: data.is_public,
+      });
+
+      // 🔥 IMPORTANT: normalize items from API
+      setItems(
+        (data.items || []).map((item) => {
+          const pricing = item.service?.pricing;
+
+          return {
+            ...item,
+            service: item.service
+              ? {
+                id: item.service.id,
+                name: item.service.name,
+                service_type: item.service.service_type,
+                image: item.service.image,
+                location: item.service.location,
+                pricing: pricing ?? null,
+                priceLabel: formatPrice(pricing), // ✅ single source of truth
+              }
+              : null,
+          };
+        })
+      );
     } catch (e) {
       setError(e.message || "Wishlist not found");
     } finally {
@@ -42,16 +80,7 @@ const WishlistDetailPage = () => {
     }
   };
 
-  useEffect(() => { load(); /* eslint-disable-next-line */ }, [id]);
-  // Re-sync when global items cache changes (after add/remove/move)
-  useEffect(() => {
-    if (!list) return;
-    const items =
-      filter === "all"
-        ? list.items
-        : list.items.filter((i) => i.priority === filter);
-    setList((prev) => prev && { ...prev, items });
-  }, [allItems, id]); // eslint-disable-line
+  useEffect(() => { load(); }, [id]);
 
   const otherWishlists = wishlists.filter((w) => w.id !== id);
 
@@ -75,14 +104,21 @@ const WishlistDetailPage = () => {
 
   const handleRemove = async (item) => {
     try {
+      setItems((prev) => prev.filter((i) => i.id !== item.id)); // instant UI update
+
       const removed = await removeItem(item.id);
+
       showToast({
         message: "Removed",
         actionLabel: "Undo",
-        onAction: () => restoreItem(removed),
+        onAction: async () => {
+          await restoreItem(removed);
+          load(); // refresh from API
+        },
       });
     } catch {
       showToast({ message: "Couldn't remove", type: "error" });
+      load(); // rollback
     }
   };
 
@@ -96,16 +132,49 @@ const WishlistDetailPage = () => {
     }
   };
 
-  const handlePriority = async (item, priority) => {
-    try { await updateItem(item.id, { priority }); }
-    catch { showToast({ message: "Update failed", type: "error" }); }
+  const handlePriority = async (item, newPriority) => {
+    const oldPriority = item.priority;
+
+    setItems((prev) =>
+      prev.map((i) =>
+        i.id === item.id ? { ...i, priority: newPriority } : i
+      )
+    );
+
+    try {
+      await updateItem(item.id, { priority: newPriority });
+    } catch {
+      showToast({ message: "Update failed", type: "error" });
+
+      // rollback
+      setItems((prev) =>
+        prev.map((i) =>
+          i.id === item.id ? { ...i, priority: oldPriority } : i
+        )
+      );
+    }
   };
 
   const handleNote = async (item, note) => {
+    setItems((prev) =>
+      prev.map((i) =>
+        i.id === item.id ? { ...i, note } : i
+      )
+    );
+
     try {
       await updateItem(item.id, { note });
       showToast({ message: note ? "Note saved" : "Note cleared" });
-    } catch { showToast({ message: "Update failed", type: "error" }); }
+    } catch {
+      showToast({ message: "Update failed", type: "error" });
+
+      // rollback
+      setItems((prev) =>
+        prev.map((i) =>
+          i.id === item.id ? { ...i, note: item.note } : i
+        )
+      );
+    }
   };
 
   if (loading) {
@@ -119,31 +188,42 @@ const WishlistDetailPage = () => {
     );
   }
 
-  if (error || !list) {
+  if (error || !listMeta) {
     return (
       <div className={styles.page}>
         <div className={styles.errorState}>
           <h2>Couldn't load this wishlist</h2>
           <p>{error || "The list might have been removed."}</p>
-          <button onClick={() => navigate("/customer/wishlist")}>Back to my wishlists</button>
+          <button onClick={() => {
+            if (window.history.length > 1) {
+              navigate(-1);
+            } else {
+              navigate("/customer/wishlist");
+            }
+          }}>Back to my wishlists</button>
         </div>
       </div>
     );
   }
 
-  const items = filter === "all" ? list.items : list.items.filter((i) => i.priority === filter);
 
   return (
     <div className={styles.page}>
-      <button className={styles.back} onClick={() => navigate("/customer/wishlist")}>← All wishlists</button>
+      <button className={styles.back} onClick={() => {
+        if (window.history.length > 1) {
+          navigate(-1);
+        } else {
+          navigate("/customer/wishlist");
+        }
+      }}>← All wishlists</button>
 
       <header className={styles.header}>
         <div className={styles.headLeft}>
-          <h1 className={styles.title}>{list.name}</h1>
-          {list.description && <p className={styles.desc}>{list.description}</p>}
+          <h1 className={styles.title}>{listMeta?.name}</h1>
+          {listMeta?.description && <p className={styles.desc}>{listMeta?.description}</p>}
           <div className={styles.metaRow}>
-            <span>{list.items?.length || 0} item{list.items?.length === 1 ? "" : "s"}</span>
-            {list.is_public && <span className={styles.badge}>Public</span>}
+            <span>{contextItems.length || 0} item{contextItems.length === 1 ? "" : "s"}</span>
+            {listMeta?.is_public && <span className={styles.badge}>Public</span>}
           </div>
         </div>
         <div className={styles.headActions}>
@@ -152,7 +232,7 @@ const WishlistDetailPage = () => {
         </div>
       </header>
 
-      {list.items?.length > 0 && (
+      {contextItems.length > 0 && (
         <div className={styles.filters}>
           {[
             { v: "all", label: "All" },
@@ -173,7 +253,7 @@ const WishlistDetailPage = () => {
 
       {items?.length === 0 ? (
         <div className={styles.empty}>
-          {list.items?.length === 0 ? (
+          {contextItems.length === 0 ? (
             <>
               <h3>No items saved yet</h3>
               <p>Browse services and tap the heart to add them here.</p>
@@ -188,18 +268,15 @@ const WishlistDetailPage = () => {
         </div>
       ) : (
         <div className={styles.grid}>
-          {items.map((item) => (
+          {filteredItems.map((item) => (
             <WishlistItemCard
               key={item.id}
               item={{
                 ...item,
-                service: {
-                  ...item.service,
-                  priceLabel: formatPrice(item.service.pricing),
-                },
+                service: item.service,
               }}
               otherWishlists={otherWishlists}
-              onView={(s) => navigate(`/customer/service/${s.id}`)}
+              onView={(s) => navigate(`/customer/services/${s.service_type}/${s.id}`)}
               onRemove={handleRemove}
               onMove={handleMove}
               onUpdateNote={handleNote}
@@ -211,11 +288,15 @@ const WishlistDetailPage = () => {
 
       <RenameDialog
         open={renameOpen}
-        initialName={list.name}
+        initialName={listMeta?.name}
         onCancel={() => setRenameOpen(false)}
         onSave={async (name) => {
-          await renameWishlist(list.id, name);
-          setList((prev) => ({ ...prev, name }));
+          await renameWishlist(listMeta.id, name);
+
+          setListMeta((prev) => ({
+            ...prev,
+            name,
+          }));
           setRenameOpen(false);
           showToast({ message: "Renamed" });
         }}
@@ -223,13 +304,13 @@ const WishlistDetailPage = () => {
 
       <ConfirmDialog
         open={deleteOpen}
-        title={`Delete “${list.name}”?`}
+        title={`Delete “${listMeta?.name}”?`}
         message="This will permanently remove the list and all its saved items."
         confirmLabel="Delete"
         danger
         onCancel={() => setDeleteOpen(false)}
         onConfirm={async () => {
-          await deleteWishlist(list.id);
+          await deleteWishlist(listMeta.id);
           showToast({ message: "Wishlist deleted" });
           navigate("/customer/wishlist");
         }}

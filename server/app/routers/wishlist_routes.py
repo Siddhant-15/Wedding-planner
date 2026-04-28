@@ -82,7 +82,7 @@ async def remove_item(
     return {"message": "Item removed"}
 
 
-@wishlistrouter.patch("/items/{item_id}", response_model=WishlistItemResponse)
+@wishlistrouter.patch("/items/{item_id}")
 async def update_item(
     item_id: int,
     data: WishlistItemUpdate,

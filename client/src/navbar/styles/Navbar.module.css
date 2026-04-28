@@ -1,6 +1,7 @@
 /* ==================== HEADER ==================== */
 .navbarSpacer {
-  height: 74px; /* Approximate height of navbar to prevent layout shift */
+  height: 74px;
+  /* Approximate height of navbar to prevent layout shift */
   width: 100%;
 }
 

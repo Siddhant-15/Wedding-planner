@@ -4,6 +4,13 @@ from pydantic import BaseModel, Field
 from typing import Optional, List, Dict, Any
 from datetime import datetime
 
+from enum import Enum
+
+class Priority(str, Enum):
+    low = "low"
+    medium = "medium"
+    high = "high"
+
 
 class WishlistBase(BaseModel):
     name: str = Field(..., min_length=1, max_length=150)
@@ -28,10 +35,8 @@ class WishlistItemAddResponse(BaseModel):
 
 class WishlistUpdate(BaseModel):
     name: Optional[str] = Field(None, min_length=1, max_length=150)
-    description: Optional[str] = None
-    is_public: Optional[bool] = None
 
-class WishlistItemResponse(BaseModel):
+class WishlistItemsResponse(BaseModel):
     id: int
     service_id: int
 
@@ -42,7 +47,7 @@ class WishlistResponse(WishlistBase):
     id: int
     user_id: int
     is_default: bool
-    items: list[WishlistItemResponse] = [] 
+    items: list[WishlistItemsResponse] = [] 
     created_at: datetime
     updated_at: datetime
 
@@ -61,24 +66,25 @@ class WishlistItemCreate(BaseModel):
 
 class WishlistItemUpdate(BaseModel):
     note: Optional[str] = None
-    priority: Optional[int] = Field(None, ge=0, le=3)
+    priority: Optional[Priority] = None
 
 
-class WishlistItemResponse(BaseModel):
-    id: int
-    wishlist_id: int
-    service_id: int
-    note: Optional[str]
-    priority: int
-    created_at: datetime
+# class WishlistItemResponse(BaseModel):
+#     id: int
+#     wishlist_id: int
+#     service_id: int
+#     note: Optional[str]
+#     priority: Optional[int]
+#     created_at: datetime
 
-    class Config:
-        from_attributes = True
+#     class Config:
+#         from_attributes = True
 
 
 class ServiceMiniResponse(BaseModel):
     id: int
     name: str
+    service_type: str
     image: Optional[str]
     location: Optional[str]
     pricing: Optional[Dict[str, Any]]

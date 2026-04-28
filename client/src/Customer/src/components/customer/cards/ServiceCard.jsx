@@ -19,7 +19,7 @@ export default function ServiceCard({ service }) {
   // const handleWishlist = (e) => { e.preventDefault(); e.stopPropagation(); onWishlistToggle?.(service); };
 
   return (
-    <Link to={`/services/${service.service_type}/${service.id}`} className={styles.card} aria-label={service.name}>
+    <Link to={`/customer/services/${service.service_type}/${service.id}`} className={styles.card} aria-label={service.name}>
       <div className={styles.imageWrap}>
         {images.length > 0 && !imgError ? (
           <img

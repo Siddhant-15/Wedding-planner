@@ -7,6 +7,8 @@ const PRIORITIES = [
   { value: "low", label: "Low", color: "#16a34a" },
 ];
 
+
+
 const formatPrice = (n) => {
   if (n == null) return null;
   try {
@@ -23,6 +25,8 @@ const WishlistItemCard = ({
   onUpdateNote,
   onUpdatePriority,
 }) => {
+  console.log(item);
+
   const { service } = item;
   const [menuOpen, setMenuOpen] = useState(false);
   const [moveOpen, setMoveOpen] = useState(false);
@@ -113,12 +117,13 @@ const WishlistItemCard = ({
           </p>
         )}
 
-        {service.price != null && (
+        {service.priceLabel && service.priceLabel !== "N/A" && (
           <div className={styles.price}>
             <span className={styles.priceLabel}>Starting from</span>
-            <strong>{formatPrice(service.price)}</strong>
+            <strong>{service.priceLabel}</strong>
           </div>
         )}
+
 
         {(item.note || editingNote) && (
           <div className={styles.noteWrap}>

@@ -25,6 +25,7 @@ export const WishlistProvider = ({ children }) => {
 
     try {
       const lists = await wishlistApi.getAll();
+      console.log("All lists", lists);
 
       // flatten items from all wishlists
       const allItems = lists.flatMap((w) =>
@@ -85,7 +86,10 @@ export const WishlistProvider = ({ children }) => {
   const deleteWishlist = useCallback(async (id) => {
     await wishlistApi.remove(id);
 
+    // remove wishlist
     setWishlists((prev) => prev.filter((w) => w.id !== id));
+
+    // remove all items belonging to wishlist (IMPORTANT FIX)
     setItems((prev) => prev.filter((i) => i.wishlist_id !== id));
   }, []);
 
@@ -222,7 +226,12 @@ export const WishlistProvider = ({ children }) => {
 
     setItems((prev) =>
       prev.map((i) =>
-        i.id === itemId ? { ...i, wishlist_id: target_wishlist_id } : i
+        i.id === itemId
+          ? {
+            ...i,
+            wishlist_id: target_wishlist_id,
+          }
+          : i
       )
     );
 
@@ -233,7 +242,15 @@ export const WishlistProvider = ({ children }) => {
     const updated = await wishlistApi.updateItem(itemId, patch);
 
     setItems((prev) =>
-      prev.map((i) => (i.id === itemId ? updated : i))
+      prev.map((i) =>
+        i.id === itemId
+          ? {
+            ...i,
+            ...updated,
+            service: i.service ?? updated.service, // preserve service always
+          }
+          : i
+      )
     );
 
     return updated;

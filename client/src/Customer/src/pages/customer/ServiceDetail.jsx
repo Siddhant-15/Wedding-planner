@@ -21,6 +21,9 @@ import { customerService } from "../../../../utils/api/services/customer.service
 import { reviewService } from "../../../../utils/api/services/review.service";
 import { titleCase } from "../../utils/format";
 import styles from "../../styles/ServiceDetail.module.css";
+import { useNavigate } from "react-router-dom";
+
+
 
 export default function ServiceDetail() {
   const { id } = useParams();
@@ -32,6 +35,7 @@ export default function ServiceDetail() {
 
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [isAvailabilityModalOpen, setIsAvailabilityModalOpen] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     let cancelled = false;
@@ -133,7 +137,18 @@ export default function ServiceDetail() {
     <div className={styles.page}>
       <div className={styles.container}>
         {/* <Navbar /> */}
-        <Link to={`/services/${service.service_type}`} className={styles.back}><ArrowLeft size={16} /> Back</Link>
+        <button
+          onClick={() => {
+            if (window.history.length > 1) {
+              navigate(-1);
+            } else {
+              navigate(`/services/${service.service_type}`);
+            }
+          }}
+          className={styles.back}
+        >
+          <ArrowLeft size={16} /> Back
+        </button>
 
         <header className={styles.header}>
           <div className={styles.headerText}>

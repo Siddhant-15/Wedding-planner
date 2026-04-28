@@ -1,12 +1,17 @@
+from app.schemas.wishlist import WishlistItemResponse
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException
-from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import selectinload
+from sqlalchemy.exc import IntegrityError
 from app.models.models import Service, Wishlist, WishlistItem
 
 
-
+PRIORITY_TO_INT = {
+    "low": 0,
+    "medium": 1,
+    "high": 2,
+}
 def map_priority(p: int) -> str:
     return {0: "low", 1: "medium", 2: "high"}.get(p, "low")
 
@@ -137,6 +142,7 @@ async def get_wishlist_detail(db: AsyncSession, wishlist_id: int, user_id: int):
                 "service": {
                     "id": item.service.id,
                     "name": item.service.service_name,
+                    "service_type": item.service.service_type,
                     "image": (
                         item.service.media[0].media_url
                         if item.service.media else None
@@ -155,11 +161,6 @@ async def update_wishlist(db: AsyncSession, wishlist_id: int, user_id: int, data
     if data.name is not None:
         wishlist.name = data.name.strip()
 
-    if data.description is not None:
-        wishlist.description = data.description
-
-    if data.is_public is not None:
-        wishlist.is_public = data.is_public
 
     await db.commit()
     await db.refresh(wishlist)
@@ -236,12 +237,14 @@ async def remove_item(db: AsyncSession, item_id: int, user_id: int):
 
 
 async def update_item(db: AsyncSession, item_id: int, user_id: int, data):
+
     result = await db.execute(
         select(WishlistItem)
+        .options(selectinload(WishlistItem.service))
         .join(Wishlist)
         .where(
             WishlistItem.id == item_id,
-            Wishlist.user_id == user_id
+            Wishlist.user_id == user_id 
         )
     )
 
@@ -254,12 +257,16 @@ async def update_item(db: AsyncSession, item_id: int, user_id: int, data):
         item.note = data.note
 
     if data.priority is not None:
-        item.priority = data.priority
+        item.priority = PRIORITY_TO_INT[data.priority.value]
 
     await db.commit()
     await db.refresh(item)
 
-    return item
+    return {
+        "priority": map_priority(item.priority),
+        "note": item.note,
+        "message": "Item updated successfully"
+    }
 
 
 async def move_item(db: AsyncSession, item_id: int, user_id: int, target_wishlist_id: int):
