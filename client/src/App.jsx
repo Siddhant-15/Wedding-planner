@@ -48,6 +48,8 @@ import MyAccount from "./Profile/MyAccount";
 import Payments from "./Profile/Payments";
 import MyBookings from "./Profile/MyBookings";
 import ProfileSettings from "./Profile/ProfileSettings";
+import Notification from "./notifications-navbar/src/pages/Notifications";
+import VendorLeads from "./Vendor/src/pages/VendorLeads";
 
 import Lottie from "lottie-react";
 import loadingAnimation from "@/assets/animations/loading.json";
@@ -151,6 +153,7 @@ function RoleBasedRoutes() {
         <Route path="services/photography" element={<Photography />} />
         <Route path="services/makeup_artist" element={<MakeupArtist />} />
         <Route path="services/:serviceType/:id" element={<ServiceDetail />} />
+        <Route path="notifications" element={<Notification />} />
       </Route>
 
       {/* Vendor */}
@@ -166,6 +169,8 @@ function RoleBasedRoutes() {
         }
       >
         <Route path="/vendor/dashboard" element={<VendorPage />} />
+        <Route path="/vendor/notifications" element={<Notification />} />
+        <Route path="/vendor/leads" element={<VendorLeads />} />
       </Route>
 
       {/* Other Protected */}

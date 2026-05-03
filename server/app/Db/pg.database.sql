@@ -1,3 +1,8 @@
+CREATE TYPE lead_status AS ENUM (
+  'new', 'accepted', 'engaged', 'unlocked', 'contacted', 'closed'
+);
+
+
 CREATE TABLE customer (
     id              BIGSERIAL PRIMARY KEY,
     email           VARCHAR(255) UNIQUE NOT NULL,
@@ -588,3 +593,36 @@ CREATE TABLE makeup_artist_details (
 CREATE INDEX idx_makeup_service ON makeup_artist_details(service_id);
 CREATE INDEX idx_makeup_types ON makeup_artist_details USING GIN (makeup_types);
 CREATE INDEX idx_makeup_brands ON makeup_artist_details USING GIN (brands_used);
+
+
+
+CREATE TABLE leads ( 
+    id BIGSERIAL PRIMARY KEY, 
+    user_id BIGINT NOT NULL, 
+    vendor_id BIGINT NOT NULL, name VARCHAR(100), 
+    phone VARCHAR(20), 
+    email VARCHAR(100), 
+    event_type VARCHAR(50), 
+    event_date DATE, 
+    event_time TIME, 
+    location VARCHAR(255), 
+    budget_range VARCHAR(50), 
+    guests INTEGER, 
+    description TEXT, 
+    status VARCHAR(20) DEFAULT 'new', 
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP 
+    );
+
+
+CREATE TABLE lead_actions (
+    id BIGSERIAL PRIMARY KEY,
+    lead_id BIGINT REFERENCES leads(id) ON DELETE CASCADE,
+    vendor_id BIGINT NOT NULL,
+
+    action VARCHAR(20) NOT NULL,
+
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_vendor_leads ON leads(vendor_id);
+CREATE INDEX idx_user_leads ON leads(user_id);

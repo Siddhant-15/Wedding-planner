@@ -17,6 +17,7 @@ from app.routers.customer_services import customerservicerouter
 from app.routers.vendor import vendorrouter
 from app.routers.review import Reviewrouter
 from app.routers.wishlist_routes import wishlistrouter
+from app.routers.customer.lead_routes import LeadRouter
 
 
 # ─── Logging ────────────────────────────────────────────────────────────────
@@ -82,7 +83,7 @@ app.include_router(customerservicerouter, prefix=settings.API_V1_STR, tags=["cus
 app.include_router(wishlistrouter, prefix=settings.API_V1_STR)
 app.include_router(vendorrouter, prefix=settings.API_V1_STR)
 app.include_router(Reviewrouter, prefix=settings.API_V1_STR)
-
+app.include_router(LeadRouter, prefix=settings.API_V1_STR)
 
 # ─── Exception Handlers ─────────────────────────────────────────────────────
 @app.exception_handler(RequestValidationError)

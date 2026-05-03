@@ -18,7 +18,7 @@ import {
   Send,
   Inbox,
 } from "lucide-react";
-import styles from "./VendorLeads.module.css";
+import styles from "../styles/VendorLeads.module.css";
 
 const MOCK_LEADS = [
   {
@@ -159,9 +159,8 @@ export default function VendorLeads() {
             <button
               key={id}
               type="button"
-              className={`${styles.chip} ${
-                filter === id ? styles.chipActive : ""
-              }`}
+              className={`${styles.chip} ${filter === id ? styles.chipActive : ""
+                }`}
               onClick={() => setFilter(id)}
             >
               <Icon size={14} />
@@ -342,36 +341,32 @@ function LeadCard({ lead, onUpdate }) {
             <div className={styles.statusActions}>
               <button
                 type="button"
-                className={`${styles.statusBtn} ${
-                  lead.status === "contacted" ? styles.statusActive : ""
-                }`}
+                className={`${styles.statusBtn} ${lead.status === "contacted" ? styles.statusActive : ""
+                  }`}
                 onClick={() => setStatus("contacted")}
               >
                 <Phone size={13} /> Contacted
               </button>
               <button
                 type="button"
-                className={`${styles.statusBtn} ${
-                  lead.status === "quoted" ? styles.statusActive : ""
-                }`}
+                className={`${styles.statusBtn} ${lead.status === "quoted" ? styles.statusActive : ""
+                  }`}
                 onClick={() => setStatus("quoted")}
               >
                 <FileText size={13} /> Quote Sent
               </button>
               <button
                 type="button"
-                className={`${styles.statusBtn} ${
-                  lead.status === "won" ? styles.statusActive : ""
-                }`}
+                className={`${styles.statusBtn} ${lead.status === "won" ? styles.statusActive : ""
+                  }`}
                 onClick={() => setStatus("won")}
               >
                 <Trophy size={13} /> Won
               </button>
               <button
                 type="button"
-                className={`${styles.statusBtn} ${
-                  lead.status === "lost" ? styles.statusActive : ""
-                }`}
+                className={`${styles.statusBtn} ${lead.status === "lost" ? styles.statusActive : ""
+                  }`}
                 onClick={() => setStatus("lost")}
               >
                 <TrendingDown size={13} /> Lost

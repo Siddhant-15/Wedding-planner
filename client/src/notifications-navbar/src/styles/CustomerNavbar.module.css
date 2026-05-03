@@ -82,9 +82,7 @@
     transition: transform 220ms ease;
 }
 
-.navLink:hover {
-    color: hsl(var(--brand));
-}
+.navLink:hover { color: hsl(var(--brand)); }
 
 .navLink:hover::after,
 .navLinkActive::after {
@@ -92,9 +90,7 @@
     transform-origin: bottom left;
 }
 
-.navLinkActive {
-    color: hsl(var(--brand));
-}
+.navLinkActive { color: hsl(var(--brand)); }
 
 /* CTA */
 .cta {
@@ -195,43 +191,23 @@
         padding: 0.75rem 1.1rem;
         gap: 0.85rem;
     }
-
-    .center {
-        gap: 1rem;
-    }
-
-    .navLink {
-        font-size: 0.9rem;
-    }
+    .center { gap: 1rem; }
+    .navLink { font-size: 0.9rem; }
 }
 
 /* Mobile <768 — hamburger */
 @media (max-width: 767px) {
-    .menuBtn {
-        display: inline-flex;
-    }
-
-    .center {
-        display: none;
-    }
-
+    .menuBtn { display: inline-flex; }
+    .center  { display: none; }
     .inner {
         padding: 0.65rem 1rem;
         gap: 0.5rem;
         min-height: 64px;
     }
-
-    .navbarSpacer {
-        height: 64px;
-    }
+    .navbarSpacer { height: 64px; }
 }
 
 @media (max-width: 380px) {
-    .inner {
-        padding: 0.6rem 0.75rem;
-    }
-
-    .right {
-        gap: 0.35rem;
-    }
+    .inner { padding: 0.6rem 0.75rem; }
+    .right { gap: 0.35rem; }
 }

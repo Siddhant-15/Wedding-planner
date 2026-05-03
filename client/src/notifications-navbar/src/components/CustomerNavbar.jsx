@@ -9,7 +9,7 @@ import Brand from "./Brand";
 import IconButton from "./IconButton";
 import Dropdown from "./Dropdown";
 import MobileDrawer from "./MobileDrawer";
-import NotificationBell from "./NotificationBell";
+import NotificationBell from "./Notifications/NotificationBell";
 
 import {
     SERVICE_LINKS,
@@ -47,15 +47,15 @@ function CustomerNavbar() {
     // Tablet trims to the most important links
     const navLinks = isCompact
         ? [
-            { label: "Home", to: "/" },
-            { label: "Venues", to: "/services/venue" },
-        ]
+              { label: "Home", to: "/" },
+              { label: "Venues", to: "/services/venue" },
+          ]
         : [
-            { label: "Home", to: "/" },
-            { label: "Venues", to: "/services/venue" },
-            { label: "Catering", to: "/services/catering" },
-            { label: "Photography", to: "/services/photography" },
-        ];
+              { label: "Home", to: "/" },
+              { label: "Venues", to: "/services/venue" },
+              { label: "Catering", to: "/services/catering" },
+              { label: "Photography", to: "/services/photography" },
+          ];
 
     const profileItems = [
         {
@@ -114,7 +114,7 @@ function CustomerNavbar() {
                         {isMobile && (
                             <>
                                 {isAuthenticated && (
-                                    <NotificationBell basePath="/customer/notifications" />
+                                    <NotificationBell basePath="/notifications" />
                                 )}
                                 <button
                                     className={styles.menuBtn}
@@ -139,7 +139,7 @@ function CustomerNavbar() {
                                             <Heart size={20} />
                                         </IconButton>
 
-                                        <NotificationBell basePath="/customer/notifications" />
+                                        <NotificationBell basePath="/notifications" />
                                     </>
                                 )}
 

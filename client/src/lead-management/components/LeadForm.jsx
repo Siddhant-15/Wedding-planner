@@ -59,7 +59,7 @@ const isValidPhone = (p) => /^[6-9]\d{9}$/.test(p.replace(/\s+/g, ""));
 const isValidEmail = (e) => !e || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
 
 export default function LeadForm({
-  vendorName = "this vendor",
+  vendorName,
   expectedResponseTime = "2 hours",
   onSubmit,
 }) {

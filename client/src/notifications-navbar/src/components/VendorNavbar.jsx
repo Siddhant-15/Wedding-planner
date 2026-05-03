@@ -7,7 +7,7 @@ import { useAuth } from "@/context/AuthContext";
 import Brand from "./Brand";
 import Dropdown from "./Dropdown";
 import MobileDrawer from "./MobileDrawer";
-import NotificationBell from "./NotificationBell";
+import NotificationBell from "./Notifications/NotificationBell";
 
 import { useScrolled, useIsMobile } from "../hooks/useNavbarBehavior";
 import styles from "../styles/VendorNavbar.module.css";
@@ -32,16 +32,16 @@ function VendorNavbar() {
 
     const navLinks = isCompact
         ? [
-            { label: "Dashboard", to: "/vendor/dashboard" },
-            { label: "Services", to: "/vendor/services" },
-            { label: "Bookings", to: "/vendor/bookings" },
-        ]
+              { label: "Dashboard", to: "/vendor/dashboard" },
+              { label: "Services", to: "/vendor/services" },
+              { label: "Bookings", to: "/vendor/bookings" },
+          ]
         : [
-            { label: "Dashboard", to: "/vendor/dashboard" },
-            { label: "My Services", to: "/vendor/services" },
-            { label: "Bookings", to: "/vendor/bookings" },
-            { label: "Analytics", to: "/vendor/analytics" },
-        ];
+              { label: "Dashboard", to: "/vendor/dashboard" },
+              { label: "My Services", to: "/vendor/services" },
+              { label: "Bookings", to: "/vendor/bookings" },
+              { label: "Analytics", to: "/vendor/analytics" },
+          ];
 
     const profileItems = [
         {
@@ -88,7 +88,7 @@ function VendorNavbar() {
                         {/* MOBILE */}
                         {isMobile && (
                             <>
-                                <NotificationBell basePath="/vendor/notifications" />
+                                <NotificationBell basePath="/notifications" />
                                 <button
                                     className={styles.menuBtn}
                                     onClick={() => setDrawerOpen(true)}
@@ -102,7 +102,7 @@ function VendorNavbar() {
                         {/* DESKTOP / TABLET */}
                         {!isMobile && (
                             <>
-                                <NotificationBell basePath="/vendor/notifications" />
+                                <NotificationBell basePath="/notifications" />
 
                                 <Dropdown
                                     open={profileOpen}
@@ -133,7 +133,7 @@ function VendorNavbar() {
                 isAuthenticated={true}
                 user={user}
                 onLogout={handleLogout}
-                notificationsHref="/vendor/notifications"
+                notificationsHref="/notifications"
             />
         </>
     );

@@ -17,6 +17,14 @@ export const ENDPOINTS = {
         DETAIL: (id) => `/services/detail/${id}`,
     },
 
+    LEADS: {
+        CREATE: "/leads/create",
+        GET_ALL: "/leads/get-all",
+        GET_BY_USER: "/leads/get-by-user",
+        GET_BY_TYPE: "/leads/get-by-type",
+        GET_BY_ID: "/leads/get-by-id",
+    },
+
     USER: {
         PROFILE: "/users/me",
         VERIFY: "/users/verify",

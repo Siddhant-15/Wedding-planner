@@ -3,7 +3,7 @@ from typing import Optional, List, Dict
 
 from sqlalchemy import (
     String, Boolean, Text, SmallInteger, func, Index, DECIMAL,
-    DateTime, BigInteger, ForeignKey, UniqueConstraint, Integer, Date
+    DateTime, BigInteger, ForeignKey, UniqueConstraint, Integer, Date, Time
 )
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
@@ -644,6 +644,58 @@ class WishlistItem(Base):
     )
     service: Mapped["Service"] = relationship("Service")
 
+
+class Lead(Base):
+    __tablename__ = "leads"
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, index=True)
+
+    user_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    vendor_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+
+    # 👇 Contact Info
+    name: Mapped[str] = mapped_column(String(100), nullable=True)
+    phone: Mapped[str] = mapped_column(String(20), nullable=True)
+    email: Mapped[str] = mapped_column(String(100), nullable=True)
+
+    # 👇 Event Info
+    event_type: Mapped[str] = mapped_column(String(50), nullable=True)
+    event_date: Mapped[datetime] = mapped_column(Date, nullable=True)
+    event_time: Mapped[datetime] = mapped_column(Time, nullable=True)
+
+    location: Mapped[str] = mapped_column(String(255), nullable=True)
+    budget_range: Mapped[str] = mapped_column(String(50), nullable=True)
+    guests: Mapped[int] = mapped_column(Integer, nullable=True)
+
+    description: Mapped[str] = mapped_column(Text, nullable=True)
+
+    # 👇 System
+    status: Mapped[str] = mapped_column(String(20), default="new")
+    created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow)
+
+    # 👇 Relations
+    actions = relationship(
+        "LeadAction",
+        back_populates="lead",
+        cascade="all, delete"
+    )
+
+class LeadAction(Base):
+    __tablename__ = "lead_actions"
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+
+    lead_id: Mapped[int] = mapped_column(
+        BigInteger,
+        ForeignKey("leads.id", ondelete="CASCADE")
+    )
+    vendor_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+
+    action: Mapped[str] = mapped_column(String(20), nullable=False)
+
+    created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow)
+
+    lead = relationship("Lead", back_populates="actions")
 
 class UnavailableDate(Base):
     __tablename__ = "unavailable_dates"

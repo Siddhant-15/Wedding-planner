@@ -14,10 +14,12 @@ import GenericSpecsCard from "../../components/customer/specs/GenericSpecsCard";
 import AvailabilityForm from "../../components/customer/forms/AvailabilityForm";
 import ReviewsList from "../../components/customer/reviews/ReviewsList";
 import WriteReviewForm from "../../components/customer/reviews/WriteReviewForm";
+import LeadForm from "../../../../lead-management/components/LeadForm";
 // import Navbar from "../../../../navbar/components/Navbar";
 import Modal from "../../../../components/ui/Modal";
 
 import { customerService } from "../../../../utils/api/services/customer.service";
+import { leadsService } from "../../../../utils/api/services/leads.service";
 import { reviewService } from "../../../../utils/api/services/review.service";
 import { titleCase } from "../../utils/format";
 import styles from "../../styles/ServiceDetail.module.css";
@@ -35,7 +37,36 @@ export default function ServiceDetail() {
 
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [isAvailabilityModalOpen, setIsAvailabilityModalOpen] = useState(false);
+  const [lead, setLead] = useState(null);
   const navigate = useNavigate();
+
+  const handleLeadSubmit = async (payload) => {
+    try {
+      const formattedPayload = {
+        vendor_id: service.vendor?.id,
+
+        event_type: payload.eventType,
+        event_date: payload.eventDate,
+        event_time: payload.eventTime,
+
+        location: payload.location,
+        budget: payload.budget,
+        guests: payload.guests,
+
+        description: payload.description,
+
+        name: payload.name,
+        phone: payload.phone,
+        email: payload.email,
+      };
+
+      await leadsService.createLead(formattedPayload);
+      setLead(res);
+      setIsAvailabilityModalOpen(false);
+    } catch (err) {
+      console.error("Lead creation failed:", err);
+    }
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -227,25 +258,29 @@ export default function ServiceDetail() {
           <aside className={styles.sidebar}>
             <div className={styles.stickyWrap}>
               <VendorCard vendor={service.vendor} />
-              <button
-                onClick={() => setIsAvailabilityModalOpen(true)}
-                className={styles.checkAvailabilityBtn}
-              >
-                <CalendarRange size={18} /> Check Availability
-              </button>
+              {lead ? (
+                <LeadStatus
+                  status={lead.status}
+                  fallback={false}
+                  vendorName={service.name}
+                />
+              ) : (
+                <button
+                  onClick={() => setIsAvailabilityModalOpen(true)}
+                  className={styles.checkAvailabilityBtn}
+                >
+                  <CalendarRange size={18} /> Get Quote
+                </button>
+              )}
 
               <Modal
                 isOpen={isAvailabilityModalOpen}
                 onClose={() => setIsAvailabilityModalOpen(false)}
               >
-                <AvailabilityForm
-                  serviceName={service.name}
-                  contactPhone={service.vendor?.phone || "+91 98765 43210"}
-                  unavailableDates={service.unavailable_dates || []}
-                  onSubmit={async (data) => {
-                    // TODO: hook up to real API
-                    console.log("Inquiry submitted", data);
-                  }}
+                <LeadForm
+                  vendorName={service.name}
+                  expectedResponseTime="2 hours"
+                  onSubmit={handleLeadSubmit}
                 />
               </Modal>
             </div>
