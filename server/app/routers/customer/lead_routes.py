@@ -26,7 +26,7 @@ async def get_vendor(
     db: AsyncSession = Depends(get_db),
     user=Depends(get_current_user)
 ):
-    return await get_vendor_leads(db, user.id)
+    return await get_vendor_leads(db, user["id"])
 
 
 @LeadRouter.post("/action")

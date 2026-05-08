@@ -626,3 +626,24 @@ CREATE TABLE lead_actions (
 
 CREATE INDEX idx_vendor_leads ON leads(vendor_id);
 CREATE INDEX idx_user_leads ON leads(user_id);
+
+
+CREATE TABLE notifications (
+    id BIGSERIAL PRIMARY KEY,
+
+    recipient_id BIGINT NOT NULL,
+    recipient_type VARCHAR(20) NOT NULL, -- "customer" | "vendor"
+
+    type VARCHAR(50), -- "new_lead", "quote_received", etc
+
+    title VARCHAR(255),
+    message TEXT,
+
+    data JSONB, -- payload (lead_id, quote_id etc)
+
+    is_read BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_notifications_recipient 
+ON notifications(recipient_id, recipient_type);

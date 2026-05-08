@@ -41,6 +41,7 @@ function VendorNavbar() {
             { label: "My Services", to: "/vendor/services" },
             { label: "Bookings", to: "/vendor/bookings" },
             { label: "Analytics", to: "/vendor/analytics" },
+            { label: "Leads", to: "/vendor/leads" },
         ];
 
     const profileItems = [

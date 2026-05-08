@@ -18,6 +18,10 @@ from app.routers.vendor import vendorrouter
 from app.routers.review import Reviewrouter
 from app.routers.wishlist_routes import wishlistrouter
 from app.routers.customer.lead_routes import LeadRouter
+from app.routers.notification.notification import NotificationRouter
+from app.routers.notification.websocket import router as notification_ws_router
+
+
 
 
 # ─── Logging ────────────────────────────────────────────────────────────────
@@ -84,6 +88,8 @@ app.include_router(wishlistrouter, prefix=settings.API_V1_STR)
 app.include_router(vendorrouter, prefix=settings.API_V1_STR)
 app.include_router(Reviewrouter, prefix=settings.API_V1_STR)
 app.include_router(LeadRouter, prefix=settings.API_V1_STR)
+app.include_router(notification_ws_router, prefix=settings.API_V1_STR)
+app.include_router(NotificationRouter, prefix=settings.API_V1_STR)
 
 # ─── Exception Handlers ─────────────────────────────────────────────────────
 @app.exception_handler(RequestValidationError)

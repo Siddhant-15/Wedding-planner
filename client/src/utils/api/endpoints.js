@@ -19,7 +19,7 @@ export const ENDPOINTS = {
 
     LEADS: {
         CREATE: "/leads/create",
-        GET_ALL: "/leads/get-all",
+        GET_ALL: "/leads/vendor",
         GET_BY_USER: "/leads/get-by-user",
         GET_BY_TYPE: "/leads/get-by-type",
         GET_BY_ID: "/leads/get-by-id",
@@ -48,5 +48,11 @@ export const ENDPOINTS = {
         CREATE: "/reviews/create-customer-review",
         UPDATE: (id) => `/reviews/update/${id}`,
         DELETE: (id) => `/reviews/delete/${id}`,
+    },
+
+    NOTIFICATIONS: {
+        GET_ALL: "/notification/get-all",
+        UNREAD_COUNT: "/notification/unread-count",
+        MARK_READ: (id) => `/notification/mark-read/${id}`,
     },
 };

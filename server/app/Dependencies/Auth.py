@@ -4,6 +4,7 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from jose import JWTError, jwt
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from fastapi import WebSocket, Query
 
 from app.config import settings
 from app.Db.db import get_db
@@ -73,3 +74,23 @@ async def get_current_user(
         "role": role,
         "is_verified": user.is_verified,
     }
+
+
+async def get_current_user_ws(
+    websocket: WebSocket,
+    token: str = Query(...)
+):
+    try:
+        payload = jwt.decode(
+            token,
+            settings.JWT_SECRET_KEY,
+            algorithms=[settings.ALGORITHM]
+        )
+
+        return {
+            "id": payload.get("id"),   # ⚠️ ensure you store this in JWT
+            "role": payload.get("role")
+        }
+
+    except JWTError:
+        await websocket.close(code=1008)

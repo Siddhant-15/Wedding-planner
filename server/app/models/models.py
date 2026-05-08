@@ -697,6 +697,26 @@ class LeadAction(Base):
 
     lead = relationship("Lead", back_populates="actions")
 
+
+
+class Notification(Base):
+    __tablename__ = "notifications"
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+
+    recipient_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    recipient_type: Mapped[str] = mapped_column(String(20), nullable=False)
+
+    type: Mapped[str] = mapped_column(String(50))
+    title: Mapped[str] = mapped_column(String(255))
+    message: Mapped[str] = mapped_column(Text)
+
+    data: Mapped[dict] = mapped_column(JSONB, nullable=True)
+
+    is_read: Mapped[bool] = mapped_column(default=False)
+
+    created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow)
+
 class UnavailableDate(Base):
     __tablename__ = "unavailable_dates"
 

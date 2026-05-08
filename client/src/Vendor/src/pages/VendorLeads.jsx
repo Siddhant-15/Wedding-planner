@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   Calendar,
   MapPin,
@@ -18,57 +18,9 @@ import {
   Send,
   Inbox,
 } from "lucide-react";
-import styles from "../styles/VendorLeads.module.css";
 
-const MOCK_LEADS = [
-  {
-    id: "L-1024",
-    customerName: "Riya Sharma",
-    eventType: "Wedding",
-    eventDate: "2026-06-12",
-    location: "Jaipur, Rajasthan",
-    budget: "₹3,00,000 – ₹5,00,000",
-    guests: 320,
-    description:
-      "Looking for a destination wedding setup with floral décor, royal stage, and stage lighting.",
-    phone: "+91 98••• •••12",
-    fullPhone: "+91 98765 43212",
-    receivedAt: "2 hours ago",
-    stage: "new",
-    status: null,
-  },
-  {
-    id: "L-1025",
-    customerName: "Aman Verma",
-    eventType: "Reception",
-    eventDate: "2026-05-04",
-    location: "Mumbai, Maharashtra",
-    budget: "₹1,00,000 – ₹3,00,000",
-    guests: 180,
-    description:
-      "Need an elegant reception décor with pastel theme and entrance gate.",
-    phone: "+91 99••• •••44",
-    fullPhone: "+91 99876 54344",
-    receivedAt: "5 hours ago",
-    stage: "accepted",
-    status: "contacted",
-  },
-  {
-    id: "L-1026",
-    customerName: "Neha Patel",
-    eventType: "Engagement",
-    eventDate: "2026-04-18",
-    location: "Ahmedabad, Gujarat",
-    budget: "Under ₹50,000",
-    guests: 80,
-    description: "Intimate engagement at home, soft lighting and minimal floral.",
-    phone: "+91 90••• •••77",
-    fullPhone: "+91 90123 45677",
-    receivedAt: "1 day ago",
-    stage: "new",
-    status: null,
-  },
-];
+import styles from "../styles/VendorLeads.module.css";
+import { leadsService } from "../../../utils/api/services/leads.service";
 
 const FILTERS = [
   { id: "all", label: "All Leads", Icon: Inbox },
@@ -86,22 +38,58 @@ const STATUS_LABELS = {
 };
 
 export default function VendorLeads() {
-  const [leads, setLeads] = useState(MOCK_LEADS);
+  const [leads, setLeads] = useState([]);
   const [filter, setFilter] = useState("all");
   const [query, setQuery] = useState("");
+  const [loading, setLoading] = useState(true);
+
+  // ✅ FETCH FROM BACKEND
+  useEffect(() => {
+    const fetchLeads = async () => {
+      try {
+        const data = await leadsService.getAllLeads();
+
+        // 🔥 normalize backend → frontend format
+        const formatted = data.map((l) => ({
+          id: l.id,
+          customerName: l.name,
+          eventType: l.event_type,
+          eventDate: l.event_date,
+          location: l.location,
+          budget: l.budget_range,
+          guests: l.guests,
+          description: l.description,
+          phone: maskPhone(l.phone),
+          fullPhone: l.phone,
+          receivedAt: timeAgo(l.created_at),
+          stage: l.status === "new" ? "new" : "accepted",
+          status: null,
+        }));
+
+        setLeads(formatted);
+      } catch (err) {
+        console.error("Failed to fetch leads", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchLeads();
+  }, []);
 
   const update = (id, patch) =>
     setLeads((prev) => prev.map((l) => (l.id === id ? { ...l, ...patch } : l)));
 
   const counts = useMemo(() => {
     const c = { all: leads.length, new: 0, accepted: 0, won: 0, lost: 0 };
+
     leads.forEach((l) => {
-      if (l.stage === "rejected") return;
       if (l.status === "won") c.won++;
       else if (l.status === "lost") c.lost++;
       else if (l.stage === "accepted" || l.stage === "unlocked") c.accepted++;
       else if (l.stage === "new") c.new++;
     });
+
     return c;
   }, [leads]);
 
@@ -113,21 +101,23 @@ export default function VendorLeads() {
           .join(" ")
           .toLowerCase()
           .includes(query.toLowerCase());
+
       if (!matchesQ) return false;
 
-      if (filter === "all") return l.stage !== "rejected";
+      if (filter === "all") return true;
       if (filter === "new") return l.stage === "new";
       if (filter === "accepted")
-        return (
-          (l.stage === "accepted" || l.stage === "unlocked") &&
-          l.status !== "won" &&
-          l.status !== "lost"
-        );
+        return l.stage === "accepted" || l.stage === "unlocked";
       if (filter === "won") return l.status === "won";
       if (filter === "lost") return l.status === "lost";
+
       return true;
     });
   }, [leads, filter, query]);
+
+  if (loading) {
+    return <div className={styles.page}>Loading leads...</div>;
+  }
 
   return (
     <div className={styles.page}>
@@ -154,11 +144,11 @@ export default function VendorLeads() {
         <span className={styles.filtersLabel}>
           <Filter size={14} /> Filter
         </span>
+
         <div className={styles.filterChips}>
           {FILTERS.map(({ id, label, Icon }) => (
             <button
               key={id}
-              type="button"
               className={`${styles.chip} ${filter === id ? styles.chipActive : ""
                 }`}
               onClick={() => setFilter(id)}
@@ -173,9 +163,8 @@ export default function VendorLeads() {
 
       {filtered.length === 0 ? (
         <div className={styles.empty}>
-          <Inbox size={36} strokeWidth={1.4} />
-          <h3>No leads to show</h3>
-          <p>Try changing filters or check back soon.</p>
+          <Inbox size={36} />
+          <h3>No leads</h3>
         </div>
       ) : (
         <div className={styles.grid}>
@@ -193,19 +182,8 @@ function LeadCard({ lead, onUpdate }) {
   const [quote, setQuote] = useState("");
 
   const accept = () => onUpdate(lead.id, { stage: "accepted" });
-  const reject = () => onUpdate(lead.id, { stage: "rejected" });
   const unlock = () => onUpdate(lead.id, { stage: "unlocked" });
   const setStatus = (status) => onUpdate(lead.id, { status });
-  const sendMessage = () => {
-    if (!message.trim()) return;
-    setStatus("contacted");
-    setMessage("");
-  };
-  const sendQuote = () => {
-    if (!quote.trim()) return;
-    setStatus("quoted");
-    setQuote("");
-  };
 
   const isUnlocked = lead.stage === "unlocked";
   const isAccepted = lead.stage === "accepted" || lead.stage === "unlocked";
@@ -219,24 +197,20 @@ function LeadCard({ lead, onUpdate }) {
 
   return (
     <article className={styles.card}>
+      {/* HEADER */}
       <header className={styles.cardHeader}>
         <div>
           <h3 className={styles.customerName}>{lead.customerName}</h3>
-          <span className={styles.cardMeta}>
-            {lead.id} · {lead.receivedAt}
-          </span>
+          <span className={styles.cardMeta}>{lead.receivedAt}</span>
         </div>
         <span className={styles.eventBadge}>{lead.eventType}</span>
       </header>
 
+      {/* META LIST ✅ FIXED */}
       <ul className={styles.metaList}>
         <li>
           <Calendar size={14} />
-          {new Date(lead.eventDate).toLocaleDateString("en-IN", {
-            day: "numeric",
-            month: "short",
-            year: "numeric",
-          })}
+          {new Date(lead.eventDate).toLocaleDateString("en-IN")}
         </li>
         <li>
           <MapPin size={14} /> {lead.location}
@@ -244,15 +218,15 @@ function LeadCard({ lead, onUpdate }) {
         <li>
           <Wallet size={14} /> {lead.budget}
         </li>
-        {lead.guests && (
-          <li>
-            <Users size={14} /> {lead.guests} guests
-          </li>
-        )}
+        <li>
+          <Users size={14} /> {lead.guests}
+        </li>
       </ul>
 
+      {/* DESCRIPTION */}
       <p className={styles.description}>{lead.description}</p>
 
+      {/* PHONE ROW ✅ FIXED */}
       <div className={styles.phoneRow}>
         <span className={styles.phoneLabel}>
           {isUnlocked ? <Unlock size={14} /> : <Lock size={14} />} Phone
@@ -262,26 +236,27 @@ function LeadCard({ lead, onUpdate }) {
         </span>
       </div>
 
+      {/* STATUS */}
       {lead.status && (
         <span className={`${styles.statusPill} ${statusVariant}`}>
           {STATUS_LABELS[lead.status]}
         </span>
       )}
 
+      {/* ACTIONS ✅ FIXED */}
       <div className={styles.actions}>
         {lead.stage === "new" && (
           <>
             <button
-              type="button"
               className={`${styles.btn} ${styles.btnPrimary}`}
               onClick={accept}
             >
               <CheckCircle2 size={16} /> Accept Lead
             </button>
+
             <button
-              type="button"
               className={`${styles.btn} ${styles.btnGhost}`}
-              onClick={reject}
+              onClick={() => onUpdate(lead.id, { stage: "rejected" })}
             >
               <XCircle size={16} /> Reject
             </button>
@@ -290,47 +265,35 @@ function LeadCard({ lead, onUpdate }) {
 
         {isAccepted && (
           <>
+            {/* MESSAGE */}
             <div className={styles.inlineInput}>
               <MessageSquare size={14} />
               <input
-                type="text"
-                placeholder="Type a quick message…"
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
+                placeholder="Type a message..."
               />
-              <button
-                type="button"
-                className={styles.iconBtn}
-                onClick={sendMessage}
-                aria-label="Send message"
-                disabled={!message.trim()}
-              >
+              <button className={styles.iconBtn}>
                 <Send size={14} />
               </button>
             </div>
 
+            {/* QUOTE */}
             <div className={styles.inlineInput}>
               <FileText size={14} />
               <input
-                type="text"
-                placeholder="Send a quote (e.g. ₹2,50,000)"
                 value={quote}
                 onChange={(e) => setQuote(e.target.value)}
+                placeholder="Send quote"
               />
-              <button
-                type="button"
-                className={styles.iconBtn}
-                onClick={sendQuote}
-                aria-label="Send quote"
-                disabled={!quote.trim()}
-              >
+              <button className={styles.iconBtn}>
                 <Send size={14} />
               </button>
             </div>
 
+            {/* UNLOCK */}
             {!isUnlocked && (
               <button
-                type="button"
                 className={`${styles.btn} ${styles.btnPrimary}`}
                 onClick={unlock}
               >
@@ -338,33 +301,33 @@ function LeadCard({ lead, onUpdate }) {
               </button>
             )}
 
+            {/* STATUS ACTIONS */}
             <div className={styles.statusActions}>
               <button
-                type="button"
                 className={`${styles.statusBtn} ${lead.status === "contacted" ? styles.statusActive : ""
                   }`}
                 onClick={() => setStatus("contacted")}
               >
                 <Phone size={13} /> Contacted
               </button>
+
               <button
-                type="button"
                 className={`${styles.statusBtn} ${lead.status === "quoted" ? styles.statusActive : ""
                   }`}
                 onClick={() => setStatus("quoted")}
               >
                 <FileText size={13} /> Quote Sent
               </button>
+
               <button
-                type="button"
                 className={`${styles.statusBtn} ${lead.status === "won" ? styles.statusActive : ""
                   }`}
                 onClick={() => setStatus("won")}
               >
                 <Trophy size={13} /> Won
               </button>
+
               <button
-                type="button"
                 className={`${styles.statusBtn} ${lead.status === "lost" ? styles.statusActive : ""
                   }`}
                 onClick={() => setStatus("lost")}
@@ -377,4 +340,20 @@ function LeadCard({ lead, onUpdate }) {
       </div>
     </article>
   );
+}
+
+/* ------------------ HELPERS ------------------ */
+
+function maskPhone(phone) {
+  return phone?.replace(/(\d{2})\d{6}(\d{2})/, "$1••••••$2");
+}
+
+function timeAgo(date) {
+  const diff = Math.floor((Date.now() - new Date(date)) / 1000);
+
+  if (diff < 60) return "just now";
+  if (diff < 3600) return `${Math.floor(diff / 60)} min ago`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)} hr ago`;
+
+  return `${Math.floor(diff / 86400)} day ago`;
 }
