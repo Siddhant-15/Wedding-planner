@@ -29,6 +29,7 @@ function CustomerNavbar() {
 
     const { isAuthenticated, user, logout } = useAuth();
 
+
     const { items: wishlistItems } = useWishlist();
     const wishlistCount = wishlistItems?.length || 0;
 
@@ -60,11 +61,11 @@ function CustomerNavbar() {
     const profileItems = [
         {
             label: user?.name || "My Account",
-            desc: user?.email,
+            desc: user?.id,
             icon: <span className={styles.avatarSmall}>{initial}</span>,
         },
         { divider: true },
-        ...ACCOUNT_LINKS.map((a) => ({ label: a.label, to: a.to, icon: a.icon })),
+        ...ACCOUNT_LINKS.map((a) => ({ label: a.label, to: a.to, icon: a.icon, desc: a.desc })),
         { divider: true },
         { label: "Logout", icon: LogOut, onClick: handleLogout, danger: true },
     ];

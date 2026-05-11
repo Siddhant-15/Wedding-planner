@@ -84,9 +84,15 @@ export const AUTH_LINKS = [
 export const ACCOUNT_LINKS = [
   {
     label: "My Account",
-    to: "/my-account",
+    to: "/customer/profile",
     icon: User,
     desc: "View account details",
+  },
+  {
+    label: "View My Requests",
+    to: "/customer/request",
+    icon: Calendar,
+    desc: "Track your requests",
   },
   {
     label: "Bookings",

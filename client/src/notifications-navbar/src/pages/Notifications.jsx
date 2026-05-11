@@ -1,5 +1,12 @@
-import React, { useEffect, useMemo, useState, useCallback } from "react";
+import React, {
+  useEffect,
+  useMemo,
+  useState,
+  useCallback,
+} from "react";
+
 import { useNavigate } from "react-router-dom";
+
 import {
   Bell,
   Sparkles,
@@ -9,31 +16,47 @@ import {
   Check,
   Inbox,
 } from "lucide-react";
+
 import styles from "./Notifications.module.css";
 
 import { notificationService } from "../../../utils/api/services/notification.service";
 
 const ICONS = {
-  new_lead: Sparkles,
-  message: MessageSquare,
-  alert: AlertTriangle,
-  review: Star,
+  new_lead: {
+    icon: Sparkles,
+    tone: "tone_brand",
+  },
+
+  message: {
+    icon: MessageSquare,
+    tone: "tone_success",
+  },
+
+  alert: {
+    icon: AlertTriangle,
+    tone: "tone_warning",
+  },
+
+  review: {
+    icon: Star,
+    tone: "tone_gold",
+  },
 };
 
 export default function Notifications() {
   const navigate = useNavigate();
 
   const [items, setItems] = useState([]);
-  const [filter, setFilter] = useState("all"); // all | unread
+  const [filter, setFilter] = useState("all");
   const [loading, setLoading] = useState(true);
 
-  // ✅ FETCH NOTIFICATIONS
+  // FETCH NOTIFICATIONS
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const data = await notificationService.getAll();
+        const data =
+          await notificationService.getAll();
 
-        // 🔥 normalize backend → frontend
         const mapped = (data || []).map((n) => ({
           id: n.id,
           title: n.title,
@@ -46,7 +69,10 @@ export default function Notifications() {
 
         setItems(mapped);
       } catch (err) {
-        console.error("Failed to fetch notifications", err);
+        console.error(
+          "Failed to fetch notifications",
+          err
+        );
       } finally {
         setLoading(false);
       }
@@ -55,65 +81,93 @@ export default function Notifications() {
     fetchData();
   }, []);
 
-  // ✅ FILTER LOGIC
+  // FILTER
   const filtered = useMemo(() => {
-    if (filter === "unread") return items.filter((n) => !n.isRead);
+    if (filter === "unread") {
+      return items.filter((n) => !n.isRead);
+    }
+
     return items;
   }, [items, filter]);
 
-  const unreadCount = useMemo(
-    () => items.filter((n) => !n.isRead).length,
-    [items]
-  );
+  const unreadCount = useMemo(() => {
+    return items.filter((n) => !n.isRead).length;
+  }, [items]);
 
-  // ✅ MARK SINGLE
+  // MARK SINGLE
   const markRead = useCallback(async (id) => {
     try {
       await notificationService.markAsRead(id);
 
       setItems((prev) =>
-        prev.map((n) => (n.id === id ? { ...n, isRead: true } : n))
+        prev.map((n) =>
+          n.id === id
+            ? {
+              ...n,
+              isRead: true,
+            }
+            : n
+        )
       );
     } catch (err) {
       console.error("Mark read failed", err);
     }
   }, []);
 
-  // ✅ MARK ALL
+  // MARK ALL
   const markAllRead = useCallback(async () => {
     try {
       await notificationService.markAllRead();
 
-      setItems((prev) => prev.map((n) => ({ ...n, isRead: true })));
+      setItems((prev) =>
+        prev.map((n) => ({
+          ...n,
+          isRead: true,
+        }))
+      );
     } catch (err) {
       console.error("Mark all failed", err);
     }
   }, []);
 
-  // ✅ HANDLE CLICK
+  // CLICK HANDLER
   const handleClick = useCallback(
     async (n) => {
-      if (!n.isRead) {
-        await markRead(n.id);
-      }
+      try {
+        if (!n.isRead) {
+          await markRead(n.id);
+        }
 
-      // 🔥 route logic based on type
-      if (n.type === "new_lead") {
-        navigate(`/vendor/leads/${n.data?.lead_id}`);
-      } else if (n.type === "quote") {
-        navigate(`/customer/quotes/${n.data?.quote_id}`);
-      } else {
-        navigate("/"); // fallback
+        if (n.type === "new_lead") {
+          navigate(
+            `/vendor/leads/${n.data?.lead_id}`
+          );
+        } else if (n.type === "quote") {
+          navigate(
+            `/customer/quotes/${n.data?.quote_id}`
+          );
+        } else {
+          navigate("/");
+        }
+      } catch (err) {
+        console.error(err);
       }
     },
     [markRead, navigate]
   );
 
-  // ✅ LOADING STATE
+  // LOADING
   if (loading) {
     return (
       <div className={styles.page}>
-        <p>Loading notifications...</p>
+        <div className={styles.loadingWrap}>
+          <Bell
+            size={28}
+            className={styles.spinner}
+          />
+
+          <p>Loading notifications...</p>
+        </div>
       </div>
     );
   }
@@ -123,8 +177,11 @@ export default function Notifications() {
       {/* HEADER */}
       <header className={styles.header}>
         <div className={styles.headerInner}>
-          <div>
-            <h1 className={styles.title}>Notifications</h1>
+          <div className={styles.headerLeft}>
+            <h1 className={styles.title}>
+              Notifications
+            </h1>
+
             <p className={styles.subtitle}>
               {unreadCount > 0
                 ? `${unreadCount} unread`
@@ -135,7 +192,10 @@ export default function Notifications() {
           <div className={styles.headerRight}>
             <div className={styles.tabs}>
               <button
-                className={`${styles.tab} ${filter === "all" ? styles.tabActive : ""
+                type="button"
+                className={`${styles.tab} ${filter === "all"
+                    ? styles.tabActive
+                    : ""
                   }`}
                 onClick={() => setFilter("all")}
               >
@@ -143,18 +203,29 @@ export default function Notifications() {
               </button>
 
               <button
-                className={`${styles.tab} ${filter === "unread" ? styles.tabActive : ""
+                type="button"
+                className={`${styles.tab} ${filter === "unread"
+                    ? styles.tabActive
+                    : ""
                   }`}
-                onClick={() => setFilter("unread")}
+                onClick={() =>
+                  setFilter("unread")
+                }
               >
                 Unread
+
                 {unreadCount > 0 && (
-                  <span className={styles.tabBadge}>{unreadCount}</span>
+                  <span
+                    className={styles.tabBadge}
+                  >
+                    {unreadCount}
+                  </span>
                 )}
               </button>
             </div>
 
             <button
+              type="button"
               className={styles.markAll}
               onClick={markAllRead}
               disabled={!unreadCount}
@@ -173,40 +244,88 @@ export default function Notifications() {
             <div className={styles.emptyIcon}>
               <Inbox size={32} />
             </div>
+
             <h3>No notifications</h3>
-            <p>You’ll see updates here.</p>
+
+            <p>
+              You’ll see updates here.
+            </p>
           </div>
         )}
 
-        {filtered.map((n) => {
-          const Icon = ICONS[n.type] || Bell;
+        <div className={styles.cards}>
+          {filtered.map((n) => {
+            const notificationMeta =
+              ICONS[n.type] || {
+                icon: Bell,
+                tone: "tone_brand",
+              };
 
-          return (
-            <button
-              key={n.id}
-              onClick={() => handleClick(n)}
-              className={`${styles.card} ${!n.isRead ? styles.cardUnread : ""
-                }`}
-            >
-              <span className={styles.cardIcon}>
-                <Icon size={18} />
-              </span>
+            const Icon =
+              notificationMeta.icon;
 
-              <div className={styles.cardBody}>
-                <div className={styles.cardTop}>
-                  <h4 className={styles.cardTitle}>{n.title}</h4>
-                  <span className={styles.cardTime}>
-                    {new Date(n.createdAt).toLocaleString()}
-                  </span>
+            return (
+              <button
+                key={n.id}
+                type="button"
+                onClick={() =>
+                  handleClick(n)
+                }
+                className={`${styles.card} ${!n.isRead
+                    ? styles.cardUnread
+                    : ""
+                  }`}
+              >
+                <span
+                  className={`${styles.cardIcon} ${styles[
+                    notificationMeta.tone
+                    ]
+                    }`}
+                >
+                  <Icon size={18} />
+                </span>
+
+                <div
+                  className={styles.cardBody}
+                >
+                  <div
+                    className={styles.cardTop}
+                  >
+                    <h4
+                      className={
+                        styles.cardTitle
+                      }
+                    >
+                      {n.title}
+                    </h4>
+
+                    <span
+                      className={
+                        styles.cardTime
+                      }
+                    >
+                      {new Date(
+                        n.createdAt
+                      ).toLocaleString()}
+                    </span>
+                  </div>
+
+                  <p className={styles.cardMsg}>
+                    {n.message}
+                  </p>
                 </div>
 
-                <p className={styles.cardMsg}>{n.message}</p>
-              </div>
-
-              {!n.isRead && <span className={styles.unreadDot} />}
-            </button>
-          );
-        })}
+                {!n.isRead && (
+                  <span
+                    className={
+                      styles.unreadDot
+                    }
+                  />
+                )}
+              </button>
+            );
+          })}
+        </div>
       </main>
     </div>
   );

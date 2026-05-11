@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.schemas.leads import LeadCreate, LeadResponse
 from app.schemas.lead_action import LeadActionCreate
-from app.controller.services.lead_service import create_lead, get_vendor_leads, update_lead_status
+from app.controller.services.lead_service import create_lead, get_vendor_leads, update_lead_status, get_customer_leads
 
 
 
@@ -19,6 +19,14 @@ async def create(
     user=Depends(get_current_user)
 ):
     return await create_lead(db, user["id"], payload)
+
+
+@LeadRouter.get("/my-requests", response_model=list[LeadResponse])
+async def my_requests(
+    db: AsyncSession = Depends(get_db),
+    user=Depends(get_current_user),
+):
+    return await get_customer_leads(db, user["id"])
 
 
 @LeadRouter.get("/vendor")

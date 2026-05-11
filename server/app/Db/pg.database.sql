@@ -596,22 +596,35 @@ CREATE INDEX idx_makeup_brands ON makeup_artist_details USING GIN (brands_used);
 
 
 
-CREATE TABLE leads ( 
-    id BIGSERIAL PRIMARY KEY, 
-    user_id BIGINT NOT NULL, 
-    vendor_id BIGINT NOT NULL, name VARCHAR(100), 
-    phone VARCHAR(20), 
-    email VARCHAR(100), 
-    event_type VARCHAR(50), 
-    event_date DATE, 
-    event_time TIME, 
-    location VARCHAR(255), 
-    budget_range VARCHAR(50), 
-    guests INTEGER, 
-    description TEXT, 
-    status VARCHAR(20) DEFAULT 'new', 
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP 
-    );
+CREATE TABLE leads (
+    id BIGSERIAL PRIMARY KEY,
+
+    user_id BIGINT NOT NULL,
+
+    vendor_id BIGINT NOT NULL,
+    service_id BIGINT NOT NULL,
+    service_type VARCHAR(50),
+
+    name VARCHAR(100),
+    phone VARCHAR(20),
+    email VARCHAR(100),
+
+    event_type VARCHAR(50),
+    event_date DATE,
+    event_time TIME,
+
+    location VARCHAR(255),
+
+    budget_range VARCHAR(50),
+
+    guests INTEGER,
+
+    description TEXT,
+
+    status VARCHAR(20) DEFAULT 'new',
+
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 
 
 CREATE TABLE lead_actions (

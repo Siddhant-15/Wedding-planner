@@ -12,6 +12,15 @@ export const leadsService = {
         }
     },
 
+    getMyRequests: async () => {
+        try {
+            const res = await api.get(ENDPOINTS.LEADS.GET_MY_REQUESTS);
+            return res.data;
+        } catch (error) {
+            throw await handleApiError(error);
+        }
+    },
+
     getAllLeads: async () => {
         try {
             const res = await api.get(ENDPOINTS.LEADS.GET_ALL);

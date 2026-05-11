@@ -648,32 +648,96 @@ class WishlistItem(Base):
 class Lead(Base):
     __tablename__ = "leads"
 
-    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, index=True)
+    id: Mapped[int] = mapped_column(
+        BigInteger,
+        primary_key=True,
+        index=True
+    )
 
-    user_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
-    vendor_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    user_id: Mapped[int] = mapped_column(
+        BigInteger,
+        nullable=False
+    )
 
-    # 👇 Contact Info
-    name: Mapped[str] = mapped_column(String(100), nullable=True)
-    phone: Mapped[str] = mapped_column(String(20), nullable=True)
-    email: Mapped[str] = mapped_column(String(100), nullable=True)
+    vendor_id: Mapped[int] = mapped_column(
+        BigInteger,
+        nullable=False
+    )
 
-    # 👇 Event Info
-    event_type: Mapped[str] = mapped_column(String(50), nullable=True)
-    event_date: Mapped[datetime] = mapped_column(Date, nullable=True)
-    event_time: Mapped[datetime] = mapped_column(Time, nullable=True)
+    # NEW
+    service_id: Mapped[int] = mapped_column(
+        BigInteger,
+        nullable=False
+    )
 
-    location: Mapped[str] = mapped_column(String(255), nullable=True)
-    budget_range: Mapped[str] = mapped_column(String(50), nullable=True)
-    guests: Mapped[int] = mapped_column(Integer, nullable=True)
+    service_type: Mapped[str] = mapped_column(
+        String(50),
+        nullable=True
+    )
 
-    description: Mapped[str] = mapped_column(Text, nullable=True)
+    # Contact Info
+    name: Mapped[str] = mapped_column(
+        String(100),
+        nullable=True
+    )
 
-    # 👇 System
-    status: Mapped[str] = mapped_column(String(20), default="new")
-    created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow)
+    phone: Mapped[str] = mapped_column(
+        String(20),
+        nullable=True
+    )
 
-    # 👇 Relations
+    email: Mapped[str] = mapped_column(
+        String(100),
+        nullable=True
+    )
+
+    # Event Info
+    event_type: Mapped[str] = mapped_column(
+        String(50),
+        nullable=True
+    )
+
+    event_date: Mapped[datetime] = mapped_column(
+        Date,
+        nullable=True
+    )
+
+    event_time: Mapped[datetime] = mapped_column(
+        Time,
+        nullable=True
+    )
+
+    location: Mapped[str] = mapped_column(
+        String(255),
+        nullable=True
+    )
+
+    budget_range: Mapped[str] = mapped_column(
+        String(50),
+        nullable=True
+    )
+
+    guests: Mapped[int] = mapped_column(
+        Integer,
+        nullable=True
+    )
+
+    description: Mapped[str] = mapped_column(
+        Text,
+        nullable=True
+    )
+
+    # System
+    status: Mapped[str] = mapped_column(
+        String(20),
+        default="new"
+    )
+
+    created_at: Mapped[datetime] = mapped_column(
+        default=datetime.utcnow
+    )
+
+    # Relations
     actions = relationship(
         "LeadAction",
         back_populates="lead",

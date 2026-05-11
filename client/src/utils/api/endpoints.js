@@ -21,6 +21,7 @@ export const ENDPOINTS = {
         CREATE: "/leads/create",
         GET_ALL: "/leads/vendor",
         GET_BY_USER: "/leads/get-by-user",
+        GET_MY_REQUESTS: "/leads/my-requests",
         GET_BY_TYPE: "/leads/get-by-type",
         GET_BY_ID: "/leads/get-by-id",
     },

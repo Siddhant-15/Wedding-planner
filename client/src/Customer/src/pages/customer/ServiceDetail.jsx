@@ -17,6 +17,7 @@ import WriteReviewForm from "../../components/customer/reviews/WriteReviewForm";
 import LeadForm from "../../../../lead-management/components/LeadForm";
 // import Navbar from "../../../../navbar/components/Navbar";
 import Modal from "../../../../components/ui/Modal";
+import RequestSuccess from "../../../../request-pages/RequestSuccess";
 
 import { customerService } from "../../../../utils/api/services/customer.service";
 import { leadsService } from "../../../../utils/api/services/leads.service";
@@ -38,6 +39,7 @@ export default function ServiceDetail() {
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [isAvailabilityModalOpen, setIsAvailabilityModalOpen] = useState(false);
   const [lead, setLead] = useState(null);
+  const [checkingLead, setCheckingLead] = useState(true);
   const navigate = useNavigate();
 
   const handleLeadSubmit = async (payload) => {
@@ -45,12 +47,17 @@ export default function ServiceDetail() {
       const formattedPayload = {
         vendor_id: service.vendor?.id,
 
+        service_id: service.id,
+        service_type: service.service_type,
+
         event_type: payload.eventType,
         event_date: payload.eventDate,
         event_time: payload.eventTime,
 
         location: payload.location,
+
         budget: payload.budget,
+
         guests: payload.guests,
 
         description: payload.description,
@@ -60,8 +67,13 @@ export default function ServiceDetail() {
         email: payload.email,
       };
 
-      await leadsService.createLead(formattedPayload);
-      setLead(res);
+      const createdLead =
+        await leadsService.createLead(
+          formattedPayload
+        );
+
+      setLead(createdLead);
+
       setIsAvailabilityModalOpen(false);
     } catch (err) {
       console.error("Lead creation failed:", err);
@@ -96,6 +108,68 @@ export default function ServiceDetail() {
       cancelled = true;
     };
   }, [id]);
+
+  useEffect(() => {
+    if (!id || !service?.vendor?.id) return;
+
+    checkExistingLead();
+  }, [id, service]);
+
+  const checkExistingLead = async () => {
+    try {
+      setCheckingLead(true);
+
+      const requests =
+        await leadsService.getMyRequests();
+
+      // find existing lead for this vendor
+      const existingLead = requests?.find(
+        (item) =>
+          Number(item.vendor_id) ===
+          Number(service?.vendor?.id) &&
+          Number(item.service_id) ===
+          Number(service?.id)
+      );
+
+      if (!existingLead) {
+        setLead(null);
+        return;
+      }
+
+      const eventDate = existingLead.event_date
+        ? new Date(existingLead.event_date)
+        : null;
+
+      const createdAt = new Date(
+        existingLead.created_at
+      );
+
+      const now = new Date();
+
+      const diffDays = Math.floor(
+        (now - createdAt) / (1000 * 60 * 60 * 24)
+      );
+
+      const isExpired =
+        existingLead.status === "closed" ||
+        existingLead.status === "expired" ||
+        (eventDate && eventDate < now) ||
+        diffDays >= 7;
+
+      if (isExpired) {
+        setLead(null);
+      } else {
+        setLead(existingLead);
+      }
+    } catch (err) {
+      console.error(
+        "Failed to check existing lead",
+        err
+      );
+    } finally {
+      setCheckingLead(false);
+    }
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -258,19 +332,47 @@ export default function ServiceDetail() {
           <aside className={styles.sidebar}>
             <div className={styles.stickyWrap}>
               <VendorCard vendor={service.vendor} />
-              {lead ? (
-                <LeadStatus
-                  status={lead.status}
-                  fallback={false}
+              {checkingLead ? (
+                <div className={styles.quoteLoading}>
+                  <Loader2
+                    size={22}
+                    className={styles.spinner}
+                  />
+                  <p>Checking request status...</p>
+                </div>
+              ) : lead ? (
+                <RequestSuccess
                   vendorName={service.name}
+                  serviceType={titleCase(service.service_type)}
+                  onViewRequest={() => {
+                    navigate(`/customer/request?request=${lead.id}`);
+                  }}
                 />
               ) : (
-                <button
-                  onClick={() => setIsAvailabilityModalOpen(true)}
-                  className={styles.checkAvailabilityBtn}
-                >
-                  <CalendarRange size={18} /> Get Quote
-                </button>
+                <>
+                  <button
+                    onClick={() =>
+                      setIsAvailabilityModalOpen(true)
+                    }
+                    className={styles.checkAvailabilityBtn}
+                  >
+                    <CalendarRange size={18} />
+                    Get Quote
+                  </button>
+
+                  <Modal
+                    isOpen={isAvailabilityModalOpen}
+                    onClose={() =>
+                      setIsAvailabilityModalOpen(false)
+                    }
+                  >
+                    <LeadForm
+                      vendorName={service.name}
+                      expectedResponseTime="2 hours"
+                      onSubmit={handleLeadSubmit}
+                    />
+                  </Modal>
+                </>
               )}
 
               <Modal

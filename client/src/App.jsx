@@ -53,6 +53,7 @@ import VendorLeads from "./Vendor/src/pages/VendorLeads";
 
 import Lottie from "lottie-react";
 import loadingAnimation from "@/assets/animations/loading.json";
+import ViewRequest from "./request-pages/ViewRequest";
 
 const queryClient = new QueryClient();
 
@@ -142,6 +143,8 @@ function RoleBasedRoutes() {
         }
       >
         <Route path="dashboard" element={<HomeDashboard />} />
+        <Route path="profile" element={<MyAccount />} />
+        <Route path="request" element={<ViewRequest />} />
         <Route path="booking" element={<MyBookings />} />
         <Route path="payment" element={<Payments />} />
         <Route path="wishlist" element={<WishlistsPage />} />
@@ -174,7 +177,7 @@ function RoleBasedRoutes() {
       </Route>
 
       {/* Other Protected */}
-      <Route path="/my-account" element={<ProtectedRoute isAuthenticated={isAuthenticated} user={user}><MyAccount /></ProtectedRoute>} />
+      {/* <Route path="/my-account" element={<ProtectedRoute isAuthenticated={isAuthenticated} user={user}><MyAccount /></ProtectedRoute>} /> */}
 
       <Route path="/profile-settings" element={
         <ProtectedRoute isAuthenticated={isAuthenticated} user={user}>

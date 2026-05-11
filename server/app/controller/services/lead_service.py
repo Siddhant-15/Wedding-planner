@@ -1,37 +1,51 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, desc
 from app.models.models import Lead, LeadAction
 from app.utils.notification.notification import create_notification
 from app.utils.notification.realtime import send_realtime_notification
+
 
 
 async def create_lead(db, user_id, data):
     try:
         lead = Lead(
             user_id=user_id,
+
             vendor_id=data.vendor_id,
+
+            # NEW
+            service_id=data.service_id,
+            service_type=data.service_type,
+
             name=data.name,
             phone=data.phone,
             email=data.email,
+
             event_type=data.event_type,
             event_date=data.event_date,
             event_time=data.event_time,
+
             location=data.location,
+
             budget_range=data.budget,
+
             guests=data.guests,
+
             description=data.description,
         )
 
         db.add(lead)
+
         await db.flush()
 
-        db.add(LeadAction(
-            lead_id=lead.id,
-            vendor_id=data.vendor_id,
-            action="created"
-        ))
+        # db.add(
+        #     LeadAction(
+        #         lead_id=lead.id,
+        #         vendor_id=data.vendor_id,
+        #         action="created"
+        #     )
+        # )
 
-        # create notification (DB only)
         await create_notification(
             db=db,
             recipient_id=data.vendor_id,
@@ -39,13 +53,16 @@ async def create_lead(db, user_id, data):
             type="new_lead",
             title="New Lead Received 🎉",
             message=f"{data.name} is interested in your service",
-            data={"lead_id": lead.id}
+            data={
+                "lead_id": lead.id,
+                "service_id": data.service_id
+            }
         )
 
         await db.commit()
+
         await db.refresh(lead)
 
-        # ⚡ AFTER COMMIT → send websocket
         await send_realtime_notification(
             recipient_id=data.vendor_id,
             recipient_type="vendor",
@@ -53,7 +70,10 @@ async def create_lead(db, user_id, data):
                 "type": "new_lead",
                 "title": "New Lead Received 🎉",
                 "message": f"{data.name} is interested in your service",
-                "data": {"lead_id": lead.id}
+                "data": {
+                    "lead_id": lead.id,
+                    "service_id": data.service_id
+                }
             }
         )
 
@@ -64,10 +84,34 @@ async def create_lead(db, user_id, data):
         raise e
 
 
-async def get_vendor_leads(db: AsyncSession, vendor_id: int):
-    result = await db.execute(
-        select(Lead).where(Lead.vendor_id == vendor_id)
+
+async def get_customer_leads(
+    db: AsyncSession,
+    user_id: int
+):
+    stmt = (
+        select(Lead)
+        .where(Lead.user_id == user_id)
+        .order_by(desc(Lead.created_at))
     )
+
+    result = await db.execute(stmt)
+
+    return result.scalars().all()
+
+
+async def get_vendor_leads(
+    db: AsyncSession,
+    vendor_id: int
+):
+    stmt = (
+        select(Lead)
+        .where(Lead.vendor_id == vendor_id)
+        .order_by(desc(Lead.created_at))
+    )
+
+    result = await db.execute(stmt)
+
     return result.scalars().all()
 
 
