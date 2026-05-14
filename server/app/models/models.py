@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, date, time
 from typing import Optional, List, Dict
 
 from sqlalchemy import (
@@ -8,13 +8,29 @@ from sqlalchemy import (
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 from sqlalchemy import CheckConstraint, Column
-from sqlalchemy.dialects.postgresql import ARRAY
 
 class Base(DeclarativeBase):
     """Base class for all models"""
     pass
 
 from sqlalchemy.dialects.postgresql import ENUM, ARRAY
+
+
+LeadStatusEnum = ENUM(
+    "new",
+    "viewed",
+    "accepted",
+    "rejected",
+    "unavailable",
+    "unlocked",
+    "contacted",
+    "quoted",
+    "won",
+    "lost",
+    "expired",
+    "closed",
+    name="lead_status_enum"
+)
 
 DjEventTypeEnum = ENUM(
     "wedding",
@@ -62,6 +78,7 @@ class Customer(Base):
     reviews: Mapped[list["Review"]] = relationship(
         "Review", back_populates="customer", cascade="all, delete-orphan"
     )
+    leads: Mapped[List["Lead"]] = relationship("Lead")
 
     __table_args__ = (
         Index("idx_customer_email", "email"),
@@ -106,6 +123,16 @@ class Vendor(Base):
 
     # Relationships
     services: Mapped[List["Service"]] = relationship("Service", back_populates="vendor", cascade="all, delete-orphan")
+    leads: Mapped[List["Lead"]] = relationship("Lead")
+    unavailable_dates: Mapped[List["VendorUnavailableDate"]] = relationship(
+    "VendorUnavailableDate",
+    back_populates="vendor",
+    cascade="all, delete-orphan"
+)
+    unlock_usages: Mapped[List["UnlockUsage"]] = relationship(
+    "UnlockUsage",
+    cascade="all, delete-orphan"
+)
 
     __table_args__ = (
         Index("idx_vendor_email", "email"),
@@ -126,7 +153,7 @@ class ServiceMedia(Base):
 
     media_url: Mapped[str] = mapped_column(Text, nullable=False)
     media_type: Mapped[str] = mapped_column(String(20), server_default="image")  # image | video
-
+    source_type: Mapped[str] = mapped_column(String(20), server_default="upload")  # upload | youtube | vimeo
     is_cover: Mapped[bool] = mapped_column(Boolean, server_default="false")
     display_order: Mapped[int] = mapped_column(Integer, server_default="0")
 
@@ -203,9 +230,11 @@ class Service(Base):
     order_by="ServiceMedia.display_order",
     lazy="selectin"   # 🔥 important for performance
 )
-    unavailable_dates: Mapped[List["UnavailableDate"]] = relationship(
-        "UnavailableDate", back_populates="service", cascade="all, delete-orphan"
-    )
+    unavailable_dates: Mapped[List["VendorUnavailableDate"]] = relationship(
+    "VendorUnavailableDate",
+    back_populates="service",
+    cascade="all, delete-orphan"
+)
     reviews: Mapped[List["Review"]] = relationship(
         "Review", back_populates="service", cascade="all, delete-orphan"
     )
@@ -228,7 +257,7 @@ class Venue(Base):
 
     max_capacity: Mapped[int] = mapped_column(Integer, nullable=False)
     min_capacity: Mapped[int] = mapped_column(Integer, nullable=False)
-    square_feet: Mapped[int] = mapped_column(DECIMAL(10,2), nullable=False)
+    square_feet: Mapped[float] = mapped_column(DECIMAL(10, 2), nullable=False)
     parking_capacity: Mapped[int] = mapped_column(Integer, server_default="0")
 
     venue_policies: Mapped[Optional[Dict]] = mapped_column(JSONB)
@@ -243,9 +272,6 @@ class Venue(Base):
         Index("idx_venue_type", "venue_type"),
         Index("idx_venue_capacity", "max_capacity"),
     )
-
-
-from sqlalchemy import CheckConstraint
 
 
 class Catering(Base):
@@ -645,123 +671,222 @@ class WishlistItem(Base):
     service: Mapped["Service"] = relationship("Service")
 
 
+
 class Lead(Base):
     __tablename__ = "leads"
 
     id: Mapped[int] = mapped_column(
         BigInteger,
         primary_key=True,
+        autoincrement=True,
         index=True
     )
 
+    # CUSTOMER
     user_id: Mapped[int] = mapped_column(
         BigInteger,
-        nullable=False
+        ForeignKey("customer.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True
     )
 
+    # VENDOR
     vendor_id: Mapped[int] = mapped_column(
         BigInteger,
-        nullable=False
+        ForeignKey("vendor.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True
     )
 
-    # NEW
+    # SERVICE
     service_id: Mapped[int] = mapped_column(
         BigInteger,
-        nullable=False
+        ForeignKey("services.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True
     )
 
-    service_type: Mapped[str] = mapped_column(
-        String(50),
-        nullable=True
+    service_type: Mapped[Optional[str]] = mapped_column(
+        String(50)
     )
 
-    # Contact Info
-    name: Mapped[str] = mapped_column(
-        String(100),
-        nullable=True
+    # CONTACT INFO
+    name: Mapped[str] = mapped_column(String(100))
+
+    phone: Mapped[str] = mapped_column(String(20))
+
+    email: Mapped[Optional[str]] = mapped_column(
+        String(100)
     )
 
-    phone: Mapped[str] = mapped_column(
-        String(20),
-        nullable=True
-    )
-
-    email: Mapped[str] = mapped_column(
-        String(100),
-        nullable=True
-    )
-
-    # Event Info
+    # EVENT
     event_type: Mapped[str] = mapped_column(
-        String(50),
-        nullable=True
+        String(50)
     )
 
-    event_date: Mapped[datetime] = mapped_column(
-        Date,
-        nullable=True
-    )
+    event_date: Mapped[date] = mapped_column(Date)
 
-    event_time: Mapped[datetime] = mapped_column(
-        Time,
-        nullable=True
+    event_time: Mapped[Optional[time]] = mapped_column(
+        Time
     )
 
     location: Mapped[str] = mapped_column(
-        String(255),
-        nullable=True
+        String(255)
     )
 
-    budget_range: Mapped[str] = mapped_column(
-        String(50),
-        nullable=True
+    budget_range: Mapped[Optional[str]] = mapped_column(
+        String(50)
     )
 
-    guests: Mapped[int] = mapped_column(
-        Integer,
-        nullable=True
+    guests: Mapped[Optional[int]] = mapped_column(
+        Integer
     )
 
-    description: Mapped[str] = mapped_column(
-        Text,
-        nullable=True
+    description: Mapped[Optional[str]] = mapped_column(
+        Text
     )
 
-    # System
+    # STATUS
     status: Mapped[str] = mapped_column(
         String(20),
         default="new"
     )
 
-    created_at: Mapped[datetime] = mapped_column(
-        default=datetime.utcnow
+    customer_status: Mapped[str] = mapped_column(
+        String(50),
+        default="REQUEST_SUBMITTED"
     )
 
-    # Relations
-    actions = relationship(
+    phone_unlocked: Mapped[bool] = mapped_column(
+        Boolean,
+        default=False
+    )
+
+    # TIMESTAMPS
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime,
+        server_default=func.now()
+    )
+
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime,
+        server_default=func.now(),
+        onupdate=func.now()
+    )
+
+    # RELATIONS
+    actions: Mapped[List["LeadAction"]] = relationship(
         "LeadAction",
         back_populates="lead",
-        cascade="all, delete"
+        cascade="all, delete-orphan"
     )
+
+    customer: Mapped["Customer"] = relationship("Customer")
+
+    vendor: Mapped["Vendor"] = relationship("Vendor")
+
+    service: Mapped["Service"] = relationship("Service")
+
+    __table_args__ = (
+        Index("idx_lead_vendor_status", "vendor_id", "status"),
+        Index("idx_lead_event_date", "event_date"),
+    )
+
 
 class LeadAction(Base):
     __tablename__ = "lead_actions"
 
-    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    id: Mapped[int] = mapped_column(
+        BigInteger,
+        primary_key=True,
+        autoincrement=True
+    )
 
     lead_id: Mapped[int] = mapped_column(
         BigInteger,
-        ForeignKey("leads.id", ondelete="CASCADE")
+        ForeignKey("leads.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True
     )
-    vendor_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
 
-    action: Mapped[str] = mapped_column(String(20), nullable=False)
+    vendor_id: Mapped[int] = mapped_column(
+        BigInteger,
+        ForeignKey("vendor.id", ondelete="CASCADE"),
+        nullable=False
+    )
 
-    created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow)
+    action: Mapped[str] = mapped_column(
+        String(50),
+        nullable=False
+    )
 
-    lead = relationship("Lead", back_populates="actions")
+    # notes: Mapped[Optional[str]] = mapped_column(Text)
+
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now()
+    )
+
+    lead: Mapped["Lead"] = relationship(
+        "Lead",
+        back_populates="actions"
+    )
 
 
+
+class VendorSubscription(Base):
+    __tablename__ = "vendor_subscriptions"
+
+    id: Mapped[int] = mapped_column(
+        BigInteger,
+        primary_key=True,
+        autoincrement=True,
+    )
+
+    vendor_id: Mapped[int] = mapped_column(
+        BigInteger,
+        ForeignKey("vendor.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+
+    subscription_id: Mapped[int] = mapped_column(
+        BigInteger,
+        ForeignKey("subscriptions.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+
+    started_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+    )
+
+    expires_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
+
+    status: Mapped[str] = mapped_column(
+        String(20),
+        default="active",
+        nullable=False,
+    )
+    """
+    active
+    expired
+    cancelled
+    """
+
+    # Relationships
+    subscription: Mapped["Subscription"] = relationship(
+        "Subscription",
+        back_populates="vendor_subscriptions",
+    )
+
+    vendor: Mapped["Vendor"] = relationship(
+        "Vendor",
+    )
 
 class Notification(Base):
     __tablename__ = "notifications"
@@ -781,10 +906,13 @@ class Notification(Base):
 
     created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow)
 
-class UnavailableDate(Base):
-    __tablename__ = "unavailable_dates"
+class VendorUnavailableDate(Base):
+    __tablename__ = "vendor_unavailable_dates"
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
+    vendor_id: Mapped[int] = mapped_column(
+        BigInteger, ForeignKey("vendor.id", ondelete="CASCADE"), nullable=False, index=True
+    )
     service_id: Mapped[int] = mapped_column(
         BigInteger, ForeignKey("services.id", ondelete="CASCADE"), nullable=False, index=True
     )
@@ -800,10 +928,18 @@ class UnavailableDate(Base):
     )
 
     # Relationships
-    service: Mapped["Service"] = relationship("Service", back_populates="unavailable_dates")
+    vendor: Mapped["Vendor"] = relationship(
+        "Vendor",
+        back_populates="unavailable_dates"
+    )
+
+    service: Mapped["Service"] = relationship(
+        "Service",
+        back_populates="unavailable_dates"
+    )
 
     __table_args__ = (
-        Index("idx_unavailable_service_dates", "service_id", "start_date", "end_date"),
+        Index("idx_unavailable_service_dates", "vendor_id", "start_date", "end_date"),
     )
 
 class Review(Base):
@@ -833,5 +969,100 @@ class Review(Base):
 
     customer: Mapped["Customer"] = relationship("Customer", back_populates="reviews")
     service: Mapped["Service"] = relationship("Service", back_populates="reviews")
+
+
+class Subscription(Base):
+    __tablename__ = "subscriptions"
+
+    id: Mapped[int] = mapped_column(
+        BigInteger,
+        primary_key=True,
+        autoincrement=True
+    )
+
+    name: Mapped[str] = mapped_column(
+        String(50),
+        nullable=False
+    )
+
+    daily_unlock_limit: Mapped[int] = mapped_column(
+        Integer,
+        nullable=False,
+        default=0
+    )
+
+    price: Mapped[int] = mapped_column(
+        Integer,
+        nullable=False,
+        default=0
+    )
+
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        nullable=False
+    )
+
+    # Relationships
+    vendor_subscriptions: Mapped[List["VendorSubscription"]] = relationship(
+    "VendorSubscription",
+    back_populates="subscription",
+    cascade="all, delete-orphan"
+)
+
+    __table_args__ = (
+        Index("idx_subscription_name", "name"),
+    )
+
+
+
+class UnlockUsage(Base):
+    __tablename__ = "unlock_usage"
+
+    id: Mapped[int] = mapped_column(
+        BigInteger,
+        primary_key=True,
+        autoincrement=True
+    )
+
+    vendor_id: Mapped[int] = mapped_column(
+        BigInteger,
+        ForeignKey("vendor.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True
+    )
+
+    usage_date: Mapped[datetime] = mapped_column(
+        Date,
+        nullable=False
+    )
+
+    used_count: Mapped[int] = mapped_column(
+        Integer,
+        default=0,
+        nullable=False
+    )
+
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        nullable=False
+    )
+
+    # Relationship
+    vendor: Mapped["Vendor"] = relationship("Vendor")
+
+    __table_args__ = (
+        UniqueConstraint(
+            "vendor_id",
+            "usage_date",
+            name="uq_vendor_usage_date"
+        ),
+        Index(
+            "idx_unlock_usage_vendor_date",
+            "vendor_id",
+            "usage_date"
+        ),
+    )
 
 

@@ -1,3 +1,4 @@
+from app.Db import db
 from fastapi import APIRouter, Depends, HTTPException, status, Form, File, UploadFile
 from typing import List, Optional
 from uuid import uuid4
@@ -12,8 +13,7 @@ import logging
 from app.Db.db import get_db
 from app.models.models import (
     Vendor, Service, Venue, Catering, Dj, Photography,
-    EventManagement, MakeupArtist, ServiceVariant,
-    UnavailableDate, ServiceMedia
+    EventManagement, MakeupArtist, ServiceVariant, ServiceMedia
 )
 from app.Dependencies.Auth import get_current_user
 from app.utils.supabase_client import supabase
@@ -236,7 +236,7 @@ def _update_type_specific(db, db_service: Service, parsed: ServiceCreate):
         else:
             _add_type_specific(db, db_service.id, parsed)
 
-    elif stype == "makeup" and parsed.makeup_artist:
+    elif stype == "makeup_artist" and parsed.makeup_artist:
         if db_service.makeup_artist:
             for k, v in parsed.makeup_artist.dict().items():
                 setattr(db_service.makeup_artist, k, v)
@@ -244,7 +244,7 @@ def _update_type_specific(db, db_service: Service, parsed: ServiceCreate):
             _add_type_specific(db, db_service.id, parsed)
 
 
-async def _upload_image(img: UploadFile) -> str:
+async def _upload_media(img: UploadFile) -> str:
     file_bytes = await img.read()
     ext = img.filename.split(".")[-1] if "." in img.filename else "jpg"
     file_path = f"services/{uuid4().hex}.{ext}"
@@ -400,6 +400,8 @@ _ALL_OPTS = [
 async def create_service(
     data: str = Form(...),
     images: List[UploadFile] = File([]),
+    videos: List[UploadFile] = File([]),
+    external_media: str = Form("[]"),
     db: AsyncSession = Depends(get_db),
     current_user: dict = Depends(get_current_user)
 ):
@@ -459,16 +461,57 @@ async def create_service(
                 is_default=v.is_default
             ))
 
+        display_order = 0
+
+        # IMAGE UPLOADS
         for idx, img in enumerate(images):
-            url = await _upload_image(img)
+            url = await _upload_media(img)
+
             db.add(ServiceMedia(
                 service_id=db_service.id,
                 media_url=url,
                 media_type="image",
-                is_cover=(idx == 0),
-                display_order=idx,
+                source_type="upload",
+                is_cover=(display_order == 0),
+                display_order=display_order,
                 metadata_={}
             ))
+
+            display_order += 1
+
+
+        # VIDEO UPLOADS
+        for video in videos:
+            url = await _upload_media(video)
+
+            db.add(ServiceMedia(
+                service_id=db_service.id,
+                media_url=url,
+                media_type="video",
+                source_type="upload",
+                is_cover=False,
+                display_order=display_order,
+                metadata_={}
+            ))
+
+            display_order += 1
+
+
+        # EXTERNAL MEDIA
+        external_media_list = json.loads(external_media)
+
+        for item in external_media_list:
+            db.add(ServiceMedia(
+                service_id=db_service.id,
+                media_url=item["media_url"],
+                media_type=item.get("media_type", "image"),
+                source_type=item.get("source_type", "external"),
+                is_cover=False,
+                display_order=display_order,
+                metadata_=item.get("metadata", {})
+            ))
+
+            display_order += 1
 
         await db.commit()
         return ServiceCreateResponse(message="Service created successfully", service_id=db_service.id)
@@ -546,8 +589,10 @@ async def get_service(
 async def update_service(
     id: int,
     data: str = Form(...),
-    existing_images: str = Form("[]"),
+    existing_media: str = Form("[]"),
     images: List[UploadFile] = File([]),
+    videos: List[UploadFile] = File([]),
+    external_media: str = Form("[]"),
     db: AsyncSession = Depends(get_db),
     current_user: dict = Depends(get_current_user)
 ):
@@ -565,7 +610,7 @@ async def update_service(
             raise HTTPException(status_code=404, detail="Service not found")
 
         parsed = ServiceCreate(**json.loads(data))
-        existing_imgs = json.loads(existing_images)
+        existing_media = json.loads(existing_media)
 
         # Core fields
         core_fields = [
@@ -605,21 +650,61 @@ async def update_service(
 
         # Media: delete removed, keep existing
         for m in db_service.media:
-            if m.media_url not in existing_imgs:
+            if m.media_url not in existing_media:
                 await db.execute(delete(ServiceMedia).where(ServiceMedia.id == m.id))
 
         # Upload new images
-        start_order = len(existing_imgs)
+        display_order = len(existing_media)
+
+        # IMAGE UPLOADS
         for idx, img in enumerate(images):
-            url = await _upload_image(img)
+            url = await _upload_media(img)
+
             db.add(ServiceMedia(
-                service_id=id,
+                service_id=db_service.id,
                 media_url=url,
                 media_type="image",
-                is_cover=(start_order + idx == 0),
-                display_order=start_order + idx,
+                source_type="upload",
+                is_cover=(display_order == 0),
+                display_order=display_order,
                 metadata_={}
             ))
+
+            display_order += 1
+
+
+        # VIDEO UPLOADS
+        for video in videos:
+            url = await _upload_media(video)
+
+            db.add(ServiceMedia(
+                service_id=db_service.id,
+                media_url=url,
+                media_type="video",
+                source_type="upload",
+                is_cover=False,
+                display_order=display_order,
+                metadata_={}
+            ))
+
+            display_order += 1
+
+
+        # EXTERNAL MEDIA
+        external_media_urls = json.loads(external_media)
+
+        for item in external_media_urls:
+            db.add(ServiceMedia(
+                service_id=db_service.id,
+                media_url=item["media_url"],
+                media_type=item.get("media_type", "image"),
+                source_type=item.get("source_type", "external"),
+                is_cover=False,
+                display_order=display_order,
+                metadata_=item.get("metadata", {})
+            ))
+
+            display_order += 1
 
         await db.commit()
         return ServiceCreateResponse(message="Service updated successfully", service_id=id)
@@ -654,44 +739,44 @@ async def delete_service(
 
 # ─── UNAVAILABLE DATES ───────────────────────────────────────────────────────
 
-@servicerouter.post("/{service_id}/unavailable-dates")
-async def add_unavailable_date(
-    service_id: int,
-    start_date: str = Form(...),
-    end_date: str = Form(...),
-    reason: Optional[str] = Form(None),
-    db: AsyncSession = Depends(get_db),
-    current_user: dict = Depends(get_current_user)
-):
-    try:
-        start = datetime.fromisoformat(start_date.replace("Z", "+00:00"))
-        end = datetime.fromisoformat(end_date.replace("Z", "+00:00"))
-        if end < start:
-            raise HTTPException(status_code=400, detail="end_date must be after start_date")
-        db.add(UnavailableDate(service_id=service_id, start_date=start, end_date=end, reason=reason))
-        await db.commit()
-        return {"message": "Unavailable date added"}
-    except HTTPException:
-        raise
-    except Exception as e:
-        await db.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
+# @servicerouter.post("/{service_id}/unavailable-dates")
+# async def add_unavailable_date(
+#     service_id: int,
+#     start_date: str = Form(...),
+#     end_date: str = Form(...),
+#     reason: Optional[str] = Form(None),
+#     db: AsyncSession = Depends(get_db),
+#     current_user: dict = Depends(get_current_user)
+# ):
+#     try:
+#         start = datetime.fromisoformat(start_date.replace("Z", "+00:00"))
+#         end = datetime.fromisoformat(end_date.replace("Z", "+00:00"))
+#         if end < start:
+#             raise HTTPException(status_code=400, detail="end_date must be after start_date")
+#         db.add(UnavailableDate(service_id=service_id, start_date=start, end_date=end, reason=reason))
+#         await db.commit()
+#         return {"message": "Unavailable date added"}
+#     except HTTPException:
+#         raise
+#     except Exception as e:
+#         await db.rollback()
+#         raise HTTPException(status_code=500, detail=str(e))
 
 
-@servicerouter.delete("/{service_id}/unavailable-dates/{date_id}")
-async def remove_unavailable_date(
-    service_id: int,
-    date_id: int,
-    db: AsyncSession = Depends(get_db),
-    current_user: dict = Depends(get_current_user)
-):
-    try:
-        await db.execute(delete(UnavailableDate).where(
-            UnavailableDate.id == date_id,
-            UnavailableDate.service_id == service_id
-        ))
-        await db.commit()
-        return {"message": "Unavailable date removed"}
-    except Exception as e:
-        await db.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
+# @servicerouter.delete("/{service_id}/unavailable-dates/{date_id}")
+# async def remove_unavailable_date(
+#     service_id: int,
+#     date_id: int,
+#     db: AsyncSession = Depends(get_db),
+#     current_user: dict = Depends(get_current_user)
+# ):
+#     try:
+#         await db.execute(delete(UnavailableDate).where(
+#             UnavailableDate.id == date_id,
+#             UnavailableDate.service_id == service_id
+#         ))
+#         await db.commit()
+#         return {"message": "Unavailable date removed"}
+#     except Exception as e:
+#         await db.rollback()
+#         raise HTTPException(status_code=500, detail=str(e))

@@ -11,7 +11,6 @@ import VenueSpecsCard from "../../components/customer/specs/VenueSpecsCard";
 import CateringSpecsCard from "../../components/customer/specs/CateringSpecsCard";
 import PhotographySpecsCard from "../../components/customer/specs/PhotographySpecsCard";
 import GenericSpecsCard from "../../components/customer/specs/GenericSpecsCard";
-import AvailabilityForm from "../../components/customer/forms/AvailabilityForm";
 import ReviewsList from "../../components/customer/reviews/ReviewsList";
 import WriteReviewForm from "../../components/customer/reviews/WriteReviewForm";
 import LeadForm from "../../../../lead-management/components/LeadForm";
@@ -152,8 +151,29 @@ export default function ServiceDetail() {
 
       const isExpired =
         existingLead.status === "closed" ||
+
         existingLead.status === "expired" ||
+
+        existingLead.status === "won" ||
+
+        existingLead.status === "lost" ||
+
+        existingLead.customer_status === "BOOKED" ||
+
+        existingLead.customer_status ===
+        "CUSTOMER_CLOSED" ||
+
+        existingLead.customer_status ===
+        "VENDOR_CLOSED" ||
+
+        existingLead.customer_status ===
+        "DATE_UNAVAILABLE" ||
+
+        existingLead.customer_status ===
+        "VENDOR_REJECTED" ||
+
         (eventDate && eventDate < now) ||
+
         diffDays >= 7;
 
       if (isExpired) {

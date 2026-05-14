@@ -48,8 +48,7 @@
 }
 
 .addBtn:hover {
-  /* background: hsl(var(--brand-foreground)); */
-  background-color: red;
+  background-color: #e11d48;
 }
 
 .grid {

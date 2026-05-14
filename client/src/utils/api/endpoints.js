@@ -18,12 +18,11 @@ export const ENDPOINTS = {
     },
 
     LEADS: {
-        CREATE: "/leads/create",
-        GET_ALL: "/leads/vendor",
-        GET_BY_USER: "/leads/get-by-user",
-        GET_MY_REQUESTS: "/leads/my-requests",
-        GET_BY_TYPE: "/leads/get-by-type",
-        GET_BY_ID: "/leads/get-by-id",
+        CREATE: "/customer/leads/create",
+        GET_ALL: "/vendor/leads/",
+        GET_MY_REQUESTS: "/customer/leads/",
+        UPDATE_VENDOR: (id, action) => `/vendor/leads/${id}/${action}`,
+        CLOSE: (id) => `/customer/leads/${id}/close`,
     },
 
     USER: {

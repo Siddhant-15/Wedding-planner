@@ -3,9 +3,10 @@ from fastapi import APIRouter, Depends, HTTPException, status, Response, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 import logging
+from datetime import datetime, timedelta
 
 from app.Db.db import get_db             # ← changed: use get_db, not get_db_session
-from app.models.models import Customer, Vendor
+from app.models.models import Customer, Vendor, VendorSubscription
 from app.schemas.auth import (
     CustomerSignup, VendorSignup, UserLogin, Token, ResetPasswordIn
 )
@@ -85,6 +86,18 @@ async def signup_vendor(
         # add other fields...
     )
     db.add(new_vendor)
+    await db.flush()
+
+    free_subscription = VendorSubscription(
+        vendor_id=new_vendor.id,
+        subscription_id=1,  # Free plan
+        started_at=datetime.utcnow(),
+        expires_at=datetime.utcnow() + timedelta(days=3650),
+        status="active"
+    )
+
+    db.add(free_subscription)
+
     await db.commit()
     await db.refresh(new_vendor)
 

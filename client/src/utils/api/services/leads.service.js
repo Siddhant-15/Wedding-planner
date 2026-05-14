@@ -30,30 +30,48 @@ export const leadsService = {
         }
     },
 
-    getUserLeads: async () => {
+    CloseLead: async (id) => {
         try {
-            const res = await api.get(ENDPOINTS.LEADS.GET_BY_USER);
+            const res = await api.patch(ENDPOINTS.LEADS.CLOSE(id));
             return res.data;
         } catch (error) {
             throw await handleApiError(error);
         }
     },
 
-    getLeadById: async (id) => {
+    updateVendor: async (id, action, data) => {
         try {
-            const res = await api.get(`${ENDPOINTS.LEADS.GET_BY_ID}/${id}`);
+            const res = await api.patch(ENDPOINTS.LEADS.UPDATE_VENDOR(id, action), data);
             return res.data;
         } catch (error) {
             throw await handleApiError(error);
         }
     },
 
-    getLeadsByType: async (type) => {
-        try {
-            const res = await api.get(`${ENDPOINTS.LEADS.GET_BY_TYPE}?type=${type}`);
-            return res.data;
-        } catch (error) {
-            throw await handleApiError(error);
-        }
-    },
+    // getUserLeads: async () => {
+    //     try {
+    //         const res = await api.get(ENDPOINTS.LEADS.GET_BY_USER);
+    //         return res.data;
+    //     } catch (error) {
+    //         throw await handleApiError(error);
+    //     }
+    // },
+
+    // getLeadById: async (id) => {
+    //     try {
+    //         const res = await api.get(`${ENDPOINTS.LEADS.GET_BY_ID}/${id}`);
+    //         return res.data;
+    //     } catch (error) {
+    //         throw await handleApiError(error);
+    //     }
+    // },
+
+    // getLeadsByType: async (type) => {
+    //     try {
+    //         const res = await api.get(`${ENDPOINTS.LEADS.GET_BY_TYPE}?type=${type}`);
+    //         return res.data;
+    //     } catch (error) {
+    //         throw await handleApiError(error);
+    //     }
+    // },
 };

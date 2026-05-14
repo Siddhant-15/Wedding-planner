@@ -50,10 +50,11 @@ import MyBookings from "./Profile/MyBookings";
 import ProfileSettings from "./Profile/ProfileSettings";
 import Notification from "./notifications-navbar/src/pages/Notifications";
 import VendorLeads from "./Vendor/src/pages/VendorLeads";
+import VendorAvailability from "./wedding-platform/src/pages/vendor/VendorAvailability";
 
 import Lottie from "lottie-react";
 import loadingAnimation from "@/assets/animations/loading.json";
-import ViewRequest from "./request-pages/ViewRequest";
+import ViewRequest from "./Customer/src/pages/customer/ViewRequest/ViewRequest";
 
 const queryClient = new QueryClient();
 
@@ -174,6 +175,7 @@ function RoleBasedRoutes() {
         <Route path="/vendor/dashboard" element={<VendorPage />} />
         <Route path="/vendor/notifications" element={<Notification />} />
         <Route path="/vendor/leads" element={<VendorLeads />} />
+        <Route path="/vendor/availability" element={<VendorAvailability />} />
       </Route>
 
       {/* Other Protected */}

@@ -1,51 +1,75 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.schemas.leads import LeadCreate, LeadResponse
-from app.schemas.lead_action import LeadActionCreate
-from app.controller.services.lead_service import create_lead, get_vendor_leads, update_lead_status, get_customer_leads
-
-
 
 from app.Db.db import get_db
 from app.Dependencies.Auth import get_current_user
 
-LeadRouter = APIRouter(prefix="/leads", tags=["Leads"])
+from app.schemas.customer.lead_schema import (
+    LeadCreate,
+    LeadResponse,
+    LeadUpdate
+)
+
+from app.controller.customer.lead_service import (
+    create_lead,
+    get_customer_leads,
+    update_customer_lead,
+    close_customer_lead
+)
+
+router = APIRouter(
+    prefix="/customer/leads",
+    tags=["Customer Leads"]
+)
 
 
-@LeadRouter.post("/create", response_model=LeadResponse)
+@router.post("/create", response_model=LeadResponse)
 async def create(
     payload: LeadCreate,
     db: AsyncSession = Depends(get_db),
     user=Depends(get_current_user)
 ):
-    return await create_lead(db, user["id"], payload)
+    return await create_lead(
+        db,
+        user["id"],
+        payload
+    )
 
 
-@LeadRouter.get("/my-requests", response_model=list[LeadResponse])
+@router.get("/")
 async def my_requests(
     db: AsyncSession = Depends(get_db),
-    user=Depends(get_current_user),
-):
-    return await get_customer_leads(db, user["id"])
-
-
-@LeadRouter.get("/vendor")
-async def get_vendor(
-    db: AsyncSession = Depends(get_db),
     user=Depends(get_current_user)
 ):
-    return await get_vendor_leads(db, user["id"])
-
-
-@LeadRouter.post("/action")
-async def action(
-    payload: LeadActionCreate,
-    db: AsyncSession = Depends(get_db),
-    user=Depends(get_current_user)
-):
-    return await update_lead_status(
+    return await get_customer_leads(
         db,
-        payload.lead_id,
-        user.id,
-        payload.action
+        user["id"]
+    )
+
+
+@router.patch("/{lead_id}")
+async def update_request(
+    lead_id: int,
+    payload: LeadUpdate,
+    db: AsyncSession = Depends(get_db),
+    user=Depends(get_current_user)
+):
+    return await update_customer_lead(
+        db,
+        lead_id,
+        user["id"],
+        payload
+    )
+
+
+@router.patch("/{lead_id}/close")
+async def close_request(
+    lead_id: int,
+    db: AsyncSession = Depends(get_db),
+    user=Depends(get_current_user)
+):
+    return await close_customer_lead(
+        db,
+        lead_id,
+        user["id"]
     )

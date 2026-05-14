@@ -16,6 +16,8 @@ import {
   Loader2,
   ChevronDown,
   ChevronUp,
+  AlertTriangle,
+  RefreshCcw,
 } from "lucide-react";
 
 import {
@@ -23,30 +25,95 @@ import {
   useSearchParams,
 } from "react-router-dom";
 
-import { leadsService } from "../utils/api/services/leads.service";
-
 import styles from "./ViewRequest.module.css";
+import { leadsService } from "../../../../../utils/api/services/leads.service";
 
 const STATUS_META = {
   new: {
     label: "New",
     cls: "stActive",
   },
+
   seen: {
     label: "Viewed",
     cls: "stViewed",
   },
+
   contacted: {
-    label: "Contacted",
+    label: "Vendor Contacted",
     cls: "stContacted",
   },
-  closed: {
-    label: "Closed",
+
+  won: {
+    label: "Booked",
+    cls: "stBooked",
+  },
+
+  customer_closed: {
+    label: "Closed by You",
+    cls: "stClosedByYou",
+  },
+
+  date_unavailable: {
+    label: "Date Unavailable",
     cls: "stClosed",
   },
+
+  vendor_closed: {
+    label: "Closed by Vendor",
+    cls: "stClosed",
+  },
+
+  vendor_rejected: {
+    label: "Rejected by Vendor",
+    cls: "stClosed",
+  },
+
+  vendor_lost: {
+    label: "Booking Not Finalized",
+    cls: "stClosed",
+  },
+
   expired: {
     label: "Expired",
     cls: "stExpired",
+  },
+};
+
+const CUSTOMER_STATUS_META = {
+  REQUEST_SUBMITTED: {
+    text: "Your request has been submitted successfully.",
+  },
+
+  CUSTOMER_CLOSED: {
+    text: "You closed this request.",
+  },
+
+  VENDOR_CLOSED: {
+    text: "Vendor closed this request.",
+  },
+
+  DATE_UNAVAILABLE: {
+    text: "Vendor is unavailable on your selected event date.",
+  },
+
+  VENDOR_CONTACT_UNLOCKED: {
+    text: "Vendor unlocked your contact details.",
+  },
+
+  CONTACT_SHARED: {
+    text: "Vendor unlocked your contact details and contacted you.",
+  },
+
+  VENDOR_REJECTED: {
+    text: "Vendor rejected your request.",
+  },
+
+  BOOKED: {
+    text: "Your booking has been confirmed successfully.",
+  },
+  LOST: {
+    text: "Vendor could not proceed with your booking request.",
   },
 };
 
@@ -82,52 +149,137 @@ function formatDate(date) {
   });
 }
 
-function buildTimeline(status) {
+function buildTimeline(status, customerStatus) {
+  const customerClosed =
+    customerStatus === "CUSTOMER_CLOSED";
+
+  const vendorClosed =
+    customerStatus === "VENDOR_CLOSED";
+
+  // ACCEPTED STEP
+  const vendorAccepted = [
+    "accepted",
+    "unlocked",
+    "won",
+    "lost",
+  ].includes(status);
+
+  // CONTACTED STEP
+  const vendorContactedDone = [
+    "won",
+  ].includes(status);
+
+  const isBooked =
+    status === "won" ||
+    customerStatus === "BOOKED";
+
+  const dateUnavailable =
+    customerStatus === "DATE_UNAVAILABLE";
+
+  const vendorContactedActive =
+    status === "unlocked";
+
+  let closedLabel = "Request Closed";
+  const vendorLost =
+    status === "lost";
+
+  if (customerClosed) {
+    closedLabel = "You Closed Request";
+  }
+
+  if (vendorClosed) {
+    closedLabel = "Vendor Closed Request";
+  }
+
+  if (dateUnavailable) {
+    closedLabel = "Vendor Unavailable";
+  }
+
+  if (vendorLost) {
+    closedLabel = "Booking Not Finalized";
+  }
+
   return [
     {
       key: "submitted",
       label: "Request Submitted",
       icon: CheckCircle2,
+
       done: true,
-      active: status === "new",
+
+      active:
+        status === "new" &&
+        !customerClosed &&
+        !vendorClosed,
+
       ts: "Completed",
     },
+
     {
-      key: "viewed",
-      label: "Vendor Viewed Request",
+      key: "accepted",
+      label: "Vendor Accepted Request",
       icon: Eye,
-      done: ["seen", "contacted", "closed"].includes(
-        status
-      ),
-      active: status === "seen",
-      ts:
-        ["seen", "contacted", "closed"].includes(
-          status
-        )
-          ? "Completed"
-          : "Pending",
+
+      done:
+        vendorAccepted &&
+        status !== "accepted",
+
+      active:
+        status === "accepted" &&
+        !customerClosed &&
+        !vendorClosed,
+
+      ts: vendorAccepted
+        ? "Completed"
+        : "Pending",
     },
+
     {
       key: "contacted",
       label: "Vendor Contacted You",
       icon: Phone,
-      done: ["contacted", "closed"].includes(status),
-      active: status === "contacted",
+
+      done: vendorContactedDone,
+
+      active:
+        vendorContactedActive &&
+        !customerClosed &&
+        !vendorClosed,
+
       ts:
-        ["contacted", "closed"].includes(status)
+        vendorContactedDone
           ? "Completed"
-          : "Pending",
+          : vendorContactedActive
+            ? "In Progress"
+            : "Pending",
     },
+
     {
       key: "closed",
-      label: "Request Closed",
+      label: isBooked
+        ? "Booking Confirmed"
+        : closedLabel,
+
       icon: Lock,
-      done: status === "closed",
+
+      done:
+        customerClosed ||
+        vendorClosed ||
+        vendorLost ||
+        dateUnavailable ||
+        isBooked,
+
       active: false,
+
       ts:
-        status === "closed"
+        isBooked
           ? "Completed"
-          : "Pending",
+          : customerClosed ||
+            vendorClosed ||
+            vendorLost ||
+            dateUnavailable
+            ? "Completed"
+            : "Pending",
     },
   ];
 }
@@ -142,6 +294,10 @@ export default function ViewRequest() {
 
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  const [closingId, setClosingId] =
+    useState(null);
+
   const [expandedId, setExpandedId] =
     useState(null);
 
@@ -196,6 +352,48 @@ export default function ViewRequest() {
     }
   };
 
+  const handleCloseRequest = async (
+    requestId
+  ) => {
+    const confirmClose = window.confirm(
+      "Are you sure you want to close this request?"
+    );
+    if (!confirmClose) return;
+
+    try {
+      setClosingId(requestId);
+
+      await leadsService.CloseLead(
+        requestId
+      );
+
+
+      setRequests((prev) =>
+        prev.map((item) => {
+          if (item.id !== requestId)
+            return item;
+
+          return {
+            ...item,
+            customer_status:
+              "CUSTOMER_CLOSED",
+          };
+        })
+      );
+    } catch (err) {
+      console.error(
+        "Failed to close request",
+        err
+      );
+
+      alert(
+        "Unable to close request. Please try again."
+      );
+    } finally {
+      setClosingId(null);
+    }
+  };
+
   if (loading) {
     return <ViewRequestSkeleton />;
   }
@@ -207,7 +405,6 @@ export default function ViewRequest() {
   return (
     <div className={styles.page}>
       <div className={styles.container}>
-        {/* HEADER */}
         <header className={styles.pageHeader}>
           <button
             className={styles.backBtn}
@@ -224,29 +421,113 @@ export default function ViewRequest() {
             </h1>
 
             <p className={styles.pageSubtitle}>
-              Track vendor responses & request
-              status
+              Track vendor responses &
+              request progress
             </p>
           </div>
         </header>
 
-        {/* REQUESTS */}
         <div className={styles.requestsList}>
           {requests.map((request) => {
-            const status =
-              STATUS_META[request.status] ||
-              STATUS_META.new;
-
             const isExpanded =
               expandedId === request.id;
 
+            let currentStatus =
+              STATUS_META[request.status] ||
+              STATUS_META.new;
+
+            if (
+              request.customer_status ===
+              "CUSTOMER_CLOSED"
+            ) {
+              currentStatus =
+                STATUS_META.customer_closed;
+
+            } else if (
+              request.customer_status ===
+              "VENDOR_CLOSED"
+            ) {
+              currentStatus =
+                STATUS_META.vendor_closed;
+
+            } else if (
+              request.customer_status ===
+              "VENDOR_REJECTED"
+            ) {
+              currentStatus =
+                STATUS_META.vendor_rejected;
+
+            } else if (
+              request.customer_status ===
+              "DATE_UNAVAILABLE"
+            ) {
+              currentStatus =
+                STATUS_META.date_unavailable;
+
+            } else if (
+              request.status === "lost"
+            ) {
+              currentStatus =
+                STATUS_META.vendor_lost;
+
+            }
+            else if (
+              request.customer_status === "BOOKED" ||
+              request.status === "won"
+            ) {
+              currentStatus = STATUS_META.won;
+
+            } else if (
+              request.customer_status ===
+              "CONTACT_SHARED" ||
+              request.customer_status ===
+              "VENDOR_CONTACT_UNLOCKED" ||
+              request.status === "unlocked"
+            ) {
+              currentStatus =
+                STATUS_META.contacted;
+
+            } else if (
+              request.status === "accepted"
+            ) {
+              currentStatus =
+                STATUS_META.seen;
+
+            } else if (
+              request.status === "new"
+            ) {
+              currentStatus =
+                STATUS_META.new;
+            }
+
             const timeline = buildTimeline(
-              request.status
+              request.status,
+              request.customer_status
             );
 
+            const isBooked =
+              request.customer_status === "BOOKED" ||
+              request.status === "won";
+
             const isClosed =
+              request.customer_status ===
+              "CUSTOMER_CLOSED" ||
+              request.customer_status ===
+              "VENDOR_CLOSED" ||
+              request.customer_status ===
+              "VENDOR_REJECTED" ||
+              request.customer_status ===
+              "DATE_UNAVAILABLE" ||
+              request.status === "lost" ||
               request.status === "closed" ||
-              request.status === "expired";
+              request.status === "expired" ||
+              isBooked;
+
+            const contextText =
+              CUSTOMER_STATUS_META[
+                request.customer_status
+              ]?.text ||
+              "Your request is active.";
 
             return (
               <div
@@ -254,7 +535,6 @@ export default function ViewRequest() {
                 id={`request-${request.id}`}
                 className={styles.requestCard}
               >
-                {/* TOP */}
                 <button
                   className={styles.requestTop}
                   onClick={() =>
@@ -281,12 +561,13 @@ export default function ViewRequest() {
                       </h2>
 
                       <span
-                        className={`${styles.statusBadge} ${styles[status.cls]}`}
+                        className={`${styles.statusBadge} ${styles[currentStatus.cls]}`}
                       >
                         <span
                           className={styles.dot}
                         />
-                        {status.label}
+
+                        {currentStatus.label}
                       </span>
                     </div>
 
@@ -295,8 +576,8 @@ export default function ViewRequest() {
                     >
                       <span>
                         <Building2 size={14} />
-                        Vendor #
-                        {request.vendor_id}
+
+                        {request.service_name}
                       </span>
 
                       <span>
@@ -326,7 +607,6 @@ export default function ViewRequest() {
                   </div>
                 </button>
 
-                {/* EXPANDED */}
                 {isExpanded && (
                   <div
                     className={
@@ -335,6 +615,23 @@ export default function ViewRequest() {
                   >
                     <div className={styles.layout}>
                       <main className={styles.main}>
+                        {/* CONTEXT */}
+                        <section
+                          className={`${styles.card} ${styles.contextCard}`}
+                        >
+                          <div
+                            className={
+                              styles.contextRow
+                            }
+                          >
+                            <AlertTriangle
+                              size={18}
+                            />
+
+                            <p>{contextText}</p>
+                          </div>
+                        </section>
+
                         {/* DETAILS */}
                         <section
                           className={styles.card}
@@ -511,24 +808,52 @@ export default function ViewRequest() {
                         </section>
 
                         {/* ACTIONS */}
-                        <div
-                          className={styles.actions}
-                        >
+                        <div className={styles.actions}>
                           {!isClosed ? (
                             <button
                               type="button"
+                              disabled={
+                                closingId === request.id
+                              }
+                              onClick={() =>
+                                handleCloseRequest(
+                                  request.id
+                                )
+                              }
                               className={`${styles.btn} ${styles.btnDanger}`}
                             >
-                              Close Request
+                              {closingId ===
+                                request.id ? (
+                                <>
+                                  <Loader2
+                                    size={16}
+                                    className={
+                                      styles.btnSpinner
+                                    }
+                                  />
+                                  Closing...
+                                </>
+                              ) : (
+                                <>
+                                  <Lock
+                                    size={16}
+                                  />
+                                  Close Request
+                                </>
+                              )}
                             </button>
-                          ) : (
+                          ) : request.customer_status ===
+                            "CUSTOMER_CLOSED" ? (
                             <button
                               type="button"
                               className={`${styles.btn} ${styles.btnPrimary}`}
                             >
+                              <RefreshCcw
+                                size={16}
+                              />
                               Request Again
                             </button>
-                          )}
+                          ) : null}
                         </div>
                       </main>
                     </div>

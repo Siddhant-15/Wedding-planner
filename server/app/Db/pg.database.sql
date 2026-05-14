@@ -622,8 +622,11 @@ CREATE TABLE leads (
     description TEXT,
 
     status VARCHAR(20) DEFAULT 'new',
+    customer_status VARCHAR(50) DEFAULT 'REQUEST_SUBMITTED',
+    phone_unlocked BOOLEAN DEFAULT FALSE,
 
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
 );
 
 
@@ -639,6 +642,85 @@ CREATE TABLE lead_actions (
 
 CREATE INDEX idx_vendor_leads ON leads(vendor_id);
 CREATE INDEX idx_user_leads ON leads(user_id);
+
+CREATE TABLE vendor_unavailable_dates (
+    id BIGSERIAL PRIMARY KEY,
+
+    vendor_id BIGINT NOT NULL,
+    service_id BIGINT NOT NULL,
+
+    start_date TIMESTAMP NOT NULL,
+    end_date TIMESTAMP NOT NULL,
+
+    reason VARCHAR(255),
+
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_vendor_unavailable_vendor
+        FOREIGN KEY (vendor_id)
+        REFERENCES vendor(id)
+        ON DELETE CASCADE,
+
+    CONSTRAINT fk_vendor_unavailable_service
+        FOREIGN KEY (service_id)
+        REFERENCES services(id)
+        ON DELETE CASCADE
+);
+
+-- INDEXES
+CREATE INDEX idx_unavailable_vendor_dates
+ON vendor_unavailable_dates(vendor_id, start_date, end_date);
+
+CREATE INDEX idx_unavailable_service
+ON vendor_unavailable_dates(service_id);
+
+CREATE INDEX idx_vendor_leads
+ON leads(vendor_id);
+
+CREATE INDEX idx_customer_leads
+ON leads(user_id);
+
+CREATE INDEX idx_event_date
+ON leads(event_date);
+
+CREATE TABLE subscriptions (
+    id BIGSERIAL PRIMARY KEY,
+
+    name VARCHAR(50),
+
+    daily_unlock_limit INTEGER,
+
+    price INTEGER,
+
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE vendor_subscriptions (
+    id BIGSERIAL PRIMARY KEY,
+
+    vendor_id BIGINT NOT NULL,
+
+    subscription_id BIGINT NOT NULL,
+
+    started_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    expires_at TIMESTAMP,
+
+    status VARCHAR(20) DEFAULT 'active'
+);
+
+CREATE TABLE unlock_usage (
+    id BIGSERIAL PRIMARY KEY,
+
+    vendor_id BIGINT NOT NULL,
+
+    usage_date DATE NOT NULL,
+
+    used_count INTEGER DEFAULT 0,
+
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 
 
 CREATE TABLE notifications (
