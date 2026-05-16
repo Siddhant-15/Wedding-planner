@@ -1,174 +1,687 @@
-import React, { useState, useEffect } from "react";
-import { ChevronLeft, ChevronRight, X, ZoomIn } from "lucide-react";
+import React, {
+  useState,
+  useMemo,
+  useEffect,
+  useCallback,
+  memo,
+} from "react";
+
+import {
+  X,
+  ChevronLeft,
+  ChevronRight,
+  Play,
+  Images,
+  Film,
+  ZoomIn,
+} from "lucide-react";
+
+import { motion, AnimatePresence } from "framer-motion";
+
 import styles from "../styles/ImageGallery.module.css";
 
-export default function ImageGallery({ images = [], serviceName = "Service" }) {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+/**
+ * media = [
+ *  {
+ *    media_url,
+ *    media_type, // image | video | youtube | vimeo
+ *    is_cover
+ *  }
+ * ]
+ */
 
-  // Fallback if no images
-  const imgs = images.length > 0 ? images : ["/placeholder.svg?text=No+Images"];
+const TABS = [
+  {
+    id: "images",
+    label: "Images",
+    icon: Images,
+  },
+  {
+    id: "videos",
+    label: "Videos",
+    icon: Film,
+  },
+];
 
-  const nextImage = () => {
-    setCurrentIndex((prev) => (prev + 1) % imgs.length);
-  };
+function ImageGallery({
+  media = [],
+  serviceName = "Service",
+}) {
+  const [tab, setTab] = useState("images");
 
-  const prevImage = () => {
-    setCurrentIndex((prev) => (prev - 1 + imgs.length) % imgs.length);
-  };
+  const [activeIndex, setActiveIndex] =
+    useState(0);
 
-  // Keyboard navigation for lightbox
+  const [lightbox, setLightbox] =
+    useState(null);
+
+  // remove cover media
+  const galleryMedia = useMemo(() => {
+    return media.filter((m) => !m?.is_cover);
+  }, [media]);
+
+  const images = useMemo(() => {
+    return galleryMedia.filter(
+      (m) => m.media_type === "image"
+    );
+  }, [galleryMedia]);
+
+  const videos = useMemo(() => {
+    return galleryMedia.filter((m) =>
+      ["video", "youtube", "vimeo"].includes(
+        m.media_type
+      )
+    );
+  }, [galleryMedia]);
+
+  const filteredMedia = useMemo(() => {
+    return tab === "images"
+      ? images
+      : videos;
+  }, [tab, images, videos]);
+
   useEffect(() => {
-    const handleKey = (e) => {
-      if (!isLightboxOpen) return;
-      if (e.key === "ArrowLeft") prevImage();
-      if (e.key === "ArrowRight") nextImage();
-      if (e.key === "Escape") setIsLightboxOpen(false);
+    setActiveIndex(0);
+  }, [tab]);
+
+  // =========================
+  // Helpers
+  // =========================
+
+  const getYoutubeId = (url = "") => {
+    const match = url.match(
+      /(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([\w-]{6,})/
+    );
+
+    return match ? match[1] : null;
+  };
+
+  const getVimeoId = (url = "") => {
+    const match = url.match(
+      /vimeo\.com\/(?:video\/)?(\d+)/
+    );
+
+    return match ? match[1] : null;
+  };
+
+  const getThumbnail = useCallback((item) => {
+    if (item.media_type === "image") {
+      return item.media_url;
+    }
+
+    if (item.media_type === "youtube") {
+      const id = getYoutubeId(
+        item.media_url
+      );
+
+      return id
+        ? `https://i.ytimg.com/vi/${id}/hqdefault.jpg`
+        : "";
+    }
+
+    return "";
+  }, []);
+
+  const getEmbedUrl = (item) => {
+    if (item.media_type === "youtube") {
+      const id = getYoutubeId(
+        item.media_url
+      );
+
+      return `https://www.youtube.com/embed/${id}?autoplay=1&rel=0`;
+    }
+
+    if (item.media_type === "vimeo") {
+      const id = getVimeoId(
+        item.media_url
+      );
+
+      return `https://player.vimeo.com/video/${id}?autoplay=1`;
+    }
+
+    return item.media_url;
+  };
+
+  // =========================
+  // Navigation
+  // =========================
+
+  const next = useCallback(() => {
+    setActiveIndex((prev) =>
+      (prev + 1) % filteredMedia.length
+    );
+  }, [filteredMedia.length]);
+
+  const prev = useCallback(() => {
+    setActiveIndex((prev) =>
+      (prev - 1 + filteredMedia.length) %
+      filteredMedia.length
+    );
+  }, [filteredMedia.length]);
+
+  const openLightbox = (
+    item,
+    index
+  ) => {
+    setLightbox({
+      item,
+      index,
+    });
+
+    setActiveIndex(index);
+  };
+
+  // =========================
+  // Keyboard Support
+  // =========================
+
+  useEffect(() => {
+    const handler = (e) => {
+      if (!lightbox) return;
+
+      if (e.key === "Escape") {
+        setLightbox(null);
+      }
+
+      if (e.key === "ArrowRight") {
+        const nextIndex =
+          (lightbox.index + 1) %
+          filteredMedia.length;
+
+        openLightbox(
+          filteredMedia[nextIndex],
+          nextIndex
+        );
+      }
+
+      if (e.key === "ArrowLeft") {
+        const prevIndex =
+          (lightbox.index -
+            1 +
+            filteredMedia.length) %
+          filteredMedia.length;
+
+        openLightbox(
+          filteredMedia[prevIndex],
+          prevIndex
+        );
+      }
     };
-    window.addEventListener("keydown", handleKey);
-    return () => window.removeEventListener("keydown", handleKey);
-  }, [isLightboxOpen]);
+
+    window.addEventListener(
+      "keydown",
+      handler
+    );
+
+    return () =>
+      window.removeEventListener(
+        "keydown",
+        handler
+      );
+  }, [lightbox, filteredMedia]);
+
+  // body scroll lock
+  useEffect(() => {
+    if (lightbox) {
+      document.body.style.overflow =
+        "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [lightbox]);
+
+  if (!galleryMedia.length) return null;
 
   return (
-    <>
-      {/* Main Gallery */}
-      <div className={styles.galleryContainer}>
-        {/* Hero / Main Image */}
-        <div className={styles.heroWrapper}>
-          <div className={styles.heroImageBox}>
-            <img
-              src={imgs[currentIndex]}
-              alt={`${serviceName} - Image ${currentIndex + 1}`}
-              className={styles.heroImage}
-              loading="lazy"
-            />
+    <div className={styles.wrapper}>
+      {/* ========================= */}
+      {/* Header */}
+      {/* ========================= */}
 
-            {/* Overlays */}
-            <div className={styles.imageOverlay}>
-              <div className={styles.overlayTop}>
-                <span className={styles.counter}>
-                  {currentIndex + 1} / {imgs.length}
-                </span>
+      <div className={styles.topBar}>
+        <div className={styles.headingWrap}>
+          <span className={styles.badge}>
+            Gallery
+          </span>
 
-                <button
-                  className={styles.zoomButton}
-                  onClick={() => setIsLightboxOpen(true)}
-                  aria-label="View in fullscreen"
+          <h2 className={styles.heading}>
+            Visual Experience
+          </h2>
+
+          <p className={styles.subheading}>
+            Explore premium moments from{" "}
+            {serviceName}
+          </p>
+        </div>
+
+        <div className={styles.tabs}>
+          {TABS.map((tabItem) => {
+            const Icon = tabItem.icon;
+
+            const active =
+              tab === tabItem.id;
+
+            return (
+              <button
+                key={tabItem.id}
+                className={`${styles.tab} ${active
+                    ? styles.activeTab
+                    : ""
+                  }`}
+                onClick={() =>
+                  setTab(tabItem.id)
+                }
+              >
+                <Icon size={16} />
+
+                {tabItem.label}
+
+                <span
+                  className={
+                    styles.count
+                  }
                 >
-                  <ZoomIn size={20} />
-                </button>
-              </div>
+                  {tabItem.id ===
+                    "images"
+                    ? images.length
+                    : videos.length}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
 
-              {imgs.length > 1 && (
+      {/* ========================= */}
+      {/* Main Slider */}
+      {/* ========================= */}
+
+      {!!filteredMedia.length && (
+        <div className={styles.heroSlider}>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeIndex}
+              className={styles.heroMedia}
+              initial={{
+                opacity: 0,
+                scale: 1.04,
+              }}
+              animate={{
+                opacity: 1,
+                scale: 1,
+              }}
+              exit={{
+                opacity: 0,
+              }}
+              transition={{
+                duration: 0.5,
+              }}
+            >
+              {filteredMedia[
+                activeIndex
+              ]?.media_type ===
+                "image" ? (
+                <>
+                  <img
+                    src={
+                      filteredMedia[
+                        activeIndex
+                      ]?.media_url
+                    }
+                    alt={serviceName}
+                    loading="lazy"
+                    className={
+                      styles.heroImage
+                    }
+                  />
+
+                  <button
+                    className={
+                      styles.zoomBtn
+                    }
+                    onClick={() =>
+                      openLightbox(
+                        filteredMedia[
+                        activeIndex
+                        ],
+                        activeIndex
+                      )
+                    }
+                  >
+                    <ZoomIn size={18} />
+                  </button>
+                </>
+              ) : (
+                <div
+                  className={
+                    styles.videoHero
+                  }
+                  onClick={() =>
+                    openLightbox(
+                      filteredMedia[
+                      activeIndex
+                      ],
+                      activeIndex
+                    )
+                  }
+                >
+                  {getThumbnail(
+                    filteredMedia[
+                    activeIndex
+                    ]
+                  ) ? (
+                    <img
+                      src={getThumbnail(
+                        filteredMedia[
+                        activeIndex
+                        ]
+                      )}
+                      alt="Video"
+                      className={
+                        styles.heroImage
+                      }
+                    />
+                  ) : (
+                    <div
+                      className={
+                        styles.videoPlaceholder
+                      }
+                    />
+                  )}
+
+                  <div
+                    className={
+                      styles.playButton
+                    }
+                  >
+                    <Play
+                      size={28}
+                      fill="currentColor"
+                    />
+                  </div>
+                </div>
+              )}
+
+              <div
+                className={
+                  styles.heroOverlay
+                }
+              />
+
+              {filteredMedia.length >
+                1 && (
+                  <>
+                    <button
+                      className={`${styles.navBtn} ${styles.leftBtn}`}
+                      onClick={prev}
+                    >
+                      <ChevronLeft
+                        size={22}
+                      />
+                    </button>
+
+                    <button
+                      className={`${styles.navBtn} ${styles.rightBtn}`}
+                      onClick={next}
+                    >
+                      <ChevronRight
+                        size={22}
+                      />
+                    </button>
+                  </>
+                )}
+            </motion.div>
+          </AnimatePresence>
+        </div>
+      )}
+
+      {/* ========================= */}
+      {/* Gallery Grid */}
+      {/* ========================= */}
+
+      <motion.div
+        className={styles.grid}
+        initial="hidden"
+        whileInView="show"
+        viewport={{ once: true }}
+        variants={{
+          hidden: {},
+          show: {
+            transition: {
+              staggerChildren: 0.08,
+            },
+          },
+        }}
+      >
+        {filteredMedia.map(
+          (item, index) => {
+            const isVideo =
+              item.media_type !==
+              "image";
+
+            return (
+              <motion.button
+                key={`${item.media_url}-${index}`}
+                className={`${styles.card} ${index ===
+                    activeIndex
+                    ? styles.activeCard
+                    : ""
+                  }`}
+                variants={{
+                  hidden: {
+                    opacity: 0,
+                    y: 20,
+                  },
+                  show: {
+                    opacity: 1,
+                    y: 0,
+                  },
+                }}
+                whileHover={{
+                  y: -6,
+                  scale: 1.02,
+                }}
+                transition={{
+                  duration: 0.3,
+                }}
+                onClick={() =>
+                  openLightbox(
+                    item,
+                    index
+                  )
+                }
+              >
+                {getThumbnail(item) ? (
+                  <img
+                    src={getThumbnail(
+                      item
+                    )}
+                    alt={`${serviceName}-${index}`}
+                    loading="lazy"
+                    className={
+                      styles.cardImage
+                    }
+                  />
+                ) : (
+                  <div
+                    className={
+                      styles.videoPlaceholder
+                    }
+                  />
+                )}
+
+                <div
+                  className={
+                    styles.cardOverlay
+                  }
+                />
+
+                {isVideo && (
+                  <div
+                    className={
+                      styles.cardPlay
+                    }
+                  >
+                    <Play
+                      size={18}
+                      fill="currentColor"
+                    />
+                  </div>
+                )}
+              </motion.button>
+            );
+          }
+        )}
+      </motion.div>
+
+      {/* ========================= */}
+      {/* Fullscreen Modal */}
+      {/* ========================= */}
+
+      <AnimatePresence>
+        {lightbox && (
+          <motion.div
+            className={styles.modal}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() =>
+              setLightbox(null)
+            }
+          >
+            <button
+              className={
+                styles.closeBtn
+              }
+              onClick={() =>
+                setLightbox(null)
+              }
+            >
+              <X size={24} />
+            </button>
+
+            <div
+              className={
+                styles.modalContent
+              }
+              onClick={(e) =>
+                e.stopPropagation()
+              }
+            >
+              {lightbox.item
+                .media_type ===
+                "image" ? (
+                <motion.img
+                  src={
+                    lightbox.item
+                      .media_url
+                  }
+                  alt="Preview"
+                  className={
+                    styles.modalImage
+                  }
+                  initial={{
+                    scale: 0.94,
+                    opacity: 0,
+                  }}
+                  animate={{
+                    scale: 1,
+                    opacity: 1,
+                  }}
+                />
+              ) : lightbox.item
+                .media_type ===
+                "video" ? (
+                <video
+                  src={
+                    lightbox.item
+                      .media_url
+                  }
+                  controls
+                  autoPlay
+                  playsInline
+                  className={
+                    styles.modalVideo
+                  }
+                />
+              ) : (
+                <div
+                  className={
+                    styles.iframeWrap
+                  }
+                >
+                  <iframe
+                    src={getEmbedUrl(
+                      lightbox.item
+                    )}
+                    title="Video"
+                    allow="autoplay; encrypted-media"
+                    allowFullScreen
+                  />
+                </div>
+              )}
+            </div>
+
+            {filteredMedia.length >
+              1 && (
                 <>
                   <button
-                    className={`${styles.navButton} ${styles.navLeft}`}
-                    onClick={prevImage}
-                    aria-label="Previous image"
+                    className={`${styles.modalNav} ${styles.modalLeft}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+
+                      const prevIndex =
+                        (lightbox.index -
+                          1 +
+                          filteredMedia.length) %
+                        filteredMedia.length;
+
+                      openLightbox(
+                        filteredMedia[
+                        prevIndex
+                        ],
+                        prevIndex
+                      );
+                    }}
                   >
-                    <ChevronLeft size={28} />
+                    <ChevronLeft
+                      size={28}
+                    />
                   </button>
+
                   <button
-                    className={`${styles.navButton} ${styles.navRight}`}
-                    onClick={nextImage}
-                    aria-label="Next image"
+                    className={`${styles.modalNav} ${styles.modalRight}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+
+                      const nextIndex =
+                        (lightbox.index +
+                          1) %
+                        filteredMedia.length;
+
+                      openLightbox(
+                        filteredMedia[
+                        nextIndex
+                        ],
+                        nextIndex
+                      );
+                    }}
                   >
-                    <ChevronRight size={28} />
+                    <ChevronRight
+                      size={28}
+                    />
                   </button>
                 </>
               )}
-            </div>
-          </div>
-        </div>
-
-        {/* Thumbnails (horizontal scrollable) */}
-        {imgs.length > 1 && (
-          <div className={styles.thumbnailsContainer}>
-            <div className={styles.thumbnailsScroll}>
-              {imgs.map((src, i) => (
-                <button
-                  key={i}
-                  className={`${styles.thumbnail} ${
-                    i === currentIndex ? styles.thumbnailActive : ""
-                  }`}
-                  onClick={() => setCurrentIndex(i)}
-                  aria-label={`View image ${i + 1}`}
-                >
-                  <img src={src} alt={`Thumbnail ${i + 1}`} loading="lazy" />
-                </button>
-              ))}
-            </div>
-          </div>
+          </motion.div>
         )}
-      </div>
-
-      {/* Lightbox */}
-      {isLightboxOpen && (
-        <div
-          className={styles.lightboxOverlay}
-          onClick={() => setIsLightboxOpen(false)}
-        >
-          <div className={styles.lightboxContent} onClick={(e) => e.stopPropagation()}>
-            {/* Close button */}
-            <button
-              className={styles.lightboxClose}
-              onClick={() => setIsLightboxOpen(false)}
-              aria-label="Close lightbox"
-            >
-              <X size={32} />
-            </button>
-
-            {/* Counter */}
-            <div className={styles.lightboxCounter}>
-              {currentIndex + 1} / {imgs.length}
-            </div>
-
-            {/* Main lightbox image */}
-            <img
-              src={imgs[currentIndex]}
-              alt={`${serviceName} - Fullscreen ${currentIndex + 1}`}
-              className={styles.lightboxImage}
-            />
-
-            {/* Navigation */}
-            {imgs.length > 1 && (
-              <>
-                <button
-                  className={`${styles.lightboxNav} ${styles.lightboxNavLeft}`}
-                  onClick={prevImage}
-                  aria-label="Previous"
-                >
-                  <ChevronLeft size={40} />
-                </button>
-                <button
-                  className={`${styles.lightboxNav} ${styles.lightboxNavRight}`}
-                  onClick={nextImage}
-                  aria-label="Next"
-                >
-                  <ChevronRight size={40} />
-                </button>
-              </>
-            )}
-
-            {/* Thumbnails in lightbox */}
-            {imgs.length > 1 && (
-              <div className={styles.lightboxThumbnails}>
-                {imgs.map((src, i) => (
-                  <button
-                    key={i}
-                    className={`${styles.lightboxThumb} ${
-                      i === currentIndex ? styles.lightboxThumbActive : ""
-                    }`}
-                    onClick={() => setCurrentIndex(i)}
-                  >
-                    <img src={src} alt={`Thumbnail ${i + 1}`} loading="lazy" />
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-    </>
+      </AnimatePresence>
+    </div>
   );
 }
+
+export default memo(ImageGallery);

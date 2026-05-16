@@ -1,0 +1,174 @@
+.card {
+    position: relative;
+    margin: -64px auto 0;
+    width: calc(100% - 32px);
+    max-width: 1180px;
+    background: hsl(var(--background) / 0.78);
+    backdrop-filter: blur(22px);
+    -webkit-backdrop-filter: blur(22px);
+    border: 1px solid hsl(var(--border));
+    border-radius: 24px;
+    padding: 28px 32px;
+    box-shadow: 0 30px 80px -30px hsl(var(--foreground) / 0.25);
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 24px;
+    z-index: 5;
+}
+
+.left {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-width: 0;
+    flex: 1;
+}
+
+.badges {
+    display: inline-flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    background: hsl(var(--brand) / 0.12);
+    color: hsl(var(--brand));
+}
+
+.badgeMuted {
+    background: hsl(var(--muted));
+    color: hsl(var(--muted-foreground));
+}
+
+.badgeGold {
+    background: hsl(var(--gold) / 0.14);
+    color: hsl(var(--gold));
+}
+
+.title {
+    font-size: clamp(1.5rem, 3vw, 2.1rem);
+    line-height: 1.15;
+    font-weight: 700;
+    margin: 4px 0 0;
+    color: hsl(var(--foreground));
+    letter-spacing: -0.01em;
+}
+
+.meta {
+    display: inline-flex;
+    align-items: center;
+    gap: 18px;
+    flex-wrap: wrap;
+    color: hsl(var(--muted-foreground));
+    font-size: 0.9rem;
+}
+
+.metaItem {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.rating {
+    color: hsl(var(--gold));
+    font-weight: 600;
+}
+
+.dot {
+    width: 3px;
+    height: 3px;
+    border-radius: 999px;
+    background: hsl(var(--border));
+}
+
+.actions {
+    display: inline-flex;
+    gap: 10px;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 11px 18px;
+    border-radius: 999px;
+    border: 1px solid hsl(var(--border));
+    background: hsl(var(--background));
+    color: hsl(var(--foreground));
+    font-size: 0.86rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform .2s ease, background .25s ease, color .25s ease, border-color .25s ease, box-shadow .25s ease;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 24px -14px hsl(var(--foreground) / 0.25);
+}
+
+.btnIcon {
+    width: 42px;
+    height: 42px;
+    padding: 0;
+}
+
+.btnPrimary {
+    background: hsl(var(--brand));
+    color: hsl(var(--brand-foreground));
+    border-color: transparent;
+}
+
+.btnPrimary:hover {
+    background: hsl(var(--brand-dark));
+}
+
+.heart {
+    fill: transparent;
+    transition: fill .25s ease, color .25s ease, transform .25s ease;
+}
+
+.heartActive {
+    fill: hsl(var(--brand));
+    color: hsl(var(--brand));
+    transform: scale(1.08);
+}
+
+@media (max-width: 900px) {
+    .card {
+        margin-top: -40px;
+        padding: 22px;
+        flex-direction: column;
+        align-items: stretch;
+        border-radius: 20px;
+    }
+
+    .actions {
+        flex-wrap: wrap;
+    }
+
+    .btn {
+        flex: 1;
+        min-width: 0;
+    }
+}
+
+@media (max-width: 480px) {
+    .card {
+        width: calc(100% - 20px);
+        padding: 18px;
+        margin-top: -32px;
+    }
+}

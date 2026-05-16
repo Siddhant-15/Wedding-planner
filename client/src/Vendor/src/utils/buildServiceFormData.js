@@ -36,6 +36,7 @@ export const buildServiceFormData = (formValues) => {
             tags: formValues.tags || [],
             amenities: formValues.amenities || [],
         },
+        media_links: formValues.media_links || [],
     };
 
     // ================= VARIANTS =================
@@ -159,22 +160,48 @@ export const buildServiceFormData = (formValues) => {
 
     if (serviceType === "venue") {
         payload.venue = {
-            min_capacity: Number(formValues.capacity_min) || 0,
-            max_capacity: Number(formValues.capacity_max) || 0,
-            venue_type: formValues.venue_type || "",
-            venue_nature: formValues.venue_nature || "",
-            square_feet: Number(formValues.square_feet) || 0,
-            parking_capacity: Number(formValues.parking_capacity) || 0,
+            min_capacity:
+                formValues.min_capacity !== ""
+                    ? Number(formValues.min_capacity)
+                    : null,
+
+            max_capacity:
+                formValues.max_capacity !== ""
+                    ? Number(formValues.max_capacity)
+                    : null,
+
+            venue_type:
+                formValues.venue_type || "",
+
+            venue_nature:
+                formValues.venue_nature || "",
+
+            square_feet:
+                formValues.square_feet !== ""
+                    ? Number(formValues.square_feet)
+                    : null,
+
+            parking_capacity:
+                formValues.parking_capacity !== ""
+                    ? Number(formValues.parking_capacity)
+                    : null,
 
             venue_policies: {
                 decoration_policy:
-                    formValues.venue_policies?.decoration_policy || "",
+                    formValues.venue_policies
+                        ?.decoration_policy || "",
+
                 catering_policy:
-                    formValues.venue_policies?.catering_policy || "",
+                    formValues.venue_policies
+                        ?.catering_policy || "",
+
                 alcohol_policy:
-                    formValues.venue_policies?.alcohol_policy || "",
+                    formValues.venue_policies
+                        ?.alcohol_policy || "",
+
                 other_policies:
-                    formValues.venue_policies?.other_policies || [],
+                    formValues.venue_policies
+                        ?.other_policies || [],
             },
         };
     }
@@ -248,17 +275,81 @@ export const buildServiceFormData = (formValues) => {
 
     const existingImages = [];
 
-    (formValues.images || []).forEach((img) => {
-        if (img instanceof File || img instanceof Blob) {
-            formData.append("images", img, img.name || "image.jpg");
-        } else if (img && img.file && (img.file instanceof File || img.file instanceof Blob)) {
-            formData.append("images", img.file, img.file.name || "image.jpg");
-        } else if (typeof img === "string") {
-            existingImages.push(img);
-        }
-    });
+    const imageMeta = [];
 
-    formData.append("existing_images", JSON.stringify(existingImages));
+    (formValues.images || []).forEach(
+        (img, index) => {
+
+            // EXISTING IMAGE URL
+            if (typeof img === "string") {
+                existingImages.push(img);
+
+                imageMeta.push({
+                    is_cover: false,
+                    display_order: index,
+                });
+
+                return;
+            }
+
+            // DIRECT FILE
+            if (
+                img instanceof File ||
+                img instanceof Blob
+            ) {
+                formData.append(
+                    "images",
+                    img,
+                    img.name || "image.jpg"
+                );
+
+                imageMeta.push({
+                    is_cover: false,
+                    display_order: index,
+                });
+
+                return;
+            }
+
+            // OBJECT FILE
+            if (
+                img &&
+                img.file &&
+                (
+                    img.file instanceof File ||
+                    img.file instanceof Blob
+                )
+            ) {
+                formData.append(
+                    "images",
+                    img.file,
+                    img.file.name || "image.jpg"
+                );
+
+                imageMeta.push({
+                    is_cover:
+                        !!img.is_cover,
+
+                    display_order: index,
+
+                    media_type:
+                        img.media_type || "image",
+                });
+
+                return;
+            }
+        }
+    );
+
+    formData.append(
+        "existing_images",
+        JSON.stringify(existingImages)
+    );
+
+    formData.append(
+        "image_meta",
+        JSON.stringify(imageMeta)
+    );
 
     return formData;
 };

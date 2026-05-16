@@ -1,0 +1,150 @@
+.wrap {
+    position: relative;
+    width: 100%;
+    border-radius: 28px;
+    overflow: hidden;
+    background: hsl(var(--muted));
+    box-shadow: 0 30px 80px -30px hsl(var(--foreground) / 0.25);
+    height: clamp(260px, 42vw, 560px);
+}
+
+@media (min-width: 768px) {
+    .wrap {
+        height: clamp(420px, 50vw, 620px);
+    }
+}
+
+@media (min-width: 1280px) {
+    .wrap {
+        height: 620px;
+    }
+}
+
+.slide {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 8s ease;
+    will-change: transform;
+}
+
+.wrap:hover .img {
+    transform: scale(1.04);
+}
+
+.gradient {
+    position: absolute;
+    inset: 0;
+    background:
+        linear-gradient(to top, hsl(var(--foreground) / 0.55) 0%, hsl(var(--foreground) / 0.05) 35%, transparent 60%);
+    pointer-events: none;
+}
+
+.nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 44px;
+    height: 44px;
+    border-radius: 999px;
+    border: 1px solid hsl(var(--background) / 0.4);
+    background: hsl(var(--background) / 0.55);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    color: hsl(var(--foreground));
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background .25s ease, transform .25s ease, box-shadow .25s ease;
+    box-shadow: 0 10px 30px -10px hsl(var(--foreground) / 0.25);
+}
+
+.nav:hover {
+    background: hsl(var(--background) / 0.85);
+    transform: translateY(-50%) scale(1.06);
+}
+
+.prev {
+    left: 16px;
+}
+
+.next {
+    right: 16px;
+}
+
+@media (max-width: 640px) {
+    .nav {
+        width: 38px;
+        height: 38px;
+    }
+
+    .prev {
+        left: 10px;
+    }
+
+    .next {
+        right: 10px;
+    }
+}
+
+.dots {
+    position: absolute;
+    bottom: 18px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: inline-flex;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: 999px;
+    background: hsl(var(--background) / 0.45);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+
+.dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 999px;
+    background: hsl(var(--background) / 0.6);
+    border: none;
+    cursor: pointer;
+    transition: width .3s ease, background .3s ease;
+    padding: 0;
+}
+
+.dotActive {
+    width: 24px;
+    background: hsl(var(--brand));
+}
+
+.counter {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: hsl(var(--foreground) / 0.55);
+    color: hsl(var(--background));
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    backdrop-filter: blur(10px);
+}
+
+.empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    color: hsl(var(--muted-foreground));
+    font-size: 0.9rem;
+}

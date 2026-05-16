@@ -23,7 +23,6 @@ import Analytics from "./Admin/src/pages/admin/Analytics";
 import Settings from "./Admin/src/pages/admin/Settings";
 
 // Customer & others
-import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -125,7 +124,9 @@ function RoleBasedRoutes() {
               replace
             />
           ) : (
-            <Index />
+            <Navigate
+              to={"/customer/dashboard"}
+            />
           )
         }
       />

@@ -1,0 +1,289 @@
+/* MediaGalleryTabs.module.css */
+
+.card {
+    background: hsl(var(--card));
+    border: 1px solid hsl(var(--border));
+    border-radius: 24px;
+    padding: 24px;
+    overflow: hidden;
+}
+
+.head {
+    display: flex;
+    align-items: center;
+    margin-bottom: 22px;
+    border-bottom: 1px solid hsl(var(--border));
+    padding-bottom: 14px;
+}
+
+.tabs {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    width: 100%;
+}
+
+.tab {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 0 14px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    color: hsl(var(--muted-foreground));
+    font-size: 0.95rem;
+    font-weight: 600;
+    transition: color 0.25s ease;
+}
+
+.tab:hover {
+    color: hsl(var(--foreground));
+}
+
+.tabActive {
+    color: hsl(var(--foreground));
+}
+
+.tabActive::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -15px;
+    height: 2px;
+    border-radius: 999px;
+    background: hsl(var(--brand));
+}
+
+.count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 6px;
+    border-radius: 999px;
+    background: hsl(var(--muted));
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: hsl(var(--foreground));
+}
+
+/* =========================================================
+   SCROLL AREA
+========================================================= */
+
+.scrollContainer {
+    max-height: 720px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 4px;
+}
+
+.scrollContainer::-webkit-scrollbar {
+    width: 6px;
+}
+
+.scrollContainer::-webkit-scrollbar-thumb {
+    background:
+        hsl(var(--border));
+    border-radius: 999px;
+}
+
+/* =========================================================
+   GRID
+========================================================= */
+
+.mediaGrid {
+    display: grid;
+    grid-template-columns:
+        repeat(4, minmax(0, 1fr));
+    gap: 16px;
+}
+
+/* =========================================================
+   CARD
+========================================================= */
+
+.mediaCard {
+    position: relative;
+    aspect-ratio: 1 / 1;
+    border: none;
+    overflow: hidden;
+    border-radius: 18px;
+    background:
+        hsl(var(--muted));
+    cursor: pointer;
+    padding: 0;
+    isolation: isolate;
+
+    transition:
+        transform 0.22s ease,
+        box-shadow 0.22s ease;
+}
+
+.mediaCard:hover {
+    transform:
+        translateY(-2px);
+
+    box-shadow:
+        0 14px 28px -16px rgba(0, 0, 0, 0.28);
+}
+
+.mediaImage {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+
+    transition:
+        transform 0.35s ease;
+}
+
+.mediaCard:hover .mediaImage {
+    transform: scale(1.03);
+}
+
+/* =========================================================
+   OVERLAY
+========================================================= */
+
+.mediaOverlay {
+    position: absolute;
+    inset: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background:
+        linear-gradient(to top,
+            rgba(0, 0, 0, 0.38),
+            rgba(0, 0, 0, 0.08));
+
+    opacity: 0;
+
+    transition:
+        opacity 0.22s ease;
+}
+
+.mediaCard:hover .mediaOverlay {
+    opacity: 1;
+}
+
+.zoomButton,
+.playButton {
+    width: 52px;
+    height: 52px;
+
+    border-radius: 999px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background:
+        rgba(255, 255, 255, 0.94);
+
+    color:
+        hsl(var(--foreground));
+
+    backdrop-filter: blur(12px);
+}
+
+/* =========================================================
+   LOAD MORE
+========================================================= */
+
+.loadMoreWrap {
+    display: flex;
+    justify-content: center;
+    margin-top: 24px;
+}
+
+.loadMoreBtn {
+    border: none;
+    outline: none;
+
+    background:
+        hsl(var(--brand));
+
+    color: white;
+
+    padding: 14px 24px;
+
+    border-radius: 14px;
+
+    font-size: 0.95rem;
+    font-weight: 700;
+
+    cursor: pointer;
+
+    transition:
+        transform 0.2s ease,
+        opacity 0.2s ease;
+}
+
+.loadMoreBtn:hover {
+    transform: translateY(-1px);
+}
+
+.loadMoreBtn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+/* =========================================================
+   EMPTY
+========================================================= */
+
+.empty {
+    padding: 60px 20px;
+    text-align: center;
+    color:
+        hsl(var(--muted-foreground));
+    font-size: 0.95rem;
+}
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (max-width: 1200px) {
+    .mediaGrid {
+        grid-template-columns:
+            repeat(3, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    .card {
+        padding: 18px;
+    }
+
+    .mediaGrid {
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+    }
+
+    .scrollContainer {
+        max-height: 620px;
+    }
+}
+
+@media (max-width: 480px) {
+    .mediaGrid {
+        grid-template-columns: 1fr;
+    }
+
+    .tabs {
+        gap: 18px;
+        overflow-x: auto;
+    }
+
+    .scrollContainer {
+        max-height: 520px;
+    }
+}

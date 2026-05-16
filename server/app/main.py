@@ -12,17 +12,18 @@ from sqlalchemy.exc import SQLAlchemyError
 from app.config import settings
 from app.Db.db import startup_db, shutdown_db
 from app.routers.auth import AuthRouter
-from app.routers.service import servicerouter
-from app.routers.customer_services import customerservicerouter
+from app.routers.Customer.customer_services import customerservicerouter
 from app.routers.vendors import vendorrouter
 from app.routers.reviews import Reviewrouter
-from app.routers.wishlist_routes import wishlistrouter
+from app.routers.Customer.wishlist_routes import router as wishlistrouter
 from app.routers.notification.notification import NotificationRouter
 from app.routers.notification.websocket import router as notification_ws_router
-from app.routers.vendor.availability_routes import router as availability_router
-from app.routers.customer.lead_routes import router as LeadRouter
-from app.routers.vendor.vendor_leads_routes import router as vendor_leads_router
+from app.routers.Vendor.availability_routes import router as availability_router
+from app.routers.Customer.lead_routes import router as LeadRouter
+from app.routers.Vendor.vendor_leads_routes import router as vendor_leads_router
 from app.routers.review.review_routes import router as ReviewRouter
+from app.routers.Vendor.vendor_services import router as vendor_services_router
+
 
 
 
@@ -86,7 +87,7 @@ app.add_middleware(
 
 # ─── Routers ────────────────────────────────────────────────────────────────
 app.include_router(AuthRouter, prefix=settings.API_V1_STR, tags=["auth"])
-app.include_router(servicerouter, prefix=settings.API_V1_STR)
+app.include_router(vendor_services_router, prefix=settings.API_V1_STR)
 app.include_router(customerservicerouter, prefix=settings.API_V1_STR, tags=["customer_services"])
 app.include_router(wishlistrouter, prefix=settings.API_V1_STR)
 app.include_router(vendorrouter, prefix=settings.API_V1_STR)

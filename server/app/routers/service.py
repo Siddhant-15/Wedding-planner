@@ -401,6 +401,7 @@ async def create_service(
     data: str = Form(...),
     images: List[UploadFile] = File([]),
     videos: List[UploadFile] = File([]),
+    image_meta: str = Form("[]"), 
     external_media: str = Form("[]"),
     db: AsyncSession = Depends(get_db),
     current_user: dict = Depends(get_current_user)
@@ -416,6 +417,7 @@ async def create_service(
         
         print(data)
         parsed = ServiceCreate(**json.loads(data))
+        image_meta_list = json.loads(image_meta)
         print(parsed)
 
         db_service = Service(
@@ -467,13 +469,26 @@ async def create_service(
         for idx, img in enumerate(images):
             url = await _upload_media(img)
 
+            meta = (
+                image_meta_list[idx]
+                if idx < len(image_meta_list)
+                else {}
+            )
+
             db.add(ServiceMedia(
                 service_id=db_service.id,
                 media_url=url,
-                media_type="image",
+                media_type=meta.get("media_type", "image"),
                 source_type="upload",
-                is_cover=(display_order == 0),
-                display_order=display_order,
+
+                # REAL COVER VALUE FROM FRONTEND
+                is_cover=meta.get("is_cover", False),
+
+                display_order=meta.get(
+                    "display_order",
+                    display_order
+                ),
+
                 metadata_={}
             ))
 
@@ -493,6 +508,20 @@ async def create_service(
                 display_order=display_order,
                 metadata_={}
             ))
+
+            display_order += 1
+        
+        # MEDIA LINKS FROM PAYLOAD
+        for item in (parsed.media_links or []):
+            db.add(ServiceMedia(
+                service_id=db_service.id,
+                media_url=str(item.url),
+                media_type=item.type,
+                source_type="external",
+                is_cover=False,
+                display_order=display_order,
+                metadata_={}
+            ))  
 
             display_order += 1
 
@@ -735,48 +764,3 @@ async def delete_service(
     except Exception as e:
         await db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
-
-
-# ─── UNAVAILABLE DATES ───────────────────────────────────────────────────────
-
-# @servicerouter.post("/{service_id}/unavailable-dates")
-# async def add_unavailable_date(
-#     service_id: int,
-#     start_date: str = Form(...),
-#     end_date: str = Form(...),
-#     reason: Optional[str] = Form(None),
-#     db: AsyncSession = Depends(get_db),
-#     current_user: dict = Depends(get_current_user)
-# ):
-#     try:
-#         start = datetime.fromisoformat(start_date.replace("Z", "+00:00"))
-#         end = datetime.fromisoformat(end_date.replace("Z", "+00:00"))
-#         if end < start:
-#             raise HTTPException(status_code=400, detail="end_date must be after start_date")
-#         db.add(UnavailableDate(service_id=service_id, start_date=start, end_date=end, reason=reason))
-#         await db.commit()
-#         return {"message": "Unavailable date added"}
-#     except HTTPException:
-#         raise
-#     except Exception as e:
-#         await db.rollback()
-#         raise HTTPException(status_code=500, detail=str(e))
-
-
-# @servicerouter.delete("/{service_id}/unavailable-dates/{date_id}")
-# async def remove_unavailable_date(
-#     service_id: int,
-#     date_id: int,
-#     db: AsyncSession = Depends(get_db),
-#     current_user: dict = Depends(get_current_user)
-# ):
-#     try:
-#         await db.execute(delete(UnavailableDate).where(
-#             UnavailableDate.id == date_id,
-#             UnavailableDate.service_id == service_id
-#         ))
-#         await db.commit()
-#         return {"message": "Unavailable date removed"}
-#     except Exception as e:
-#         await db.rollback()
-#         raise HTTPException(status_code=500, detail=str(e))

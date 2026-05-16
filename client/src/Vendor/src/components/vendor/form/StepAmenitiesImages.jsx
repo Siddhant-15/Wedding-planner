@@ -1,3 +1,5 @@
+// StepAmenitiesImages.jsx
+
 import React, {
   useRef,
   useEffect,
@@ -83,6 +85,10 @@ const StepAmenitiesImages = ({
         file,
         preview:
           URL.createObjectURL(file),
+
+        media_type: "image",
+
+        is_cover: false,
       })
     );
 
@@ -108,13 +114,46 @@ const StepAmenitiesImages = ({
     updateField("images", updated);
   };
 
+  const toggleCover = (idx) => {
+    const updated = [...images];
+
+    const currentCoverCount =
+      updated.filter(
+        (img) => img.is_cover
+      ).length;
+
+    if (
+      !updated[idx].is_cover &&
+      currentCoverCount >= 3
+    ) {
+      alert(
+        "You can select maximum 3 cover images."
+      );
+
+      return;
+    }
+
+    updated[idx] = {
+      ...updated[idx],
+
+      is_cover:
+        !updated[idx].is_cover,
+    };
+
+    updateField("images", updated);
+  };
+
   const handleAddMediaLink = () => {
     if (!mediaUrl.trim()) return;
 
     const newLink = {
       id: Date.now(),
+
       type: mediaType,
+
       url: mediaUrl.trim(),
+
+      is_cover: false,
     };
 
     updateField("media_links", [
@@ -209,13 +248,13 @@ const StepAmenitiesImages = ({
 
         <div className={styles.dropzone}>
           <Upload
-            size={28}
+            size={30}
             className={styles.dropIcon}
           />
 
           <p>
-            Drag & drop images, or
-            browse
+            Drag & drop images or browse
+            from your device
           </p>
 
           <input
@@ -261,9 +300,29 @@ const StepAmenitiesImages = ({
                 >
                   <img
                     src={previewUrl}
-                    alt={`Upload ${i + 1
-                      }`}
+                    alt={`Upload ${i + 1}`}
                   />
+
+                  {/* COVER CHECKBOX */}
+                  <label
+                    className={
+                      styles.coverCheck
+                    }
+                  >
+                    <input
+                      type="checkbox"
+                      checked={
+                        !!img.is_cover
+                      }
+                      onChange={() =>
+                        toggleCover(i)
+                      }
+                    />
+
+                    <span>
+                      Cover
+                    </span>
+                  </label>
 
                   <button
                     type="button"
