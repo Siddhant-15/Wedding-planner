@@ -1,5 +1,5 @@
 from supabase import create_client
-from app.config import settings
+from app.core.config import settings
 
 # Get keys from environment variables (recommended)
 SUPABASE_URL = settings.SUPABASE_URL

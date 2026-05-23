@@ -3,7 +3,7 @@ from sqlalchemy import select, desc
 from sqlalchemy.orm import selectinload
 from datetime import datetime, timedelta
 
-from app.models.models import (
+from app.infrastructure.db.models.models import (
     Lead,
     VendorUnavailableDate
 )

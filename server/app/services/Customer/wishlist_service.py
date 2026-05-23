@@ -2,8 +2,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError
 from fastapi import HTTPException
 
-from app.models.models import Wishlist, WishlistItem
-from app.db_queries.Customer.wishlist_queries import *
+from app.infrastructure.db.models.models import Wishlist, WishlistItem
+from app.repositories.Customer.wishlist_queries import *
 from app.utils.Customer.wishlist_utils import map_priority, extract_pricing, PRIORITY_TO_INT, map_priority
 
 

@@ -6,7 +6,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
-from app.models.models import VendorUnavailableDate
+from app.infrastructure.db.models.models import VendorUnavailableDate
 
 
 async def get_vendor_availability(

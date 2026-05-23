@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, desc
 from datetime import date
 
-from app.models.models import (
+from app.infrastructure.db.models.models import (
     Lead,
     LeadAction,
     UnlockUsage,

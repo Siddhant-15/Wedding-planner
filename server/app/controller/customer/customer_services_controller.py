@@ -1,10 +1,10 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import desc
-from app.models.models import Service
+from app.infrastructure.db.models.models import Service
 
-from app.db_queries.Customer.customer_services_queries import (
-    base_service_query,
-    base_count_query,
+from app.repositories.Customer.customer_services_queries import (
+    customer_catalog_query,
+    customer_catalog_count_query,
     service_detail_query,
     service_media_query,
 )
@@ -77,18 +77,23 @@ class CustomerServiceController:
 
     @staticmethod
     async def list_services(db: AsyncSession, service_type: str, skip: int, limit: int, city: str | None):
-        query = base_service_query(service_type)
-        count_query = base_count_query(service_type)
+        query = customer_catalog_query(
+            service_type=service_type,
+            city=city,
+            skip=skip,
+            limit=limit,
+        )
 
-        if city:
-            query = query.filter(Service.city.ilike(f"%{city}%"))
-            count_query = count_query.filter(Service.city.ilike(f"%{city}%"))
+        count_query = customer_catalog_count_query(
+            service_type=service_type,
+            city=city,  
+        )
 
-        query = query.order_by(desc(Service.created_at))
+
 
         total = (await db.execute(count_query)).scalar_one()
 
-        result = await db.execute(query.offset(skip).limit(limit))
+        result = await db.execute(query)
         services = result.scalars().unique().all()
 
         results = []

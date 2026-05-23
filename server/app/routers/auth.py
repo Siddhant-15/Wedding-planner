@@ -5,14 +5,14 @@ from sqlalchemy import select
 import logging
 from datetime import datetime, timedelta
 
-from app.Db.db import get_db             # ← changed: use get_db, not get_db_session
-from app.models.models import Customer, Vendor, VendorSubscription
+from app.infrastructure.db.session import get_db
+from app.infrastructure.db.models.models import Customer, Vendor, VendorSubscription
 from app.schemas.auth import (
     CustomerSignup, VendorSignup, UserLogin, Token, ResetPasswordIn
 )
 from app.core.security import verify_password, hash_password
 from app.core.security import create_access_token, create_refresh_token, decode_token
-from app.config import settings
+from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 

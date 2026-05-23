@@ -1,4 +1,4 @@
-from app.schemas.Vendor.services import ServiceVariantCreate
+from app.schemas.Vendor.vendor_services import ServiceVariantCreate
 
 
 def enforce_variants(variants: list[ServiceVariantCreate]):

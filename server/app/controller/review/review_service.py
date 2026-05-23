@@ -5,7 +5,7 @@
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.models import Review
+from app.infrastructure.db.models.models import Review
 
 
 async def create_review(

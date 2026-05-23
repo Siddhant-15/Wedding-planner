@@ -1,5 +1,5 @@
 from sqlalchemy import select, func
-from app.models.models import Notification
+from app.infrastructure.db.models.models import Notification
 
 
 async def get_unread_count(db, recipient_id: int, recipient_type: str) -> int:
