@@ -675,9 +675,6 @@ ON vendor_unavailable_dates(vendor_id, start_date, end_date);
 CREATE INDEX idx_unavailable_service
 ON vendor_unavailable_dates(service_id);
 
-CREATE INDEX idx_vendor_leads
-ON leads(vendor_id);
-
 CREATE INDEX idx_customer_leads
 ON leads(user_id);
 
