@@ -24,11 +24,31 @@ import { getFieldDescription } from "../../../constants/fieldDescriptions";
 import formStyles from "../../../styles/FormStep.module.css";
 import styles from "../../../styles/StepAmenitiesImages.module.css";
 
+const MAX_IMAGES = 5;
+
+const MAX_FILE_SIZE =
+  5 * 1024 * 1024; // 5MB
+
+const SUPPORTED_TYPES = [
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+];
+
 const StepAmenitiesImages = ({
   formData,
   updateField,
 }) => {
   const inputRef = useRef(null);
+
+  const [error, setError] =
+    useState("");
+
+  const [mediaType, setMediaType] =
+    useState("youtube");
+
+  const [mediaUrl, setMediaUrl] =
+    useState("");
 
   const t = (k) =>
     getFieldDescription(
@@ -41,55 +61,115 @@ const StepAmenitiesImages = ({
   const mediaLinks =
     formData.media_links || [];
 
-  const [mediaType, setMediaType] =
-    useState("youtube");
+  const isValidUrl = (url) => {
+    try {
+      const parsed = new URL(url);
 
-  const [mediaUrl, setMediaUrl] =
-    useState("");
+      return [
+        "http:",
+        "https:",
+      ].includes(parsed.protocol);
+    } catch {
+      return false;
+    }
+  };
 
   const handleFiles = (e) => {
+    setError("");
+
     const files = Array.from(
       e.target.files || []
     );
 
-    const supportedTypes = [
-      "image/jpeg",
-      "image/png",
-      "image/webp",
-      "image/gif",
-    ];
+    if (!files.length) return;
 
-    const validFiles = files.filter(
-      (f) =>
-        supportedTypes.includes(f.type)
-    );
+    const remainingSlots =
+      MAX_IMAGES - images.length;
+
+    const filesToProcess =
+      files.slice(0, remainingSlots);
 
     if (
-      validFiles.length < files.length
+      files.length > remainingSlots
     ) {
-      alert(
-        "Some files were rejected. Please use JPG, PNG, WEBP, or GIF formats only."
+      setError(
+        `Only ${remainingSlots} more image(s) allowed.`
       );
     }
 
-    if (validFiles.length === 0) {
-      e.target.value = "";
-      return;
-    }
+    const validFiles = [];
 
-    const newImages = validFiles.map(
-      (file) => ({
-        id: `${file.name}-${Date.now()}`,
-        file,
-        preview:
-          URL.createObjectURL(file),
-      })
+    const errors = [];
+
+    filesToProcess.forEach(
+      (file) => {
+        // MIME validation
+        if (
+          !SUPPORTED_TYPES.includes(
+            file.type
+          )
+        ) {
+          errors.push(
+            `${file.name}: Unsupported format.`
+          );
+
+          return;
+        }
+
+        // File size validation
+        if (
+          file.size >
+          MAX_FILE_SIZE
+        ) {
+          errors.push(
+            `${file.name}: File size exceeds 5MB.`
+          );
+
+          return;
+        }
+
+        // Duplicate prevention
+        const alreadyExists =
+          images.some(
+            (img) =>
+              img.file?.name ===
+              file.name &&
+              img.file?.size ===
+              file.size &&
+              img.file
+                ?.lastModified ===
+              file.lastModified
+          );
+
+        if (alreadyExists) {
+          errors.push(
+            `${file.name}: Duplicate image.`
+          );
+
+          return;
+        }
+
+        validFiles.push({
+          id: crypto.randomUUID(),
+          file,
+          preview:
+            URL.createObjectURL(
+              file
+            ),
+        });
+      }
     );
 
-    updateField("images", [
-      ...images,
-      ...newImages,
-    ]);
+    if (errors.length) {
+      setError(errors.join(" "));
+    }
+
+    if (validFiles.length) {
+      updateField("images", [
+        ...images,
+        ...validFiles,
+      ]);
+    }
 
     e.target.value = "";
   };
@@ -97,9 +177,16 @@ const StepAmenitiesImages = ({
   const removeImage = (idx) => {
     const updated = [...images];
 
-    if (updated[idx]?.preview) {
+    const imageToRemove =
+      updated[idx];
+
+    if (
+      typeof imageToRemove !==
+      "string" &&
+      imageToRemove?.preview
+    ) {
       URL.revokeObjectURL(
-        updated[idx].preview
+        imageToRemove.preview
       );
     }
 
@@ -109,12 +196,37 @@ const StepAmenitiesImages = ({
   };
 
   const handleAddMediaLink = () => {
-    if (!mediaUrl.trim()) return;
+    setError("");
+
+    const trimmedUrl =
+      mediaUrl.trim();
+
+    if (!trimmedUrl) return;
+
+    if (
+      trimmedUrl.length > 2000
+    ) {
+      setError(
+        "URL is too long."
+      );
+
+      return;
+    }
+
+    if (
+      !isValidUrl(trimmedUrl)
+    ) {
+      setError(
+        "Please enter a valid URL."
+      );
+
+      return;
+    }
 
     const newLink = {
-      id: Date.now(),
+      id: crypto.randomUUID(),
       type: mediaType,
-      url: mediaUrl.trim(),
+      url: trimmedUrl,
     };
 
     updateField("media_links", [
@@ -125,62 +237,91 @@ const StepAmenitiesImages = ({
     setMediaUrl("");
   };
 
-  const removeMediaLink = (id) => {
+  const removeMediaLink = (
+    id
+  ) => {
     updateField(
       "media_links",
       mediaLinks.filter(
-        (item) => item.id !== id
+        (item) =>
+          item.id !== id
       )
     );
   };
 
-  const getMediaIcon = (type) => {
+  const getMediaIcon = (
+    type
+  ) => {
     switch (type) {
       case "youtube":
-        return <Youtube size={16} />;
+        return (
+          <Youtube size={16} />
+        );
 
       case "video":
-        return <Video size={16} />;
+        return (
+          <Video size={16} />
+        );
 
       case "instagram":
         return (
-          <Instagram size={16} />
+          <Instagram
+            size={16}
+          />
         );
 
       case "image":
         return (
-          <ImageIcon size={16} />
+          <ImageIcon
+            size={16}
+          />
         );
 
       default:
-        return <Globe size={16} />;
+        return (
+          <Globe size={16} />
+        );
     }
   };
 
   useEffect(() => {
     return () => {
       images.forEach((img) => {
-        if (img?.preview) {
+        if (
+          typeof img !==
+          "string" &&
+          img?.preview
+        ) {
           URL.revokeObjectURL(
             img.preview
           );
         }
       });
     };
-  }, []);
+  }, [images]);
 
   return (
-    <div className={formStyles.step}>
+    <div
+      className={formStyles.step}
+    >
       {/* AMENITIES */}
-      <div className={formStyles.field}>
+      <div
+        className={
+          formStyles.field
+        }
+      >
         <FieldLabel
-          tooltip={t("amenities")}
+          tooltip={t(
+            "amenities"
+          )}
         >
           Amenities
         </FieldLabel>
 
         <TagInput
-          values={formData.amenities}
+          values={
+            formData.amenities
+          }
           onChange={(v) =>
             updateField(
               "amenities",
@@ -192,107 +333,175 @@ const StepAmenitiesImages = ({
       </div>
 
       {/* IMAGE UPLOAD */}
-      <div className={formStyles.section}>
+      <div
+        className={
+          formStyles.section
+        }
+      >
         <FieldLabel
-          tooltip={t("images")}
+          tooltip={t(
+            "images"
+          )}
         >
           <ImageIcon
             size={14}
             style={{
               marginRight: 4,
-              verticalAlign: "-2px",
+              verticalAlign:
+                "-2px",
             }}
           />
 
           Images
         </FieldLabel>
 
-        <div className={styles.dropzone}>
+        <p
+          className={
+            styles.helper
+          }
+        >
+          {images.length}/
+          {MAX_IMAGES} images
+          uploaded
+        </p>
+
+        <div
+          className={
+            styles.dropzone
+          }
+        >
           <Upload
             size={28}
-            className={styles.dropIcon}
+            className={
+              styles.dropIcon
+            }
           />
 
           <p>
-            Drag & drop images, or
-            browse
+            Drag & drop images,
+            or browse
           </p>
 
           <input
             ref={inputRef}
             type="file"
-            accept="image/jpeg, image/png, image/webp, image/gif"
+            accept="image/jpeg,image/png,image/webp"
             multiple
-            onChange={handleFiles}
-            style={{
-              display: "none",
-            }}
+            onChange={
+              handleFiles
+            }
+            hidden
           />
 
           <button
             type="button"
-            className={formStyles.btn}
+            className={
+              formStyles.btn
+            }
+            disabled={
+              images.length >=
+              MAX_IMAGES
+            }
             onClick={() =>
               inputRef.current?.click()
             }
           >
-            Choose Images
+            {images.length >=
+              MAX_IMAGES
+              ? "Upload Limit Reached"
+              : "Choose Images"}
           </button>
         </div>
 
+        {error && (
+          <p
+            className={
+              styles.error
+            }
+          >
+            {error}
+          </p>
+        )}
+
         {/* IMAGE GRID */}
         {images.length > 0 && (
-          <div className={styles.grid}>
-            {images.map((img, i) => {
-              const previewUrl =
-                typeof img === "string"
-                  ? img
-                  : img.preview;
+          <div
+            className={
+              styles.grid
+            }
+          >
+            {images.map(
+              (img, i) => {
+                const previewUrl =
+                  typeof img ===
+                    "string"
+                    ? img
+                    : img.preview;
 
-              const uniqueKey =
-                typeof img === "string"
-                  ? `${img}-${i}`
-                  : img.id || i;
+                const uniqueKey =
+                  typeof img ===
+                    "string"
+                    ? `${img}-${i}`
+                    : img.id ||
+                    i;
 
-              return (
-                <div
-                  key={uniqueKey}
-                  className={styles.thumb}
-                >
-                  <img
-                    src={previewUrl}
-                    alt={`Upload ${i + 1
-                      }`}
-                  />
-
-                  <button
-                    type="button"
-                    className={
-                      styles.remove
+                return (
+                  <div
+                    key={
+                      uniqueKey
                     }
-                    onClick={() =>
-                      removeImage(i)
+                    className={
+                      styles.thumb
                     }
                   >
-                    <Trash2
-                      size={14}
+                    <img
+                      loading="lazy"
+                      src={
+                        previewUrl
+                      }
+                      alt={`Upload ${i + 1
+                        }`}
                     />
-                  </button>
-                </div>
-              );
-            })}
+
+                    <button
+                      type="button"
+                      aria-label="Remove image"
+                      className={
+                        styles.remove
+                      }
+                      onClick={() =>
+                        removeImage(
+                          i
+                        )
+                      }
+                    >
+                      <Trash2
+                        size={
+                          14
+                        }
+                      />
+                    </button>
+                  </div>
+                );
+              }
+            )}
           </div>
         )}
       </div>
 
       {/* EXTERNAL MEDIA */}
-      <div className={formStyles.section}>
+      <div
+        className={
+          formStyles.section
+        }
+      >
         <FieldLabel>
           <Link2
             size={14}
             style={{
               marginRight: 4,
-              verticalAlign: "-2px",
+              verticalAlign:
+                "-2px",
             }}
           />
 
@@ -300,7 +509,9 @@ const StepAmenitiesImages = ({
         </FieldLabel>
 
         <div
-          className={styles.mediaInputs}
+          className={
+            styles.mediaInputs
+          }
         >
           <select
             value={mediaType}
@@ -309,7 +520,9 @@ const StepAmenitiesImages = ({
                 e.target.value
               )
             }
-            className={styles.select}
+            className={
+              styles.select
+            }
           >
             <option value="youtube">
               YouTube
@@ -348,11 +561,11 @@ const StepAmenitiesImages = ({
 
           <button
             type="button"
-            onClick={
-              handleAddMediaLink
-            }
             className={
               styles.addBtn
+            }
+            onClick={
+              handleAddMediaLink
             }
           >
             <Plus size={15} />
@@ -360,69 +573,77 @@ const StepAmenitiesImages = ({
           </button>
         </div>
 
-        {mediaLinks.length > 0 && (
-          <div
-            className={styles.linkList}
-          >
-            {mediaLinks.map(
-              (item) => (
-                <div
-                  key={item.id}
-                  className={
-                    styles.linkCard
-                  }
-                >
+        {mediaLinks.length >
+          0 && (
+            <div
+              className={
+                styles.linkList
+              }
+            >
+              {mediaLinks.map(
+                (item) => (
                   <div
+                    key={item.id}
                     className={
-                      styles.linkContent
+                      styles.linkCard
                     }
                   >
                     <div
                       className={
-                        styles.linkType
+                        styles.linkContent
                       }
                     >
-                      {getMediaIcon(
-                        item.type
-                      )}
+                      <div
+                        className={
+                          styles.linkType
+                        }
+                      >
+                        {getMediaIcon(
+                          item.type
+                        )}
 
-                      <span>
-                        {item.type}
-                      </span>
+                        <span>
+                          {
+                            item.type
+                          }
+                        </span>
+                      </div>
+
+                      <a
+                        href={
+                          item.url
+                        }
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={
+                          styles.linkUrl
+                        }
+                      >
+                        {item.url}
+                      </a>
                     </div>
 
-                    <a
-                      href={item.url}
-                      target="_blank"
-                      rel="noreferrer"
+                    <button
+                      type="button"
+                      aria-label="Remove media link"
                       className={
-                        styles.linkUrl
+                        styles.removeLink
+                      }
+                      onClick={() =>
+                        removeMediaLink(
+                          item.id
+                        )
                       }
                     >
-                      {item.url}
-                    </a>
+                      <Trash2
+                        size={14}
+                      />
+                    </button>
                   </div>
-
-                  <button
-                    type="button"
-                    className={
-                      styles.removeLink
-                    }
-                    onClick={() =>
-                      removeMediaLink(
-                        item.id
-                      )
-                    }
-                  >
-                    <Trash2
-                      size={14}
-                    />
-                  </button>
-                </div>
-              )
-            )}
-          </div>
-        )}
+                )
+              )}
+            </div>
+          )}
       </div>
     </div>
   );

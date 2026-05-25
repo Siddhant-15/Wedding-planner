@@ -55,6 +55,7 @@ import VendorAvailability from "./wedding-platform/src/pages/vendor/VendorAvaila
 import Lottie from "lottie-react";
 import loadingAnimation from "@/assets/animations/loading.json";
 import ViewRequest from "./Customer/src/pages/customer/ViewRequest/ViewRequest";
+import VendorOnboarding from "./Vendor/src/components/vendor/VendorOnboarding";
 
 const queryClient = new QueryClient();
 
@@ -161,6 +162,18 @@ function RoleBasedRoutes() {
       </Route>
 
       {/* Vendor */}
+      <Route
+        path="/vendor/onboarding"
+        element={
+          <ProtectedRoute
+            isAuthenticated={isAuthenticated}
+            user={user}
+            allowedRoles={["vendor"]}
+          >
+            <VendorOnboarding />
+          </ProtectedRoute>
+        }
+      />
       <Route
         element={
           <ProtectedRoute
