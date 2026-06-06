@@ -83,7 +83,6 @@ async def signup_vendor(
         business_name=data.business_name or f"{data.first_name}'s Business",
         contact_person=data.contact_person,
         website=data.website,
-        # add other fields...
     )
     db.add(new_vendor)
     await db.flush()

@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState, useCallback } from "react";
-import { adminApi } from "../services/adminApi";
+import { adminService } from "../../../utils/api/services/adminService";
 
 const AdminAuthContext = createContext(null);
 
@@ -13,12 +13,15 @@ export const AdminAuthProvider = ({ children }) => {
       const t = localStorage.getItem("admin_token");
       const u = localStorage.getItem("admin_user");
       if (t && u) { setToken(t); setUser(JSON.parse(u)); }
-    } catch {}
+    } catch { }
     setReady(true);
   }, []);
 
   const login = useCallback(async ({ email, password }) => {
-    const res = await adminApi.login({ email, password });
+    const res = await adminService.login({
+      email,
+      password,
+    });
     localStorage.setItem("admin_token", res.token);
     localStorage.setItem("admin_user", JSON.stringify(res.user));
     setToken(res.token);

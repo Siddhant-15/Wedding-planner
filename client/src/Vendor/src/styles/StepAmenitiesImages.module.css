@@ -333,3 +333,197 @@
     align-self: flex-end;
   }
 }
+
+
+/* =========================
+   EXTERNAL MEDIA
+========================= */
+
+.mediaHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.mediaHelper {
+  font-size: 0.78rem;
+  color: hsl(var(--muted-foreground));
+  margin: 0;
+}
+
+/* TOP INPUT BAR */
+
+.mediaBar {
+  display: grid;
+  grid-template-columns: 140px minmax(0, 1fr) auto;
+  gap: 10px;
+  width: 100%;
+}
+
+.mediaSelect,
+.mediaInput {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid hsl(var(--border));
+  border-radius: 10px;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  padding: 10px 12px;
+  font-size: 0.9rem;
+  outline: none;
+  transition: all 0.15s ease;
+}
+
+.mediaSelect:focus,
+.mediaInput:focus {
+  border-color: hsl(var(--brand));
+  box-shadow: 0 0 0 3px hsl(var(--brand) / 0.1);
+}
+
+.mediaAddBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 16px;
+  border: none;
+  border-radius: 10px;
+  background: hsl(var(--brand));
+  color: hsl(var(--brand-foreground));
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 500;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.mediaAddBtn:hover {
+  opacity: 0.92;
+}
+
+/* LINK GRID */
+
+.mediaGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* CARD */
+
+.mediaCard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid hsl(var(--border));
+  border-radius: 12px;
+  background: hsl(var(--card));
+  transition: border-color 0.15s ease,
+    background 0.15s ease;
+}
+
+.mediaCard:hover {
+  border-color: hsl(var(--brand) / 0.4);
+}
+
+.mediaCardLeft {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  flex: 1;
+}
+
+.mediaIcon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: hsl(var(--brand) / 0.08);
+  color: hsl(var(--brand));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.mediaInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  flex: 1;
+}
+
+.mediaType {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: hsl(var(--muted-foreground));
+}
+
+.mediaUrl {
+  color: hsl(var(--foreground));
+  text-decoration: none;
+  font-size: 0.86rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mediaUrl:hover {
+  color: hsl(var(--brand));
+}
+
+/* REMOVE BUTTON */
+
+.mediaRemoveBtn {
+  width: 34px;
+  height: 34px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: hsl(var(--muted-foreground));
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+}
+
+.mediaRemoveBtn:hover {
+  background: hsl(var(--destructive) / 0.08);
+  color: hsl(var(--destructive));
+}
+
+/* =========================
+   RESPONSIVE
+========================= */
+
+@media (max-width: 768px) {
+  .mediaBar {
+    grid-template-columns: 1fr;
+  }
+
+  .mediaAddBtn {
+    height: 42px;
+  }
+}
+
+@media (max-width: 520px) {
+  .mediaCard {
+    align-items: flex-start;
+  }
+
+  .mediaCardLeft {
+    align-items: flex-start;
+  }
+
+  .mediaUrl {
+    white-space: normal;
+    word-break: break-word;
+  }
+}

@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException
 from sqlalchemy.orm import selectinload
 from sqlalchemy.exc import IntegrityError
-from app.models.models import Service, Wishlist, WishlistItem
+from app.models.models import Service, Wishlist, Favorite
 
 
 PRIORITY_TO_INT = {
@@ -109,11 +109,11 @@ async def get_wishlist_detail(db: AsyncSession, wishlist_id: int, user_id: int):
         select(Wishlist)
         .options(
             selectinload(Wishlist.items)
-            .selectinload(WishlistItem.service)
+            .selectinload(Favorite.service)
             .selectinload(Service.media),
 
             selectinload(Wishlist.items)
-            .selectinload(WishlistItem.service)
+            .selectinload(Favorite.service)
             .selectinload(Service.variants),
         )
         .where(
@@ -192,7 +192,7 @@ async def add_item(db: AsyncSession, user_id: int, data):
     if not service:
         raise HTTPException(status_code=404, detail="Service not found")
 
-    item = WishlistItem(
+    item = Favorite(
         wishlist_id=data.wishlist_id,
         service_id=data.service_id
     )
@@ -219,10 +219,10 @@ async def add_item(db: AsyncSession, user_id: int, data):
 
 async def remove_item(db: AsyncSession, item_id: int, user_id: int):
     result = await db.execute(
-        select(WishlistItem)
+        select(Favorite)
         .join(Wishlist)
         .where(
-            WishlistItem.id == item_id,
+            Favorite.id == item_id,
             Wishlist.user_id == user_id
         )
     )
@@ -239,11 +239,11 @@ async def remove_item(db: AsyncSession, item_id: int, user_id: int):
 async def update_item(db: AsyncSession, item_id: int, user_id: int, data):
 
     result = await db.execute(
-        select(WishlistItem)
-        .options(selectinload(WishlistItem.service))
+        select(Favorite)
+        .options(selectinload(Favorite.service))
         .join(Wishlist)
         .where(
-            WishlistItem.id == item_id,
+            Favorite.id == item_id,
             Wishlist.user_id == user_id 
         )
     )
@@ -271,10 +271,10 @@ async def update_item(db: AsyncSession, item_id: int, user_id: int, data):
 
 async def move_item(db: AsyncSession, item_id: int, user_id: int, target_wishlist_id: int):
     result = await db.execute(
-        select(WishlistItem)
+        select(Favorite)
         .join(Wishlist)
         .where(
-            WishlistItem.id == item_id,
+            Favorite.id == item_id,
             Wishlist.user_id == user_id
         )
     )
@@ -300,10 +300,10 @@ async def move_item(db: AsyncSession, item_id: int, user_id: int, target_wishlis
 
 async def find_item_by_service(db: AsyncSession, user_id: int, service_id: int):
     result = await db.execute(
-        select(WishlistItem)
+        select(Favorite)
         .join(Wishlist)
         .where(
-            WishlistItem.service_id == service_id,
+            Favorite.service_id == service_id,
             Wishlist.user_id == user_id
         )
     )

@@ -55,4 +55,23 @@ export const ENDPOINTS = {
         UNREAD_COUNT: "/notification/unread-count",
         MARK_READ: (id) => `/notification/mark-read/${id}`,
     },
+    ADMIN: {
+    AUTH: {
+      LOGIN: "/admin/auth/login",
+    },
+
+    METRICS: "/admin/dashboard/metrics",
+    ACTIVITY: "/admin/dashboard/activity",
+
+    VENDORS: "/admin/vendors",
+    SERVICES: "/admin/services",
+    BOOKINGS: "/admin/bookings",
+    REVIEWS: "/admin/reviews",
+    REPORTS: "/admin/reports",
+
+    CATEGORIES: "/admin/categories",
+    SETTINGS: "/admin/settings",
+
+    ANALYTICS: "/admin/analytics",
+  },
 };

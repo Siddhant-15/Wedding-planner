@@ -93,7 +93,7 @@ const StepAmenitiesImages = ({
       files.length > remainingSlots
     ) {
       setError(
-        `Only ${remainingSlots} more image(s) allowed.`
+        `Only ${remainingSlots} image(s) allowed.`
       );
     }
 
@@ -490,39 +490,32 @@ const StepAmenitiesImages = ({
       </div>
 
       {/* EXTERNAL MEDIA */}
-      <div
-        className={
-          formStyles.section
-        }
-      >
-        <FieldLabel>
-          <Link2
-            size={14}
-            style={{
-              marginRight: 4,
-              verticalAlign:
-                "-2px",
-            }}
-          />
+      <div className={formStyles.section}>
+        <div className={styles.mediaHeader}>
+          <FieldLabel>
+            <Link2
+              size={14}
+              style={{
+                marginRight: 4,
+                verticalAlign: "-2px",
+              }}
+            />
+            External Media Links
+          </FieldLabel>
 
-          External Media Links
-        </FieldLabel>
+          <p className={styles.mediaHelper}>
+            Add YouTube, Instagram, video, or portfolio links
+          </p>
+        </div>
 
-        <div
-          className={
-            styles.mediaInputs
-          }
-        >
+        {/* INPUT BAR */}
+        <div className={styles.mediaBar}>
           <select
             value={mediaType}
             onChange={(e) =>
-              setMediaType(
-                e.target.value
-              )
+              setMediaType(e.target.value)
             }
-            className={
-              styles.select
-            }
+            className={styles.mediaSelect}
           >
             <option value="youtube">
               YouTube
@@ -549,101 +542,65 @@ const StepAmenitiesImages = ({
             type="url"
             value={mediaUrl}
             onChange={(e) =>
-              setMediaUrl(
-                e.target.value
-              )
+              setMediaUrl(e.target.value)
             }
-            placeholder="Paste media URL"
-            className={
-              styles.linkInput
-            }
+            placeholder="https://example.com"
+            className={styles.mediaInput}
           />
 
           <button
             type="button"
-            className={
-              styles.addBtn
-            }
-            onClick={
-              handleAddMediaLink
-            }
+            className={styles.mediaAddBtn}
+            onClick={handleAddMediaLink}
           >
             <Plus size={15} />
-            Add
+            <span>Add</span>
           </button>
         </div>
 
-        {mediaLinks.length >
-          0 && (
-            <div
-              className={
-                styles.linkList
-              }
-            >
-              {mediaLinks.map(
-                (item) => (
-                  <div
-                    key={item.id}
-                    className={
-                      styles.linkCard
-                    }
-                  >
-                    <div
-                      className={
-                        styles.linkContent
-                      }
-                    >
-                      <div
-                        className={
-                          styles.linkType
-                        }
-                      >
-                        {getMediaIcon(
-                          item.type
-                        )}
-
-                        <span>
-                          {
-                            item.type
-                          }
-                        </span>
-                      </div>
-
-                      <a
-                        href={
-                          item.url
-                        }
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className={
-                          styles.linkUrl
-                        }
-                      >
-                        {item.url}
-                      </a>
-                    </div>
-
-                    <button
-                      type="button"
-                      aria-label="Remove media link"
-                      className={
-                        styles.removeLink
-                      }
-                      onClick={() =>
-                        removeMediaLink(
-                          item.id
-                        )
-                      }
-                    >
-                      <Trash2
-                        size={14}
-                      />
-                    </button>
+        {/* LINK LIST */}
+        {mediaLinks.length > 0 && (
+          <div className={styles.mediaGrid}>
+            {mediaLinks.map((item) => (
+              <div
+                key={item.id}
+                className={styles.mediaCard}
+              >
+                <div className={styles.mediaCardLeft}>
+                  <div className={styles.mediaIcon}>
+                    {getMediaIcon(item.type)}
                   </div>
-                )
-              )}
-            </div>
-          )}
+
+                  <div className={styles.mediaInfo}>
+                    <span className={styles.mediaType}>
+                      {item.type}
+                    </span>
+
+                    <a
+                      href={item.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={styles.mediaUrl}
+                    >
+                      {item.url}
+                    </a>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  aria-label="Remove media link"
+                  className={styles.mediaRemoveBtn}
+                  onClick={() =>
+                    removeMediaLink(item.id)
+                  }
+                >
+                  <Trash2 size={15} />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

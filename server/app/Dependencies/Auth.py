@@ -68,12 +68,22 @@ async def get_current_user(
     if user is None:
         raise credentials_exception
 
-    return {
+    response = {
         "id": user.id,
         "email": user.email,
         "role": role,
-        "is_verified": user.is_verified,
     }
+
+    if role == "customer":
+        response["is_verified"] = user.is_verified
+
+    elif role == "vendor":
+        response["verification_status"] = user.verification_status
+        response["is_verified"] = (
+            user.verification_status == "approved"
+        )
+
+    return response
 
 
 async def get_current_user_ws(

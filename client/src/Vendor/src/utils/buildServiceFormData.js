@@ -260,5 +260,28 @@ export const buildServiceFormData = (formValues) => {
 
     formData.append("existing_images", JSON.stringify(existingImages));
 
+    // ================= EXTERNAL MEDIA =================
+
+    const externalMedia = (formValues.media_links || []).map((item) => ({
+        media_url: item.url,
+
+        media_type:
+            item.type === "youtube" ||
+                item.type === "video"
+                ? "video"
+                : "image",
+
+        source_type: item.type || "external",
+
+        metadata: {
+            label: item.type,
+        },
+    }));
+
+    formData.append(
+        "external_media",
+        JSON.stringify(externalMedia)
+    );
+
     return formData;
 };

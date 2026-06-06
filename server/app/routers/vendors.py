@@ -77,5 +77,5 @@ async def vendor_status(
     return {
         "onboarding_completed": True,
         "business_name": vendor.business_name,
-        "is_verified": vendor.is_verified
+        "is_verified": vendor.verification_status
     }
