@@ -11,12 +11,14 @@ RUN apt-get update && apt-get install -y \
     libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
-COPY requirements.txt .
+# Copy requirements from the server directory
+COPY server/requirements.txt .
 
 RUN pip install --upgrade pip
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY . .
+# Copy the entire server directory into the container
+COPY server/ .
 
 EXPOSE 8080
 
