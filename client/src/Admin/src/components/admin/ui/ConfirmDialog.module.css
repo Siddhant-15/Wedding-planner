@@ -1,0 +1,16 @@
+.msg { margin: 0; color: var(--text); line-height: 1.5; }
+.cancel {
+  padding: 9px 16px; border-radius: 8px;
+  border: 1px solid var(--border); background: #fff; color: var(--text);
+  font-weight: 500;
+}
+.confirm {
+  padding: 9px 16px; border-radius: 8px;
+  border: 0; color: #fff; font-weight: 600;
+}
+.danger { background: var(--danger); }
+.danger:hover { background: #b91c1c; }
+.success { background: var(--success); }
+.success:hover { background: #128a3f; }
+.brand { background: var(--brand); }
+.brand:hover { background: var(--brand-600); }

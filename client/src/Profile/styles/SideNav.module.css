@@ -1,0 +1,127 @@
+.nav {
+  background: hsl(var(--background));
+  border: 1px solid hsl(var(--border));
+  border-radius: 14px;
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.navHeader {
+  padding: 0.5rem 0.75rem 0.75rem;
+  border-bottom: 1px solid hsl(var(--border));
+  margin-bottom: 0.5rem;
+}
+
+.navTitle {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: hsl(var(--muted-foreground));
+}
+
+.navList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.navLink {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.7rem 0.85rem;
+  border-radius: 10px;
+  font-size: 0.92rem;
+  font-weight: 500;
+  color: hsl(var(--foreground));
+  text-decoration: none;
+  transition: background 150ms ease, color 150ms ease;
+}
+
+.navLink:hover {
+  background: hsl(var(--muted));
+}
+
+.navLinkActive {
+  background: hsl(var(--brand) / 0.1);
+  color: hsl(var(--brand));
+  font-weight: 600;
+}
+
+.navLinkActive .navIcon {
+  color: hsl(var(--brand));
+}
+
+.navIcon {
+  flex-shrink: 0;
+  color: hsl(var(--muted-foreground));
+}
+
+.navLinkActive .navIcon,
+.navLink:hover .navIcon {
+  color: inherit;
+}
+
+.divider {
+  height: 1px;
+  background: hsl(var(--border));
+  margin: 0.5rem 0;
+}
+
+.logoutBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.7rem 0.85rem;
+  border-radius: 10px;
+  font-size: 0.92rem;
+  font-weight: 500;
+  color: hsl(var(--destructive));
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  transition: background 150ms ease;
+}
+
+.logoutBtn:hover {
+  background: hsl(var(--destructive) / 0.08);
+}
+
+/* On mobile, becomes horizontal scrollable tabs */
+@media (max-width: 960px) {
+  .nav {
+    padding: 0.5rem;
+  }
+
+  .navHeader {
+    display: none;
+  }
+
+  .navList {
+    flex-direction: row;
+    overflow-x: auto;
+    scrollbar-width: none;
+    gap: 4px;
+  }
+
+  .navList::-webkit-scrollbar {
+    display: none;
+  }
+
+  .navLink {
+    flex-shrink: 0;
+    padding: 0.55rem 0.85rem;
+    font-size: 0.85rem;
+  }
+
+  .divider,
+  .logoutBtn {
+    display: none;
+  }
+}

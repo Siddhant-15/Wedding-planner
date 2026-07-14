@@ -1,0 +1,12 @@
+.card { background: hsl(var(--card)); border:1px solid hsl(var(--border));
+  border-radius:16px; padding:24px; }
+.heading { display:flex; align-items:center; gap:8px; font-size:1.15rem; font-weight:600; margin:0 0 16px; }
+.icon { color: hsl(var(--brand)); width:20px; height:20px; }
+.address { display:flex; flex-direction:column; gap:6px; margin-bottom:16px; }
+.primary { color: hsl(var(--foreground)); margin:0; }
+.primaryBold { color: hsl(var(--foreground)); font-weight:600; margin:0; }
+.secondary { color: hsl(var(--muted-foreground)); margin:0; font-size:.9rem; }
+.actions { display:flex; flex-wrap:wrap; gap:10px; }
+.button { display:inline-flex; align-items:center; gap:6px; }
+.smallIcon { width:14px; height:14px; }
+.successIcon { width:14px; height:14px; color: hsl(var(--success)); }

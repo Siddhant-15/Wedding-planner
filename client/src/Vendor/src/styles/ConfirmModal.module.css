@@ -1,0 +1,33 @@
+.overlay {
+  position: fixed; inset: 0;
+  background: hsl(222 47% 11% / 0.6);
+  backdrop-filter: blur(4px);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 1100; padding: 16px;
+  animation: fadeIn .15s ease;
+}
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+.modal {
+  background: hsl(var(--card));
+  border-radius: 12px;
+  padding: 22px;
+  width: 100%; max-width: 400px;
+  box-shadow: 0 20px 60px hsl(0 0% 0% / 0.25);
+  animation: slideUp .2s ease;
+}
+@keyframes slideUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+.title { font-size: 16px; font-weight: 600; margin: 0 0 8px; color: hsl(var(--foreground)); }
+.message { font-size: 13px; color: hsl(var(--muted-foreground)); margin: 0 0 18px; line-height: 1.5; }
+.actions { display: flex; justify-content: flex-end; gap: 8px; }
+.cancel, .confirm {
+  padding: 8px 14px; font-size: 13px; font-weight: 500;
+  border-radius: 7px; cursor: pointer; border: 1px solid hsl(var(--border));
+  transition: background .15s ease;
+}
+.cancel { background: transparent; color: hsl(var(--foreground)); }
+.cancel:hover { background: hsl(var(--muted)); }
+.confirm {
+  background: hsl(var(--destructive));
+  color: white; border-color: hsl(var(--destructive));
+}
+.confirm:hover { background: hsl(var(--destructive) / 0.9); }

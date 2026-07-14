@@ -1,4 +1,5 @@
 # app/main.py
+from sys import prefix
 import logging
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator
@@ -11,14 +12,23 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from app.config import settings
 from app.Db.db import startup_db, shutdown_db
-from app.routers.auth import (
-    AuthRouter,
-    # vendor,
-    # service,
-    # customer_services,
-    # wishlist,
-    # review,
-)
+from app.routers.Auth.auth import AuthRouter
+# from app.routers.service import servicerouter
+from app.routers.Customer.service_routes import customerservicerouter
+from app.routers.vendors import vendorrouter
+from app.routers.reviews import Reviewrouter
+from app.routers.wishlist_routes import wishlistrouter
+from app.routers.notification.notification import NotificationRouter
+from app.routers.notification.websocket import router as notification_ws_router
+from app.routers.Vendor.availability_routes import router as availability_router
+from app.routers.Customer.lead_routes import router as LeadRouter
+from app.routers.Vendor.vendor_leads_routes import router as vendor_leads_router
+from app.routers.review.review_routes import router as ReviewRouter
+from app.routers.Vendor.service_routes import router as ServiceRouter
+from app.routers.Admin.admin import admin_router
+
+
+
 
 
 # ─── Logging ────────────────────────────────────────────────────────────────
@@ -79,18 +89,41 @@ app.add_middleware(
 
 # ─── Routers ────────────────────────────────────────────────────────────────
 app.include_router(AuthRouter, prefix=settings.API_V1_STR, tags=["auth"])
-# app.include_router(vendor.router,     prefix=settings.API_V1_STR, tags=["vendor"])
-# app.include_router(service.router,    prefix=settings.API_V1_STR, tags=["services"])
-# ... etc.
-
+# app.include_router(servicerouter, prefix=settings.API_V1_STR)
+app.include_router(customerservicerouter, prefix=settings.API_V1_STR, tags=["customer_services"])
+app.include_router(wishlistrouter, prefix=settings.API_V1_STR)
+app.include_router(vendorrouter, prefix=settings.API_V1_STR)
+app.include_router(Reviewrouter, prefix=settings.API_V1_STR)
+app.include_router(LeadRouter, prefix=settings.API_V1_STR)
+app.include_router(ReviewRouter, prefix=settings.API_V1_STR)
+app.include_router(vendor_leads_router, prefix=settings.API_V1_STR)
+# app.include_router(availability_router, prefix=settings.API_V1_STR)
+app.include_router(notification_ws_router, prefix=settings.API_V1_STR)
+app.include_router(NotificationRouter, prefix=settings.API_V1_STR)
+app.include_router(ServiceRouter, prefix=settings.API_V1_STR)
+app.include_router(admin_router, prefix=settings.API_V1_STR)
 
 # ─── Exception Handlers ─────────────────────────────────────────────────────
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
-    logger.warning(f"Validation error: {exc.errors()}")
+    errors = exc.errors()
+    # Convert errors to JSON-serializable format
+    serializable_errors = []
+    for error in errors:
+        serializable_error = {
+            "type": error.get("type"),
+            "loc": list(error.get("loc", [])),
+            "msg": str(error.get("msg", "")),
+            "input": str(error.get("input", "")) if error.get("input") is not None else None,
+        }
+        if "ctx" in error:
+            serializable_error["ctx"] = {k: str(v) for k, v in error["ctx"].items()}
+        serializable_errors.append(serializable_error)
+    
+    logger.warning(f"Validation error: {serializable_errors}")
     return JSONResponse(
         status_code=422,
-        content={"detail": exc.errors(), "message": "Validation failed"},
+        content={"detail": serializable_errors, "message": "Validation failed"},
     )
 
 

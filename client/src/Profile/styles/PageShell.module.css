@@ -1,0 +1,138 @@
+/* ============ PAGE SHELL ============ */
+.page {
+  min-height: calc(100vh - 80px);
+  background: hsl(var(--background));
+  padding: 1.5rem 0 4rem;
+}
+
+.container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 1.25rem;
+}
+
+/* Breadcrumb */
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.25rem;
+  font-size: 0.85rem;
+}
+
+.crumbLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  color: hsl(var(--muted-foreground));
+  text-decoration: none;
+  transition: color 160ms ease;
+}
+
+.crumbLink:hover {
+  color: hsl(var(--brand));
+}
+
+.crumbSep {
+  color: hsl(var(--muted-foreground));
+  opacity: 0.6;
+}
+
+.crumbCurrent {
+  color: hsl(var(--foreground));
+  font-weight: 500;
+}
+
+/* Header */
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid hsl(var(--border));
+  flex-wrap: wrap;
+}
+
+.headerText {
+  flex: 1;
+  min-width: 240px;
+}
+
+.title {
+  /* font-family: var(--font-heading); */
+  font-size: clamp(1.75rem, 3vw, 2.25rem);
+  font-weight: 700;
+  color: hsl(var(--foreground));
+  margin: 0 0 0.4rem;
+  letter-spacing: -0.01em;
+  line-height: 1.15;
+}
+
+.subtitle {
+  margin: 0;
+  font-size: 0.95rem;
+  color: hsl(var(--muted-foreground));
+  line-height: 1.5;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+/* Body layout */
+.body {
+  display: block;
+}
+
+.bodyWithSidebar {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 2rem;
+  align-items: start;
+}
+
+.sidebar {
+  position: sticky;
+  top: 1.5rem;
+}
+
+.main {
+  min-width: 0;
+}
+
+/* Responsive */
+@media (max-width: 960px) {
+  .bodyWithSidebar {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .sidebar {
+    position: static;
+  }
+}
+
+@media (max-width: 600px) {
+  .page {
+    padding: 1rem 0 3rem;
+  }
+
+  .container {
+    padding: 0 1rem;
+  }
+
+  .header {
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+  }
+
+  .headerActions {
+    width: 100%;
+  }
+}

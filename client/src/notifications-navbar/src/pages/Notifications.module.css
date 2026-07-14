@@ -1,0 +1,445 @@
+.page {
+    min-height: 100vh;
+    background: hsl(var(--background));
+    color: hsl(var(--foreground));
+}
+
+/* HEADER */
+
+.header {
+    position: sticky;
+    top: 0;
+    z-index: 40;
+
+    background: hsl(var(--background) / 0.92);
+
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+
+    border-bottom: 1px solid hsl(var(--border));
+}
+
+.headerInner {
+    max-width: 880px;
+
+    margin: 0 auto;
+
+    padding: 1.25rem;
+
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.headerLeft {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.title {
+    margin: 0;
+
+    font-size: 1.6rem;
+    font-weight: 700;
+
+    letter-spacing: -0.01em;
+}
+
+.subtitle {
+    margin: 0;
+
+    font-size: 0.875rem;
+
+    color: hsl(var(--muted-foreground));
+}
+
+.headerRight {
+    display: flex;
+    align-items: center;
+
+    gap: 0.75rem;
+
+    flex-wrap: wrap;
+}
+
+/* TABS */
+
+.tabs {
+    display: inline-flex;
+
+    padding: 4px;
+
+    background: hsl(var(--muted));
+
+    border-radius: 10px;
+
+    gap: 2px;
+}
+
+.tab {
+    border: none;
+    outline: none;
+
+    background: transparent;
+
+    padding: 0.5rem 0.9rem;
+
+    border-radius: 8px;
+
+    cursor: pointer;
+
+    display: inline-flex;
+    align-items: center;
+
+    gap: 6px;
+
+    font-size: 0.82rem;
+    font-weight: 600;
+
+    color: hsl(var(--muted-foreground));
+
+    transition: all 0.18s ease;
+}
+
+.tabActive {
+    background: hsl(var(--background));
+
+    color: hsl(var(--foreground));
+
+    box-shadow: 0 1px 2px hsl(var(--foreground) / 0.06);
+}
+
+.tabBadge {
+    padding: 1px 6px;
+
+    border-radius: 999px;
+
+    background: hsl(var(--brand));
+    color: hsl(var(--brand-foreground));
+
+    font-size: 0.65rem;
+    font-weight: 700;
+}
+
+/* MARK ALL */
+
+.markAll {
+    border: 1px solid hsl(var(--border));
+
+    background: hsl(var(--background));
+
+    color: hsl(var(--foreground));
+
+    padding: 0.55rem 0.9rem;
+
+    border-radius: 10px;
+
+    display: inline-flex;
+    align-items: center;
+
+    gap: 6px;
+
+    cursor: pointer;
+
+    font-size: 0.8rem;
+    font-weight: 600;
+
+    transition: all 0.18s ease;
+}
+
+.markAll:hover:not(:disabled) {
+    border-color: hsl(var(--brand));
+
+    color: hsl(var(--brand));
+}
+
+.markAll:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* CONTENT */
+
+.content {
+    max-width: 880px;
+
+    margin: 0 auto;
+
+    padding: 1.5rem 1.25rem 4rem;
+}
+
+.cards {
+    display: flex;
+    flex-direction: column;
+
+    gap: 0.7rem;
+}
+
+/* CARD */
+
+.card {
+    position: relative;
+
+    width: 100%;
+
+    border: 1px solid hsl(var(--border));
+
+    background: hsl(var(--background));
+
+    border-radius: 16px;
+
+    padding: 1rem;
+
+    display: flex;
+    align-items: flex-start;
+
+    gap: 0.9rem;
+
+    text-align: left;
+
+    cursor: pointer;
+
+    transition: all 0.2s ease;
+}
+
+.card:hover {
+    border-color: hsl(var(--brand) / 0.3);
+
+    transform: translateY(-1px);
+
+    box-shadow: 0 10px 24px hsl(var(--foreground) / 0.05);
+}
+
+.cardUnread {
+    background: hsl(var(--brand) / 0.04);
+
+    border-color: hsl(var(--brand) / 0.16);
+}
+
+.cardIcon {
+    flex: 0 0 42px;
+
+    width: 42px;
+    height: 42px;
+
+    border-radius: 12px;
+
+    display: grid;
+    place-items: center;
+
+    color: white;
+}
+
+/* ICON TONES */
+
+.tone_brand {
+    background: hsl(var(--brand));
+}
+
+.tone_success {
+    background: hsl(var(--success, 142 71% 45%));
+}
+
+.tone_warning {
+    background: hsl(var(--warning, 38 92% 50%));
+
+    color: #1a1a1a;
+}
+
+.tone_destructive {
+    background: hsl(var(--destructive, 0 84% 60%));
+}
+
+.tone_gold {
+    background: hsl(var(--gold, 43 74% 55%));
+
+    color: #1a1a1a;
+}
+
+/* BODY */
+
+.cardBody {
+    flex: 1;
+
+    min-width: 0;
+
+    display: flex;
+    flex-direction: column;
+
+    gap: 5px;
+}
+
+.cardTop {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+
+    gap: 0.75rem;
+}
+
+.cardTitle {
+    margin: 0;
+
+    font-size: 0.95rem;
+    font-weight: 600;
+
+    color: hsl(var(--foreground));
+}
+
+.cardTime {
+    flex-shrink: 0;
+
+    font-size: 0.72rem;
+
+    color: hsl(var(--muted-foreground));
+
+    white-space: nowrap;
+}
+
+.cardMsg {
+    margin: 0;
+
+    font-size: 0.85rem;
+
+    line-height: 1.5;
+
+    color: hsl(var(--muted-foreground));
+}
+
+/* UNREAD */
+
+.unreadDot {
+    position: absolute;
+
+    top: 14px;
+    right: 14px;
+
+    width: 8px;
+    height: 8px;
+
+    border-radius: 50%;
+
+    background: hsl(var(--brand));
+}
+
+/* EMPTY */
+
+.emptyState {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    text-align: center;
+
+    padding: 5rem 1rem;
+}
+
+.emptyIcon {
+    width: 64px;
+    height: 64px;
+
+    border-radius: 18px;
+
+    background: hsl(var(--muted));
+
+    display: grid;
+    place-items: center;
+
+    color: hsl(var(--muted-foreground));
+
+    margin-bottom: 1rem;
+}
+
+.emptyState h3 {
+    margin: 0.25rem 0;
+
+    font-size: 1.05rem;
+
+    color: hsl(var(--foreground));
+}
+
+.emptyState p {
+    margin: 0;
+
+    font-size: 0.85rem;
+
+    color: hsl(var(--muted-foreground));
+}
+
+/* LOADING */
+
+.loadingWrap {
+    min-height: 60vh;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    gap: 1rem;
+
+    color: hsl(var(--muted-foreground));
+}
+
+.spinner {
+    animation: spin 1s linear infinite;
+}
+
+/* ANIMATIONS */
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 640px) {
+    .headerInner {
+        padding: 1rem;
+
+        align-items: stretch;
+    }
+
+    .title {
+        font-size: 1.35rem;
+    }
+
+    .headerRight {
+        width: 100%;
+
+        justify-content: space-between;
+    }
+
+    .content {
+        padding: 1rem 0.9rem 3rem;
+    }
+
+    .card {
+        padding: 0.9rem;
+
+        border-radius: 14px;
+    }
+
+    .cardIcon {
+        width: 38px;
+        height: 38px;
+
+        flex-basis: 38px;
+    }
+
+    .cardTop {
+        flex-direction: column;
+
+        gap: 2px;
+    }
+
+    .cardTime {
+        font-size: 0.7rem;
+    }
+}

@@ -1,0 +1,17 @@
+/* Optional: import once at app root if you don't already have these tokens.
+   These mirror the project's HSL semantic tokens. */
+:root {
+  --background: 0 0% 100%;
+  --foreground: 222 47% 11%;
+  --card: 0 0% 100%;
+  --muted: 210 16% 97%;
+  --muted-foreground: 215 16% 47%;
+  --border: 214 20% 91%;
+  --brand: 340 75% 55%;
+  --brand-dark: 340 75% 45%;
+  --brand-foreground: 0 0% 100%;
+  --gold: 42 92% 56%;
+  --success: 142 65% 45%;
+  --warning: 38 92% 55%;
+  --destructive: 0 75% 55%;
+}

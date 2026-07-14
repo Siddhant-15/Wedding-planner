@@ -1,0 +1,51 @@
+.wrap { display: flex; flex-direction: column; gap: 20px; }
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+}
+.statCard {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px;
+  display: flex; align-items: center; gap: 14px;
+  box-shadow: var(--shadow-sm);
+  transition: transform .15s, box-shadow .15s;
+}
+.statCard:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+.statIcon {
+  width: 46px; height: 46px;
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px;
+  background: var(--brand-50);
+}
+.statBody { min-width: 0; }
+.statLabel { font-size: 12px; color: var(--text-muted); font-weight: 500; margin-bottom: 4px; }
+.statValue { font-size: 22px; font-weight: 700; color: var(--text); letter-spacing: -.3px; }
+
+.brand .statIcon { background: var(--brand-50); color: var(--brand); }
+.success .statIcon { background: var(--success-50); color: var(--success); }
+.warning .statIcon { background: var(--warning-50); color: var(--warning); }
+.info .statIcon { background: var(--info-50); color: var(--info); }
+
+.grid2 {
+  display: grid; gap: 16px;
+  grid-template-columns: 2fr 1fr;
+}
+@media (max-width: 900px) { .grid2 { grid-template-columns: 1fr; } }
+
+.activity { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 14px; }
+.activityItem { display: flex; gap: 12px; align-items: flex-start; }
+.dot { width: 9px; height: 9px; border-radius: 50%; background: var(--brand); margin-top: 7px; flex: none; }
+.dot_service_approved { background: var(--success); }
+.dot_service_rejected { background: var(--danger); }
+.dot_review_flagged { background: var(--warning); }
+.dot_booking_cancelled { background: var(--danger); }
+.dot_vendor_signup { background: var(--info); }
+.activityText { font-size: 13.5px; color: var(--text); }
+.activityTime { font-size: 11.5px; color: var(--text-muted); margin-top: 2px; }
+
+.tips { margin: 0; padding-left: 18px; color: var(--text); font-size: 13.5px; line-height: 1.7; }

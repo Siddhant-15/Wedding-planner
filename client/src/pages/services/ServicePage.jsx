@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { Filter} from "lucide-react";
-import Navbar from "@/components/Navbar";
+import { Filter } from "lucide-react";
+// import Navbar from "@/components/Navbar";
 import FilterSidebar from "@/components/FilterSidebar";
-import { CustomerServiceAPI } from "../../utils/api"
+import { customerService } from "../../utils/api/services/customer.service";
 import styles from "../../styles/ServicePage.module.css";
 import ServiceCard from "./ServiceCard";
 
@@ -25,7 +25,7 @@ export default function ServicesPage({
   const fetchServices = async () => {
     setLoading(true);
     try {
-      const response = await CustomerServiceAPI.getByType(serviceType, {
+      const response = await customerService.getByType(serviceType, {
         skip: (page - 1) * limit,
         limit,
         ...filters,
@@ -69,7 +69,7 @@ export default function ServicesPage({
 
   return (
     <div className={styles.container}>
-      <Navbar />
+      {/* <Navbar /> */}
       <div className={styles.pageWrapper}>
         <div className={styles.hero}>
           <h1 className={styles.title}>{title}</h1>

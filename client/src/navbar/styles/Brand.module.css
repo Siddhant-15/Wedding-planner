@@ -1,0 +1,45 @@
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  text-decoration: none;
+  color: hsl(var(--foreground));
+}
+
+.logo {
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+  border-radius: 10px;
+  background: hsl(var(--brand) / 0.12);
+  padding: 4px;
+}
+
+.brandTextWrap {
+  display: flex;
+  flex-direction: column;
+  line-height: 1;
+}
+
+.brandText {
+  font-family: var(--font-heading);
+  font-size: 1.35rem;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  color: hsl(var(--brand));
+}
+
+.brandTagline {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: hsl(var(--muted-foreground));
+  margin-top: 3px;
+  font-weight: 500;
+}
+
+@media (max-width: 480px) {
+  .brandTagline { display: none; }
+  .brandText { font-size: 1.15rem; }
+  .logo { width: 38px; height: 38px; }
+}

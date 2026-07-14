@@ -1,0 +1,52 @@
+.wrap { display: flex; flex-direction: column; gap: 16px; }
+.toolbar { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; }
+.filters { display: flex; gap: 6px; flex-wrap: wrap; }
+.tab {
+  padding: 8px 14px; border-radius: 8px;
+  background: var(--surface); border: 1px solid var(--border);
+  font-size: 13px; font-weight: 500; color: var(--text-muted);
+}
+.tab:hover { color: var(--text); }
+.tabActive { background: var(--brand); color: #fff !important; border-color: var(--brand); }
+
+.vendorCell { display: flex; align-items: center; gap: 10px; }
+.avatar {
+  width: 34px; height: 34px; border-radius: 50%;
+  background: var(--brand-50); color: var(--brand);
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700;
+}
+.avatarLg {
+  width: 56px; height: 56px; border-radius: 50%;
+  background: var(--brand-50); color: var(--brand);
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 22px;
+}
+.name { font-weight: 600; color: var(--text); }
+.sub { font-size: 12px; color: var(--text-muted); margin-top: 1px; }
+
+.actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.btn {
+  padding: 6px 12px; border-radius: 7px;
+  background: var(--surface-2); border: 1px solid var(--border);
+  font-size: 12px; font-weight: 600; color: var(--text);
+}
+.btn:hover { background: #fff; border-color: var(--border-strong); }
+.success { background: var(--success-50); color: var(--success); border-color: rgba(22,163,74,.2); }
+.success:hover { background: #d6f3df; }
+.danger { background: var(--danger-50); color: var(--danger); border-color: rgba(220,38,38,.2); }
+.danger:hover { background: #fbd7d7; }
+
+.detail { }
+.detailHeader { display: flex; gap: 14px; align-items: center; margin-bottom: 18px; }
+.dName { font-size: 17px; font-weight: 700; color: var(--text); }
+.dSub { font-size: 13px; color: var(--text-muted); margin-top: 2px; }
+
+.dl {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+  margin: 0; padding-top: 14px; border-top: 1px solid var(--border);
+}
+.dl > div { background: var(--surface-2); padding: 10px 12px; border-radius: 8px; }
+.dl dt { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 4px; }
+.dl dd { margin: 0; font-size: 14px; font-weight: 600; color: var(--text); }
+@media (max-width: 600px) { .dl { grid-template-columns: 1fr; } }

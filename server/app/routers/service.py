@@ -1,801 +1,737 @@
+from app.Db import db
 from fastapi import APIRouter, Depends, HTTPException, status, Form, File, UploadFile
 from typing import List, Optional
-from uuid import UUID, uuid4
+from uuid import uuid4
 from datetime import datetime
-from sqlalchemy.orm import Session, joinedload
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import joinedload
 from sqlalchemy import select, delete
-from app.database import get_db
-from app.models.models import (
-    Vendor, Service, VenueService, CateringService, DJService, PhotographerService, EventManagementService,
-    ServiceCategory as ModelServiceCategory, PricingType as ModelPricingType,
-    HallType, IndoorOutdoor, DecorationPolicy, CateringPolicy, AlcoholPolicy,
-    ServiceStyle, PackageModal
-)
-from app.core.security import require_role
-from app.utils.supabase_client import supabase
-from app.schemas.services import ServiceCreateResponse, ServiceResponse, GeoPoint, VenueServiceResponse, CateringServiceResponse, DJServiceResponse, PhotographerServiceResponse, EventManagementServiceResponse
 import mimetypes
 import json
 import logging
+
+from app.Db.db import get_db
+from app.models.models import (
+    Vendor, Service, Venue, Catering, Dj, Photography,
+    EventManagement, MakeupArtist, ServiceVariant, ServiceMedia
+)
+from app.Dependencies.Auth import get_current_user
+from app.utils.supabase_client import supabase
+from app.schemas.services import (
+    ServiceCreate, ServiceResponse, ServiceCreateResponse, ServiceVariantCreate
+)
 
 servicerouter = APIRouter(prefix="/services", tags=["services"])
 logger = logging.getLogger(__name__)
 
 
-@servicerouter.post(
-    "/create",
-    response_model=ServiceCreateResponse,
-    status_code=status.HTTP_201_CREATED,
-    description="Create a new service (single endpoint for all categories)"
-)
+# ─── Helpers ────────────────────────────────────────────────────────────────
+
+def _enforce_variants(variants: List[ServiceVariantCreate]) -> List[ServiceVariantCreate]:
+    """Ensure exactly one default variant exists."""
+    if not variants:
+        return [ServiceVariantCreate(
+            variant_name="Basic Package",
+            pricing_type="BASE_PRICE",
+            pricing={"base_price": 0},
+            is_default=True
+        )]
+    default_count = sum(1 for v in variants if v.is_default)
+    if default_count == 0:
+        variants[0].is_default = True
+    elif default_count > 1:
+        found = False
+        for v in variants:
+            if v.is_default:
+                if found:
+                    v.is_default = False
+                else:
+                    found = True
+    return variants
+
+
+def _add_type_specific(db, service_id: int, parsed: ServiceCreate):
+    """Add the type-specific detail record for a service."""
+    stype = parsed.service_type
+
+    if stype == "venue" and parsed.venue:
+        vp = parsed.venue.venue_policies or {}
+
+        venue_policies = {
+            "decoration_policy": vp.get("decoration_policy", ""),
+            "catering_policy": vp.get("catering_policy", ""),
+            "alcohol_policy": vp.get("alcohol_policy", ""),
+            "other_policies": vp.get("other_policies", [])
+        }
+
+        db.add(Venue(
+            service_id=service_id,
+            venue_type=parsed.venue.venue_type,
+            venue_nature=parsed.venue.venue_nature,
+            min_capacity=parsed.venue.min_capacity,
+            max_capacity=parsed.venue.max_capacity,
+            square_feet=parsed.venue.square_feet,
+            parking_capacity=parsed.venue.parking_capacity,
+
+            venue_policies=venue_policies
+        ))
+
+    elif stype == "catering" and parsed.catering:
+        c = parsed.catering
+        db.add(Catering(
+            service_id=service_id,
+            cuisine_types=c.cuisine_types or [],
+            meal_types=c.meal_types or [],
+            veg_price_per_head=c.veg_price_per_head,
+            non_veg_price_per_head=c.non_veg_price_per_head,
+            min_order=c.min_order,
+            max_order=c.max_order,
+            service_styles=c.service_styles or [],
+            staff_included=c.staff_included,
+            crockery_cutlery_included=c.crockery_cutlery_included,
+            tasting_available=c.tasting_available,
+            setup_time_minutes=c.setup_time_minutes,
+            service_duration_minutes=c.service_duration_minutes,
+            travel_cost_per_km=c.travel_cost_per_km,
+            base_city=c.base_city,
+            gst_percentage=c.gst_percentage,
+            price_includes_tax=c.price_includes_tax,
+            special_diets_supported=c.special_diets_supported or [],
+            customizable_menu=c.customizable_menu
+        ))
+
+    elif stype == "dj" and parsed.dj:
+        d = parsed.dj
+        db.add(Dj(
+            service_id=service_id,
+            genres_supported=d.genres_supported or [],
+            languages_supported=d.languages_supported or [],
+            event_types_supported = (
+    d.event_types_supported if d.event_types_supported else ["wedding"]
+),
+            performance_duration_hours=d.performance_duration_hours,
+            overtime_rate_per_hour=d.overtime_rate_per_hour,
+            equipments_provided=d.equipments_provided or [],
+            sound_system_included=d.sound_system_included,
+            lighting_included=d.lighting_included,
+            smoke_machine_included=d.smoke_machine_included,
+            led_wall_included=d.led_wall_included,
+            mc_host_available=d.mc_host_available,
+            crowd_interaction_level=d.crowd_interaction_level,
+            setup_time_minutes=d.setup_time_minutes,
+            teardown_time_minutes=d.teardown_time_minutes,
+            power_requirement_kw=d.power_requirement_kw,
+            backup_power_required=d.backup_power_required,
+            travel_cost_per_km=d.travel_cost_per_km,
+            base_city=d.base_city,
+            outdoor_supported=d.outdoor_supported,
+            late_night_allowed=d.late_night_allowed,
+            sound_license_required=d.sound_license_required,
+            custom_playlist_allowed=d.custom_playlist_allowed,
+            playlist_link_supported=d.playlist_link_supported,
+            experience_years=d.experience_years
+        ))
+
+    elif stype == "photography" and parsed.photography:
+        p = parsed.photography
+        db.add(Photography(
+            service_id=service_id,
+            photography_types=p.photography_types or [],
+            videography_available=p.videography_included,
+            drone_shoot_available=p.drone_available,
+            photo_delivery_count=p.photo_delivery_count,
+            video_delivery_duration_minutes=p.video_delivery_duration_minutes,
+            edited_photos_included=p.edited_photos_included,
+            raw_photos_provided=p.raw_photos_provided,
+            album_included=p.album_included,
+            album_pages=p.album_pages,
+            coverage_hours=p.coverage_hours,
+            overtime_rate_per_hour=p.overtime_rate_per_hour,
+            team_size=p.team_size,
+            second_shooter_included=p.second_shooter_included,
+            editing_styles=p.editing_styles or [],
+            travel_cost_per_km=p.travel_cost_per_km,
+            base_city=p.base_city,
+            experience_years=p.experience_years
+        ))
+
+    elif stype == "event_management" and parsed.event_management:
+        em = parsed.event_management
+        db.add(EventManagement(
+            service_id=service_id,
+            event_types_supported=em.event_types or [],
+            services_offered=em.services_offered or [],
+            themes_supported=em.themes_supported or [],
+            team_size=em.team_size,
+            on_site_managers=em.on_site_managers,
+            decoration_included=em.decoration_included,
+            catering_management=em.catering_management,
+            entertainment_management=em.entertainment_management,
+            planning_duration_days=em.planning_duration_days,
+            setup_time_hours=em.setup_time_hours,
+            min_budget=em.min_budget,
+            max_budget=em.max_budget,
+            travel_cost_per_km=em.travel_cost_per_km,
+            base_city=em.base_city,
+            experience_years=em.experience_years
+        ))
+
+    elif stype == "makeup_artist" and parsed.makeup_artist:
+        ma = parsed.makeup_artist
+        db.add(MakeupArtist(
+            service_id=service_id,
+            makeup_types=ma.makeup_types or [],
+            specialization=ma.specialization,
+            brands_used=ma.brands_used or [],
+            premium_products_used=ma.premium_products_used,
+            team_size=ma.team_size,
+            service_duration_minutes=ma.service_duration_minutes,
+            travel_to_client=ma.travel_to_client,
+            travel_cost_per_km=ma.travel_cost_per_km,
+            base_city=ma.base_city,
+            hairstyling_included=ma.hairstyling_included,
+            draping_included=ma.draping_included,
+            trial_available=ma.trial_available,
+            experience_years=ma.experience_years
+        ))
+
+
+def _update_type_specific(db, db_service: Service, parsed: ServiceCreate):
+    """Update or create type-specific record."""
+    stype = parsed.service_type
+
+    if stype == "venue" and parsed.venue:
+        if db_service.venue:
+            for k, v in parsed.venue.dict().items():
+                setattr(db_service.venue, k, v)
+        else:
+            _add_type_specific(db, db_service.id, parsed)
+
+    elif stype == "catering" and parsed.catering:
+        if db_service.catering:
+            c = parsed.catering
+            for k, v in c.dict().items():
+                setattr(db_service.catering, k, v)
+        else:
+            _add_type_specific(db, db_service.id, parsed)
+
+    elif stype == "dj" and parsed.dj:
+        if db_service.dj:
+            for k, v in parsed.dj.dict().items():
+                setattr(db_service.dj, k, v)
+        else:
+            _add_type_specific(db, db_service.id, parsed)
+
+    elif stype == "photography" and parsed.photography:
+        if db_service.photography:
+            for k, v in parsed.photography.dict().items():
+                setattr(db_service.photography, k, v)
+        else:
+            _add_type_specific(db, db_service.id, parsed)
+
+    elif stype == "event_management" and parsed.event_management:
+        if db_service.event_management:
+            for k, v in parsed.event_management.dict().items():
+                setattr(db_service.event_management, k, v)
+        else:
+            _add_type_specific(db, db_service.id, parsed)
+
+    elif stype == "makeup_artist" and parsed.makeup_artist:
+        if db_service.makeup_artist:
+            for k, v in parsed.makeup_artist.dict().items():
+                setattr(db_service.makeup_artist, k, v)
+        else:
+            _add_type_specific(db, db_service.id, parsed)
+
+
+async def _upload_media(img: UploadFile) -> str:
+    file_bytes = await img.read()
+    ext = img.filename.split(".")[-1] if "." in img.filename else "jpg"
+    file_path = f"services/{uuid4().hex}.{ext}"
+    content_type, _ = mimetypes.guess_type(img.filename)
+    content_type = content_type or "application/octet-stream"
+    supabase.storage.from_("service-images").upload(
+        path=file_path,
+        file=file_bytes,
+        file_options={"content-type": content_type}
+    )
+    public_url = supabase.storage.from_("service-images").get_public_url(file_path)
+    return public_url.get("publicURL") if isinstance(public_url, dict) else str(public_url)
+
+
+def _build_service_response(s: Service) -> ServiceResponse:
+    def _jsonb_list(val):
+        if isinstance(val, dict):
+            return list(val.values())
+        return val or []
+
+    venue_data = None
+    if s.venue:
+        v = s.venue
+
+        venue_data = {
+            **{c.name: getattr(v, c.name) for c in v.__table__.columns},
+
+            "venue_policies": v.venue_policies or {
+                "decoration_policy": "",
+                "catering_policy": "",
+                "alcohol_policy": "",
+                "other_policies": []
+            }
+        }
+        
+    catering_data = None
+    if s.catering:
+        c = s.catering
+        catering_data = {
+            **{col.name: getattr(c, col.name) for col in c.__table__.columns},
+            "cuisine_types": _jsonb_list(c.cuisine_types),
+            "meal_types": _jsonb_list(c.meal_types),
+            "service_styles": _jsonb_list(c.service_styles),
+            "special_diets_supported": _jsonb_list(c.special_diets_supported),
+        }
+
+    dj_data = None
+    if s.dj:
+        d = s.dj
+        dj_data = {
+            **{col.name: getattr(d, col.name) for col in d.__table__.columns},
+            "genres_supported": _jsonb_list(d.genres_supported),
+            "languages_supported": _jsonb_list(d.languages_supported),
+            "event_types_supported": d.event_types_supported or [],
+            "equipments_provided": _jsonb_list(d.equipments_provided),
+        }
+
+    photography_data = None
+    if s.photography:
+        p = s.photography
+        photography_data = {
+            **{col.name: getattr(p, col.name) for col in p.__table__.columns},
+            "photography_types": _jsonb_list(p.photography_types),
+            "editing_styles": _jsonb_list(p.editing_styles),
+        }
+
+    event_management_data = None
+    if s.event_management:
+        em = s.event_management
+        event_management_data = {
+            **{col.name: getattr(em, col.name) for col in em.__table__.columns},
+            "event_types_supported": _jsonb_list(em.event_types_supported),
+            "services_offered": _jsonb_list(em.services_offered),
+            "themes_supported": _jsonb_list(em.themes_supported),
+        }
+
+    makeup_data = None
+    if s.makeup_artist:
+        ma = s.makeup_artist
+        makeup_data = {
+            **{col.name: getattr(ma, col.name) for col in ma.__table__.columns},
+            "makeup_types": _jsonb_list(ma.makeup_types),
+            "brands_used": _jsonb_list(ma.brands_used),
+        }
+
+    return ServiceResponse(
+        id=s.id,
+        vendor_id=s.vendor_id,
+        service_type=s.service_type,
+        service_name=s.service_name,
+        description=s.description,
+        add_line1=s.add_line1,
+        add_line2=s.add_line2,
+        area=s.area,
+        city=s.city,
+        state=s.state,
+        country=s.country,
+        pincode=s.pincode,
+        latitude=float(s.latitude) if s.latitude else None,
+        longitude=float(s.longitude) if s.longitude else None,
+        status=s.status,
+        is_active=s.is_active,
+        is_verified=s.is_verified,
+        metadata=s.metadata_ or {},
+        created_at=s.created_at,
+        updated_at=s.updated_at,
+        venue=venue_data,
+        catering=catering_data,
+        dj=dj_data,
+        photography=photography_data,
+        event_management=event_management_data,
+        makeup_artist=makeup_data,
+        variants=[
+            {
+                **{col.name: getattr(v, col.name) for col in v.__table__.columns},
+                "inclusions": v.inclusions or [],
+                "exclusions": v.exclusions or [],
+                "menu": _jsonb_list(v.menu),
+                "deliverables": _jsonb_list(v.deliverables),
+                "metadata": v.metadata_ or {},
+            }
+            for v in s.variants
+        ],
+        media=[
+            {
+                **{col.name: getattr(m, col.name) for col in m.__table__.columns},
+                "metadata": m.metadata_ or {},
+            }
+            for m in s.media
+        ],
+        unavailable_dates=s.unavailable_dates or [],
+    )
+
+
+# ─── Eager Load Options ───────────────────────────────────────────────────────
+
+_ALL_OPTS = [
+    joinedload(Service.venue),
+    joinedload(Service.catering),
+    joinedload(Service.dj),
+    joinedload(Service.photography),
+    joinedload(Service.event_management),
+    joinedload(Service.makeup_artist),
+    joinedload(Service.variants),
+    joinedload(Service.media),
+    joinedload(Service.unavailable_dates),
+]
+
+
+# ─── CREATE ──────────────────────────────────────────────────────────────────
+
+@servicerouter.post("/create", response_model=ServiceCreateResponse, status_code=201)
 async def create_service(
-    category: str = Form(...),
-    title: str = Form(...),
-    description: Optional[str] = Form(None),
-    tags: Optional[str] = Form(None),
-    base_price: float = Form(...),
-    pricing_type: str = Form(...),
-    amenities: Optional[str] = Form(None),
-    address_line1: Optional[str] = Form(None),
-    address_line2: Optional[str] = Form(None),
-    area: Optional[str] = Form(None),
-    city: str = Form(...),
-    state: str = Form(...),
-    country: str = Form(...),
-    pincode: str = Form(...),
-    geo_point: Optional[str] = Form(None),
-
-    # category-specific fields
-    capacity_min: Optional[int] = Form(None),
-    capacity_max: Optional[int] = Form(None),
-    hall_type: Optional[str] = Form(None),
-    indoor_outdoor: Optional[str] = Form(None),
-    square_feet: Optional[float] = Form(None),
-    parking_capacity: Optional[int] = Form(None),
-    decoration_policy: Optional[str] = Form(None),
-    catering_policy: Optional[str] = Form(None),
-    alcohol_policy: Optional[str] = Form(None),
-
-    cuisine_types: Optional[str] = Form(None),
-    veg_price_per_head: Optional[float] = Form(None),
-    nonveg_price_per_head: Optional[float] = Form(None),
-    min_order: Optional[int] = Form(None),
-    max_order: Optional[int] = Form(None),
-    service_style: Optional[str] = Form(None),
-
-    genres_supported: Optional[str] = Form(None),
-    duration_hours: Optional[float] = Form(None),
-    equipment: Optional[str] = Form(None),
-
-    package_type: Optional[str] = Form(None),
-    hours_covered: Optional[float] = Form(None),
-    photos_delivered: Optional[int] = Form(None),
-    edited_photos_count: Optional[int] = Form(None),
-    delivery_time_days: Optional[int] = Form(None),
-    videography_included: Optional[bool] = Form(None),
-    drone_available: Optional[bool] = Form(None),
-    album_included: Optional[bool] = Form(None),
-
-    event_types: Optional[str] = Form(None),
-    team_size: Optional[int] = Form(None),
-    includes: Optional[str] = Form(None),
-    package_modal: Optional[str] = Form(None),
-    vendor_network_size: Optional[int] = Form(None),
-    experience_years: Optional[int] = Form(None),
-
+    data: str = Form(...),
     images: List[UploadFile] = File([]),
-    db: Session = Depends(get_db),
-    current_user=Depends(require_role(["vendor"]))
+    videos: List[UploadFile] = File([]),
+    external_media: str = Form("[]"),
+    db: AsyncSession = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
 ):
-    result = db.execute(
-        select(Vendor.id).where(Vendor.user_id == current_user.id)
-    )
-    vendor_id = result.scalar()
+    try:
+        if current_user.get("role") != "vendor":
+            raise HTTPException(status_code=403, detail="Vendor role required")
 
-    if not vendor_id:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Vendor identification failed"
+        vendor_res = await db.execute(select(Vendor.id).where(Vendor.email == current_user["email"]))
+        vendor_id = vendor_res.scalar_one_or_none()
+        if not vendor_id:
+            raise HTTPException(status_code=404, detail="Vendor not found")
+        
+        print(data)
+        parsed = ServiceCreate(**json.loads(data))
+        print(parsed)
+
+        db_service = Service(
+            vendor_id=vendor_id,
+            service_type=parsed.service_type,
+            service_name=parsed.service_name,
+            description=parsed.description,
+            add_line1=parsed.add_line1,
+            add_line2=parsed.add_line2,
+            area=parsed.area,
+            city=parsed.city,
+            state=parsed.state,
+            country=parsed.country,
+            pincode=parsed.pincode,
+            latitude=parsed.latitude,
+            longitude=parsed.longitude,
+            metadata_=parsed.metadata_.dict() if parsed.metadata_ else {},
+            created_at=datetime.utcnow(),
+            updated_at=datetime.utcnow()
         )
-    # Parse JSON fields
-    try:
-        tags_list = json.loads(tags) if tags else []
-        amenities_list = json.loads(amenities) if amenities else []
-        geo_point_dict = json.loads(geo_point) if geo_point else None
-        if geo_point_dict:
-            geo_point_dict = GeoPoint(**geo_point_dict).dict()
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Invalid JSON field: {str(e)}")
-
-    # Validate Enums
-    try:
-        category_enum = ModelServiceCategory(category)
-        pricing_type_enum = ModelPricingType(pricing_type)
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-
-    # Check uniqueness
-    existing = db.query(Service).filter(
-        Service.vendor_id == vendor_id,
-        Service.category == category_enum,
-        Service.title == title,
-        Service.city == city,
-        Service.pincode == pincode
-    ).first()
-    if existing:
-        raise HTTPException(status_code=400, detail="A service with these details already exists")
-
-    
-    db_service = Service(
-        vendor_id=vendor_id,
-        category=category_enum,
-        title=title,
-        description=description,
-        tags=tags_list,
-        base_price=base_price,
-        currency="INR",
-        pricing_type=pricing_type_enum,
-        amenities=amenities_list,
-        address_line1=address_line1,
-        address_line2=address_line2,
-        area=area,
-        city=city,
-        state=state,
-        country=country,
-        pincode=pincode,
-        geo_point=geo_point_dict,
-        created_at=datetime.utcnow(),
-        updated_at=datetime.utcnow(),
-        featured=False,
-        verified=False,
-        is_active=True,
-        images=[]  # Initialize with empty list
-    )
-
-    try:
         db.add(db_service)
-        db.flush()
+        await db.flush()
 
-        # Handle category-specific tables
-        if category_enum == ModelServiceCategory.venue:
-            hall_type_enum = HallType(hall_type) if hall_type else None
-            indoor_outdoor_enum = IndoorOutdoor(indoor_outdoor) if indoor_outdoor else None
-            decoration_policy_enum = DecorationPolicy(decoration_policy) if decoration_policy else None
-            catering_policy_enum = CateringPolicy(catering_policy) if catering_policy else None
-            alcohol_policy_enum = AlcoholPolicy(alcohol_policy) if alcohol_policy else None
+        _add_type_specific(db, db_service.id, parsed)
 
-            db.add(VenueService(
+        parsed.variants = _enforce_variants(parsed.variants)
+        for v in parsed.variants:
+            db.add(ServiceVariant(
                 service_id=db_service.id,
-                capacity_min=capacity_min,
-                capacity_max=capacity_max,
-                hall_type=hall_type_enum,
-                indoor_outdoor=indoor_outdoor_enum,
-                square_feet=square_feet,
-                parking_capacity=parking_capacity,
-                decoration_policy=decoration_policy_enum,
-                catering_policy=catering_policy_enum,
-                alcohol_policy=alcohol_policy_enum
+                variant_name=v.variant_name,
+                description=v.description,
+                min_quantity=v.min_quantity,
+                max_quantity=v.max_quantity,
+                pricing_type=v.pricing_type,
+                currency=v.currency,
+                pricing=v.pricing or {},
+                menu=v.menu or [],
+                deliverables=v.deliverables or [],
+                inclusions=v.inclusions or [],
+                exclusions=v.exclusions or [],
+                policies=v.policies or {},
+                metadata_=v.metadata_ or {},
+                is_default=v.is_default
             ))
 
-        elif category_enum == ModelServiceCategory.catering:
-            cuisine_list = json.loads(cuisine_types) if cuisine_types else []
-            service_style_enum = ServiceStyle(service_style) if service_style else None
-            db.add(CateringService(
+        display_order = 0
+
+        # IMAGE UPLOADS
+        for idx, img in enumerate(images):
+            url = await _upload_media(img)
+
+            db.add(ServiceMedia(
                 service_id=db_service.id,
-                cuisine_types=cuisine_list,
-                veg_price_per_head=veg_price_per_head,
-                nonveg_price_per_head=nonveg_price_per_head,
-                min_order=min_order,
-                max_order=max_order,
-                service_style=service_style_enum,
-                staff_included=True
+                media_url=url,
+                media_type="image",
+                source_type="upload",
+                is_cover=(display_order == 0),
+                display_order=display_order,
+                metadata_={}
             ))
 
-        elif category_enum == ModelServiceCategory.dj:
-            genres_list = json.loads(genres_supported) if genres_supported else []
-            equipment_list = json.loads(equipment) if equipment else []
-            db.add(DJService(
+            display_order += 1
+
+
+        # VIDEO UPLOADS
+        for video in videos:
+            url = await _upload_media(video)
+
+            db.add(ServiceMedia(
                 service_id=db_service.id,
-                genres_supported=genres_list,
-                duration_hours=duration_hours,
-                equipment=equipment_list
+                media_url=url,
+                media_type="video",
+                source_type="upload",
+                is_cover=False,
+                display_order=display_order,
+                metadata_={}
             ))
 
-        elif category_enum == ModelServiceCategory.photographer:
-            package_list = json.loads(package_type) if package_type else []
-            db.add(PhotographerService(
+            display_order += 1
+
+
+        # EXTERNAL MEDIA
+        external_media_list = json.loads(external_media)
+
+        for item in external_media_list:
+            db.add(ServiceMedia(
                 service_id=db_service.id,
-                package_type=package_list,
-                hours_covered=hours_covered,
-                photos_delivered=photos_delivered,
-                edited_photos_count=edited_photos_count,
-                delivery_time_days=delivery_time_days,
-                videography_included=bool(videography_included),
-                drone_available=bool(drone_available),
-                album_included=bool(album_included)
+                media_url=item["media_url"],
+                media_type=item.get("media_type", "image"),
+                source_type=item.get("source_type", "external"),
+                is_cover=False,
+                display_order=display_order,
+                metadata_=item.get("metadata", {})
             ))
 
-        elif category_enum == ModelServiceCategory.event_management:
-            event_types_list = json.loads(event_types) if event_types else []
-            includes_list = json.loads(includes) if includes else []
-            package_modal_enum = PackageModal(package_modal) if package_modal else None
-            db.add(EventManagementService(
-                service_id=db_service.id,
-                event_types=event_types_list,
-                team_size=team_size,
-                includes=includes_list,
-                package_modal=package_modal_enum,
-                vendor_network_size=vendor_network_size,
-                experience_years=experience_years
-            ))
+            display_order += 1
 
-        # Upload images to Supabase
-        image_urls = []
-        for img in images or []:
-            file_bytes = await img.read()
-            file_ext = img.filename.split(".")[-1] if "." in img.filename else "bin"
-            file_path = f"services/{uuid4().hex}.{file_ext}"
-
-            content_type, _ = mimetypes.guess_type(img.filename)
-            if not content_type:
-                content_type = "application/octet-stream"
-
-            supabase.storage.from_("service-images").upload(
-                path=file_path,
-                file=file_bytes,
-                file_options={"content-type": content_type}
-            )
-            public_url = supabase.storage.from_("service-images").get_public_url(file_path)
-            public_url_val = (
-                public_url.get("publicURL")
-                if isinstance(public_url, dict)
-                else str(public_url)
-            )
-            image_urls.append(public_url_val)
-
-        # Save image URLs in the JSONB field
-        db_service.images = image_urls
-        db.commit()
-        db.refresh(db_service)
-
-        return ServiceCreateResponse(
-            message="Service created successfully"
-        )
+        await db.commit()
+        return ServiceCreateResponse(message="Service created successfully", service_id=db_service.id)
 
     except HTTPException:
         raise
     except Exception as e:
-        db.rollback()
-        logger.exception("Failed to create service")
-        raise HTTPException(status_code=500, detail=f"Failed to create service: {str(e)}")
+        await db.rollback()
+        logger.exception("Create service failed")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
-@servicerouter.get(
-    "/get-all",
-    response_model=List[ServiceResponse],
-    status_code=status.HTTP_200_OK,
-    description="Retrieve all services for the authenticated vendor including category-specific details"
-)
+# ─── GET ALL ─────────────────────────────────────────────────────────────────
+
+@servicerouter.get("/get-all", response_model=List[ServiceResponse])
 async def get_all_services(
-    db: Session = Depends(get_db),
-    current_user=Depends(require_role(["vendor"]))
+    db: AsyncSession = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
 ):
     try:
-        result = db.execute(
-            select(Vendor.id).where(Vendor.user_id == current_user.id)
-        )
-        vendor_id = result.scalar()
+        if current_user.get("role") != "vendor":
+            raise HTTPException(status_code=403, detail="Vendor role required")
 
-        if not vendor_id:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Vendor identification failed"
-            )
+        vendor_res = await db.execute(select(Vendor.id).where(Vendor.email == current_user["email"]))
+        vendor_id = vendor_res.scalar_one_or_none()
 
-        # Query services with eager loading of related category-specific tables
-        services = (
-            db.query(Service)
+        result = await db.execute(
+            select(Service)
             .filter(Service.vendor_id == vendor_id)
-            .options(
-                joinedload(Service.venue_service),
-                joinedload(Service.catering_service),
-                joinedload(Service.dj_service),
-                joinedload(Service.photographer_service),
-                joinedload(Service.event_management_service)
-            )
-            .all()
+            .options(*_ALL_OPTS)
         )
+        services = result.scalars().unique().all()
+        return [_build_service_response(s) for s in services]
 
-        response = []
-        for service in services:
-            # Base service response
-            service_data = ServiceResponse(
-                id=service.id,
-                vendor_id=service.vendor_id,
-                category=service.category.value,
-                title=service.title,
-                description=service.description,
-                tags=service.tags or [],
-                base_price=float(service.base_price),
-                currency=service.currency,
-                pricing_type=service.pricing_type.value,
-                images=service.images or [],
-                amenities=service.amenities or [],
-                featured=service.featured,
-                verified=service.verified,
-                is_active=service.is_active,
-                address_line1=service.address_line1,
-                address_line2=service.address_line2,
-                area=service.area,
-                city=service.city,
-                state=service.state,
-                country=service.country,
-                pincode=service.pincode,
-                geo_point=service.geo_point,
-                created_at=service.created_at,
-                updated_at=service.updated_at
-            )
-
-            # Add category-specific data
-            if service.category == ModelServiceCategory.venue and service.venue_service:
-                service_data.venue_details = VenueServiceResponse(
-                    capacity_min=service.venue_service.capacity_min,
-                    capacity_max=service.venue_service.capacity_max,
-                    hall_type=service.venue_service.hall_type.value if service.venue_service.hall_type else None,
-                    indoor_outdoor=service.venue_service.indoor_outdoor.value if service.venue_service.indoor_outdoor else None,
-                    square_feet=float(service.venue_service.square_feet) if service.venue_service.square_feet else None,
-                    parking_capacity=service.venue_service.parking_capacity,
-                    decoration_policy=service.venue_service.decoration_policy.value if service.venue_service.decoration_policy else None,
-                    catering_policy=service.venue_service.catering_policy.value if service.venue_service.catering_policy else None,
-                    alcohol_policy=service.venue_service.alcohol_policy.value if service.venue_service.alcohol_policy else None
-                )
-            elif service.category == ModelServiceCategory.catering and service.catering_service:
-                service_data.catering_details = CateringServiceResponse(
-                    cuisine_types=service.catering_service.cuisine_types or [],
-                    veg_price_per_head=float(service.catering_service.veg_price_per_head) if service.catering_service.veg_price_per_head else None,
-                    nonveg_price_per_head=float(service.catering_service.nonveg_price_per_head) if service.catering_service.nonveg_price_per_head else None,
-                    min_order=service.catering_service.min_order,
-                    max_order=service.catering_service.max_order,
-                    service_style=service.catering_service.service_style.value if service.catering_service.service_style else None,
-                    staff_included=service.catering_service.staff_included,
-                    crockery_cutlery_included=service.catering_service.crockery_cutlery_included,
-                    tasting_available=service.catering_service.tasting_available
-                )
-            elif service.category == ModelServiceCategory.dj and service.dj_service:
-                service_data.dj_details = DJServiceResponse(
-                    genres_supported=service.dj_service.genres_supported or [],
-                    duration_hours=float(service.dj_service.duration_hours) if service.dj_service.duration_hours else None,
-                    equipment=service.dj_service.equipment or [],
-                    lighting_included=service.dj_service.lighting_included,
-                    mc_host_available=service.dj_service.mc_host_available,
-                    setup_time_required=float(service.dj_service.setup_time_required) if service.dj_service.setup_time_required else None
-                )
-            elif service.category == ModelServiceCategory.photographer and service.photographer_service:
-                service_data.photographer_details = PhotographerServiceResponse(
-                    package_type=service.photographer_service.package_type or [],
-                    hours_covered=float(service.photographer_service.hours_covered) if service.photographer_service.hours_covered else None,
-                    photos_delivered=service.photographer_service.photos_delivered,
-                    edited_photos_count=service.photographer_service.edited_photos_count,
-                    delivery_time_days=service.photographer_service.delivery_time_days,
-                    videography_included=service.photographer_service.videography_included,
-                    drone_available=service.photographer_service.drone_available,
-                    album_included=service.photographer_service.album_included
-                )
-            elif service.category == ModelServiceCategory.event_management and service.event_management_service:
-                service_data.event_management_details = EventManagementServiceResponse(
-                    event_types=service.event_management_service.event_types or [],
-                    team_size=service.event_management_service.team_size,
-                    includes=service.event_management_service.includes or [],
-                    package_modal=service.event_management_service.package_modal.value if service.event_management_service.package_modal else None,
-                    vendor_network_size=service.event_management_service.vendor_network_size,
-                    experience_years=service.event_management_service.experience_years
-                )
-
-            response.append(service_data)
-
-        return response
-
+    except HTTPException:
+        raise
     except Exception as e:
-        logger.exception("Failed to retrieve services")
-        raise HTTPException(status_code=500, detail=f"Failed to retrieve services: {str(e)}")
+        logger.exception("Get all services failed")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
-@servicerouter.put(
-    "/{category}s/{id}",
-    response_model=ServiceResponse,
-    status_code=status.HTTP_200_OK,
-    description="Update an existing service by category and ID"
-)
-async def update_service(
-    category: str,
-    id: UUID,
-    title: str = Form(...),
-    description: Optional[str] = Form(None),
-    tags: Optional[str] = Form(None),
-    base_price: float = Form(...),
-    pricing_type: str = Form(...),
-    amenities: Optional[str] = Form(None),
-    address_line1: Optional[str] = Form(None),
-    address_line2: Optional[str] = Form(None),
-    area: Optional[str] = Form(None),
-    city: str = Form(...),
-    state: str = Form(...),
-    country: str = Form(...),
-    pincode: str = Form(...),
-    geo_point: Optional[str] = Form(None),
-    existing_images: Optional[str] = Form(None),
-    capacity_min: Optional[int] = Form(None),
-    capacity_max: Optional[int] = Form(None),
-    hall_type: Optional[str] = Form(None),
-    indoor_outdoor: Optional[str] = Form(None),
-    square_feet: Optional[float] = Form(None),
-    parking_capacity: Optional[int] = Form(None),
-    decoration_policy: Optional[str] = Form(None),
-    catering_policy: Optional[str] = Form(None),
-    alcohol_policy: Optional[str] = Form(None),
-    cuisine_types: Optional[str] = Form(None),
-    veg_price_per_head: Optional[float] = Form(None),
-    nonveg_price_per_head: Optional[float] = Form(None),
-    min_order: Optional[int] = Form(None),
-    max_order: Optional[int] = Form(None),
-    service_style: Optional[str] = Form(None),
-    staff_included: Optional[bool] = Form(None),
-    crockery_cutlery_included: Optional[bool] = Form(None),
-    tasting_available: Optional[bool] = Form(None),
-    genres_supported: Optional[str] = Form(None),
-    duration_hours: Optional[float] = Form(None),
-    equipment: Optional[str] = Form(None),
-    lighting_included: Optional[bool] = Form(None),
-    mc_host_available: Optional[bool] = Form(None),
-    setup_time_required: Optional[float] = Form(None),
-    package_type: Optional[str] = Form(None),
-    hours_covered: Optional[float] = Form(None),
-    photos_delivered: Optional[int] = Form(None),
-    edited_photos_count: Optional[int] = Form(None),
-    delivery_time_days: Optional[int] = Form(None),
-    videography_included: Optional[bool] = Form(None),
-    drone_available: Optional[bool] = Form(None),
-    album_included: Optional[bool] = Form(None),
-    event_types: Optional[str] = Form(None),
-    team_size: Optional[int] = Form(None),
-    includes: Optional[str] = Form(None),
-    package_modal: Optional[str] = Form(None),
-    vendor_network_size: Optional[int] = Form(None),
-    experience_years: Optional[int] = Form(None),
-    images: List[UploadFile] = File([]),
-    db: Session = Depends(get_db),
-    current_user=Depends(require_role(["vendor"]))
+# ─── GET ONE ─────────────────────────────────────────────────────────────────
+
+@servicerouter.get("/{id}", response_model=ServiceResponse)
+async def get_service(
+    id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
 ):
     try:
-        result = db.execute(
-            select(Vendor.id).where(Vendor.user_id == current_user.id)
+        vendor_res = await db.execute(select(Vendor.id).where(Vendor.email == current_user["email"]))
+        vendor_id = vendor_res.scalar_one_or_none()
+
+        result = await db.execute(
+            select(Service)
+            .filter(Service.id == id, Service.vendor_id == vendor_id)
+            .options(*_ALL_OPTS)
         )
-        vendor_id = result.scalar()
-
-        if not vendor_id:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Vendor identification failed"
-            )
-
-        # Validate category
-        try:
-            category_enum = ModelServiceCategory(category)
-        except ValueError:
-            raise HTTPException(status_code=400, detail=f"Invalid category: {category}")
-
-        db_service = db.query(Service).filter(
-            Service.id == id,
-            Service.vendor_id == vendor_id,
-            Service.category == category_enum
-        ).first()
-
+        db_service = result.unique().scalar_one_or_none()
         if not db_service:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Service not found or you do not have permission to update it"
-            )
+            raise HTTPException(status_code=404, detail="Service not found")
 
-        # Parse JSON fields
-        try:
-            tags_list = json.loads(tags) if tags else []
-            amenities_list = json.loads(amenities) if amenities else []
-            geo_point_dict = json.loads(geo_point) if geo_point else None
-            existing_images_list = json.loads(existing_images) if existing_images else []
-            if geo_point_dict:
-                geo_point_dict = GeoPoint(**geo_point_dict).dict()
-        except Exception as e:
-            raise HTTPException(status_code=400, detail=f"Invalid JSON field: {str(e)}")
+        return _build_service_response(db_service)
 
-        # Validate Enums
-        try:
-            pricing_type_enum = ModelPricingType(pricing_type)
-        except ValueError as e:
-            raise HTTPException(status_code=400, detail=str(e))
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception("Get service failed")
+        raise HTTPException(status_code=500, detail=str(e))
 
-        # Update base Service
-        db_service.title = title
-        db_service.description = description
-        db_service.tags = tags_list
-        db_service.base_price = base_price
-        db_service.pricing_type = pricing_type_enum
-        db_service.amenities = amenities_list
-        db_service.address_line1 = address_line1
-        db_service.address_line2 = address_line2
-        db_service.area = area
-        db_service.city = city
-        db_service.state = state
-        db_service.country = country
-        db_service.pincode = pincode
-        db_service.geo_point = geo_point_dict
+
+# ─── UPDATE ──────────────────────────────────────────────────────────────────
+
+@servicerouter.put("/update/{id}", response_model=ServiceCreateResponse)
+async def update_service(
+    id: int,
+    data: str = Form(...),
+    existing_media: str = Form("[]"),
+    images: List[UploadFile] = File([]),
+    videos: List[UploadFile] = File([]),
+    external_media: str = Form("[]"),
+    db: AsyncSession = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
+):
+    try:
+        vendor_res = await db.execute(select(Vendor.id).where(Vendor.email == current_user["email"]))
+        vendor_id = vendor_res.scalar_one_or_none()
+
+        result = await db.execute(
+            select(Service)
+            .filter(Service.id == id, Service.vendor_id == vendor_id)
+            .options(*_ALL_OPTS)
+        )
+        db_service = result.unique().scalar_one_or_none()
+        if not db_service:
+            raise HTTPException(status_code=404, detail="Service not found")
+
+        parsed = ServiceCreate(**json.loads(data))
+        existing_media = json.loads(existing_media)
+
+        # Core fields
+        core_fields = [
+            "service_name", "service_type", "description",
+            "add_line1", "add_line2", "area", "city",
+            "state", "country", "pincode", "latitude", "longitude"
+        ]
+        for field in core_fields:
+            setattr(db_service, field, getattr(parsed, field))
+        db_service.metadata_ = parsed.metadata_.dict() if parsed.metadata_ else {}
         db_service.updated_at = datetime.utcnow()
 
-        # Update images
-        image_urls = existing_images_list
-        for img in images or []:
-            file_bytes = await img.read()
-            file_ext = img.filename.split(".")[-1] if "." in img.filename else "bin"
-            file_path = f"services/{uuid4().hex}.{file_ext}"
+        # Type-specific
+        _update_type_specific(db, db_service, parsed)
 
-            content_type, _ = mimetypes.guess_type(img.filename)
-            if not content_type:
-                content_type = "application/octet-stream"
+        # Reset & re-create variants
+        await db.execute(delete(ServiceVariant).where(ServiceVariant.service_id == id))
+        parsed.variants = _enforce_variants(parsed.variants)
+        for v in parsed.variants:
+            db.add(ServiceVariant(
+                service_id=id,
+                variant_name=v.variant_name,
+                description=v.description,
+                min_quantity=v.min_quantity,
+                max_quantity=v.max_quantity,
+                pricing_type=v.pricing_type,
+                currency=v.currency,
+                pricing=v.pricing or {},
+                menu=v.menu or [],
+                deliverables=v.deliverables or [],
+                inclusions=v.inclusions or [],
+                exclusions=v.exclusions or [],
+                policies=v.policies or {},
+                metadata_=v.metadata_ or {},
+                is_default=v.is_default
+            ))
 
-            supabase.storage.from_("service-images").upload(
-                path=file_path,
-                file=file_bytes,
-                file_options={"content-type": content_type}
-            )
-            public_url = supabase.storage.from_("service-images").get_public_url(file_path)
-            public_url_val = (
-                public_url.get("publicURL")
-                if isinstance(public_url, dict)
-                else str(public_url)
-            )
-            image_urls.append(public_url_val)
+        # Media: delete removed, keep existing
+        for m in db_service.media:
+            if m.media_url not in existing_media:
+                await db.execute(delete(ServiceMedia).where(ServiceMedia.id == m.id))
 
-        db_service.images = image_urls
+        # Upload new images
+        display_order = len(existing_media)
 
-        # Delete existing category-specific record if category changed
-        if db_service.category != category_enum:
-            if db_service.category == ModelServiceCategory.venue:
-                db.execute(delete(VenueService).where(VenueService.service_id == db_service.id))
-            elif db_service.category == ModelServiceCategory.catering:
-                db.execute(delete(CateringService).where(CateringService.service_id == db_service.id))
-            elif db_service.category == ModelServiceCategory.dj:
-                db.execute(delete(DJService).where(DJService.service_id == db_service.id))
-            elif db_service.category == ModelServiceCategory.photographer:
-                db.execute(delete(PhotographerService).where(PhotographerService.service_id == db_service.id))
-            elif db_service.category == ModelServiceCategory.event_management:
-                db.execute(delete(EventManagementService).where(EventManagementService.service_id == db_service.id))
-            db_service.category = category_enum
+        # IMAGE UPLOADS
+        for idx, img in enumerate(images):
+            url = await _upload_media(img)
 
-        # Update category-specific tables
-        if category_enum == ModelServiceCategory.venue:
-            hall_type_enum = HallType(hall_type) if hall_type else None
-            indoor_outdoor_enum = IndoorOutdoor(indoor_outdoor) if indoor_outdoor else None
-            decoration_policy_enum = DecorationPolicy(decoration_policy) if decoration_policy else None
-            catering_policy_enum = CateringPolicy(catering_policy) if catering_policy else None
-            alcohol_policy_enum = AlcoholPolicy(alcohol_policy) if alcohol_policy else None
+            db.add(ServiceMedia(
+                service_id=db_service.id,
+                media_url=url,
+                media_type="image",
+                source_type="upload",
+                is_cover=(display_order == 0),
+                display_order=display_order,
+                metadata_={}
+            ))
 
-            existing_venue = db.query(VenueService).filter(VenueService.service_id == db_service.id).first()
-            if existing_venue:
-                existing_venue.capacity_min = capacity_min
-                existing_venue.capacity_max = capacity_max
-                existing_venue.hall_type = hall_type_enum
-                existing_venue.indoor_outdoor = indoor_outdoor_enum
-                existing_venue.square_feet = square_feet
-                existing_venue.parking_capacity = parking_capacity
-                existing_venue.decoration_policy = decoration_policy_enum
-                existing_venue.catering_policy = catering_policy_enum
-                existing_venue.alcohol_policy = alcohol_policy_enum
-            else:
-                db.add(VenueService(
-                    service_id=db_service.id,
-                    capacity_min=capacity_min,
-                    capacity_max=capacity_max,
-                    hall_type=hall_type_enum,
-                    indoor_outdoor=indoor_outdoor_enum,
-                    square_feet=square_feet,
-                    parking_capacity=parking_capacity,
-                    decoration_policy=decoration_policy_enum,
-                    catering_policy=catering_policy_enum,
-                    alcohol_policy=alcohol_policy_enum
-                ))
+            display_order += 1
 
-        elif category_enum == ModelServiceCategory.catering:
-            cuisine_list = json.loads(cuisine_types) if cuisine_types else []
-            service_style_enum = ServiceStyle(service_style) if service_style else None
-            existing_catering = db.query(CateringService).filter(CateringService.service_id == db_service.id).first()
-            if existing_catering:
-                existing_catering.cuisine_types = cuisine_list
-                existing_catering.veg_price_per_head = veg_price_per_head
-                existing_catering.nonveg_price_per_head = nonveg_price_per_head
-                existing_catering.min_order = min_order
-                existing_catering.max_order = max_order
-                existing_catering.service_style = service_style_enum
-                existing_catering.staff_included = bool(staff_included) if staff_included is not None else False
-                existing_catering.crockery_cutlery_included = bool(crockery_cutlery_included) if crockery_cutlery_included is not None else False
-                existing_catering.tasting_available = bool(tasting_available) if tasting_available is not None else False
-            else:
-                db.add(CateringService(
-                    service_id=db_service.id,
-                    cuisine_types=cuisine_list,
-                    veg_price_per_head=veg_price_per_head,
-                    nonveg_price_per_head=nonveg_price_per_head,
-                    min_order=min_order,
-                    max_order=max_order,
-                    service_style=service_style_enum,
-                    staff_included=bool(staff_included) if staff_included is not None else False,
-                    crockery_cutlery_included=bool(crockery_cutlery_included) if crockery_cutlery_included is not None else False,
-                    tasting_available=bool(tasting_available) if tasting_available is not None else False
-                ))
 
-        elif category_enum == ModelServiceCategory.dj:
-            genres_list = json.loads(genres_supported) if genres_supported else []
-            equipment_list = json.loads(equipment) if equipment else []
-            existing_dj = db.query(DJService).filter(DJService.service_id == db_service.id).first()
-            if existing_dj:
-                existing_dj.genres_supported = genres_list
-                existing_dj.duration_hours = duration_hours
-                existing_dj.equipment = equipment_list
-                existing_dj.lighting_included = bool(lighting_included) if lighting_included is not None else False
-                existing_dj.mc_host_available = bool(mc_host_available) if mc_host_available is not None else False
-                existing_dj.setup_time_required = setup_time_required
-            else:
-                db.add(DJService(
-                    service_id=db_service.id,
-                    genres_supported=genres_list,
-                    duration_hours=duration_hours,
-                    equipment=equipment_list,
-                    lighting_included=bool(lighting_included) if lighting_included is not None else False,
-                    mc_host_available=bool(mc_host_available) if mc_host_available is not None else False,
-                    setup_time_required=setup_time_required
-                ))
+        # VIDEO UPLOADS
+        for video in videos:
+            url = await _upload_media(video)
 
-        elif category_enum == ModelServiceCategory.photographer:
-            package_list = json.loads(package_type) if package_type else []
-            existing_photographer = db.query(PhotographerService).filter(PhotographerService.service_id == db_service.id).first()
-            if existing_photographer:
-                existing_photographer.package_type = package_list
-                existing_photographer.hours_covered = hours_covered
-                existing_photographer.photos_delivered = photos_delivered
-                existing_photographer.edited_photos_count = edited_photos_count
-                existing_photographer.delivery_time_days = delivery_time_days
-                existing_photographer.videography_included = bool(videography_included) if videography_included is not None else False
-                existing_photographer.drone_available = bool(drone_available) if drone_available is not None else False
-                existing_photographer.album_included = bool(album_included) if album_included is not None else False
-            else:
-                db.add(PhotographerService(
-                    service_id=db_service.id,
-                    package_type=package_list,
-                    hours_covered=hours_covered,
-                    photos_delivered=photos_delivered,
-                    edited_photos_count=edited_photos_count,
-                    delivery_time_days=delivery_time_days,
-                    videography_included=bool(videography_included) if videography_included is not None else False,
-                    drone_available=bool(drone_available) if drone_available is not None else False,
-                    album_included=bool(album_included) if album_included is not None else False
-                ))
+            db.add(ServiceMedia(
+                service_id=db_service.id,
+                media_url=url,
+                media_type="video",
+                source_type="upload",
+                is_cover=False,
+                display_order=display_order,
+                metadata_={}
+            ))
 
-        elif category_enum == ModelServiceCategory.event_management:
-            event_types_list = json.loads(event_types) if event_types else []
-            includes_list = json.loads(includes) if includes else []
-            package_modal_enum = PackageModal(package_modal) if package_modal else None
-            existing_event_management = db.query(EventManagementService).filter(EventManagementService.service_id == db_service.id).first()
-            if existing_event_management:
-                existing_event_management.event_types = event_types_list
-                existing_event_management.team_size = team_size
-                existing_event_management.includes = includes_list
-                existing_event_management.package_modal = package_modal_enum
-                existing_event_management.vendor_network_size = vendor_network_size
-                existing_event_management.experience_years = experience_years
-            else:
-                db.add(EventManagementService(
-                    service_id=db_service.id,
-                    event_types=event_types_list,
-                    team_size=team_size,
-                    includes=includes_list,
-                    package_modal=package_modal_enum,
-                    vendor_network_size=vendor_network_size,
-                    experience_years=experience_years
-                ))
+            display_order += 1
 
-        db.commit()
-        db.refresh(db_service)
 
-        return ServiceResponse(
-            id=db_service.id,
-            vendor_id=db_service.vendor_id,
-            category=db_service.category.value,
-            title=db_service.title,
-            description=db_service.description,
-            tags=db_service.tags or [],
-            base_price=float(db_service.base_price),
-            currency=db_service.currency,
-            pricing_type=db_service.pricing_type.value,
-            images=db_service.images or [],
-            amenities=db_service.amenities or [],
-            featured=db_service.featured,
-            verified=db_service.verified,
-            is_active=db_service.is_active,
-            address_line1=db_service.address_line1,
-            address_line2=db_service.address_line2,
-            area=db_service.area,
-            city=db_service.city,
-            state=db_service.state,
-            country=db_service.country,
-            pincode=db_service.pincode,
-            geo_point=db_service.geo_point,
-            created_at=db_service.created_at,
-            updated_at=db_service.updated_at,
-            message="Service updated successfully"
-        )
+        # EXTERNAL MEDIA
+        external_media_urls = json.loads(external_media)
+
+        for item in external_media_urls:
+            db.add(ServiceMedia(
+                service_id=db_service.id,
+                media_url=item["media_url"],
+                media_type=item.get("media_type", "image"),
+                source_type=item.get("source_type", "external"),
+                is_cover=False,
+                display_order=display_order,
+                metadata_=item.get("metadata", {})
+            ))
+
+            display_order += 1
+
+        await db.commit()
+        return ServiceCreateResponse(message="Service updated successfully", service_id=id)
 
     except HTTPException:
         raise
     except Exception as e:
-        db.rollback()
-        logger.exception("Failed to update service")
-        raise HTTPException(status_code=500, detail=f"Failed to update service: {str(e)}")
+        await db.rollback()
+        logger.exception("Update service failed")
+        raise HTTPException(status_code=500, detail=str(e))
 
-@servicerouter.delete(
-    "/delete/{id}",
-    status_code=status.HTTP_204_NO_CONTENT,
-    description="Delete a service and its associated data by ID"
-)
+
+# ─── DELETE ──────────────────────────────────────────────────────────────────
+
+@servicerouter.delete("/delete/{id}", status_code=204)
 async def delete_service(
-    id: UUID,
-    db: Session = Depends(get_db),
-    current_user=Depends(require_role(["vendor"]))
+    id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
 ):
     try:
-        result = db.execute(
-            select(Vendor.id).where(Vendor.user_id == current_user.id)
+        vendor_res = await db.execute(select(Vendor.id).where(Vendor.email == current_user["email"]))
+        vendor_id = vendor_res.scalar_one_or_none()
+        await db.execute(
+            delete(Service).where(Service.id == id, Service.vendor_id == vendor_id)
         )
-        vendor_id = result.scalar()
-
-        if not vendor_id:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Vendor identification failed"
-            )
-
-        db_service = db.query(Service).filter(
-            Service.id == id,
-            Service.vendor_id == vendor_id
-        ).first()
-
-        if not db_service:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Service not found or you do not have permission to delete it"
-            )
-
-        # Delete associated images from Supabase
-        for image_url in db_service.images or []:
-            file_path = image_url.split("/")[-1]
-            supabase.storage.from_("service-images").remove([f"services/{file_path}"])
-
-        # Delete category-specific record
-        if db_service.category == ModelServiceCategory.venue:
-            db.execute(delete(VenueService).where(VenueService.service_id == db_service.id))
-        elif db_service.category == ModelServiceCategory.catering:
-            db.execute(delete(CateringService).where(CateringService.service_id == db_service.id))
-        elif db_service.category == ModelServiceCategory.dj:
-            db.execute(delete(DJService).where(DJService.service_id == db_service.id))
-        elif db_service.category == ModelServiceCategory.photographer:
-            db.execute(delete(PhotographerService).where(PhotographerService.service_id == db_service.id))
-        elif db_service.category == ModelServiceCategory.event_management:
-            db.execute(delete(EventManagementService).where(EventManagementService.service_id == db_service.id))
-
-        # Delete the service
-        db.execute(delete(Service).where(Service.id == id))
-        db.commit()
-
-    except HTTPException:
-        raise
+        await db.commit()
     except Exception as e:
-        db.rollback()
-        logger.exception("Failed to delete service")
-        raise HTTPException(status_code=500, detail=f"Failed to delete service: {str(e)}")
+        await db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))

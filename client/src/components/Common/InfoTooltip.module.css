@@ -1,0 +1,112 @@
+/* InfoTooltip.module.css */
+
+.tooltipWrapper {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+}
+
+/* Info Button */
+.infoBtn {
+    font-size: 10px;
+    font-weight: 600;
+    width: 15px;
+    height: 15px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    border: 1px solid hsl(var(--border));
+    color: hsl(var(--muted-foreground));
+    background: transparent;
+    margin-left: 5px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    z-index: 10;
+}
+
+.tooltipWrapper:hover .infoBtn {
+    color: hsl(var(--brand));
+    border-color: hsl(var(--brand));
+    background: hsl(var(--brand) / 0.1);
+}
+
+/* Tooltip */
+.tooltip {
+    position: absolute;
+    background: hsl(var(--card));
+    color: hsl(var(--foreground));
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 0.78rem;
+    line-height: 1.45;
+    max-width: 250px;
+    width: max-content;
+    border: 1px solid hsl(var(--border));
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+    z-index: 100;
+    white-space: normal;
+    pointer-events: none;
+}
+
+/* Arrow - Directly from the "i" button */
+.tooltip::after {
+    content: '';
+    position: absolute;
+    border: 7px solid transparent;
+}
+
+/* ==================== POSITIONS - Arrow from "i" button ==================== */
+
+.tooltip.bottom-right {
+    top: calc(100% + 4px);
+    left: -2px;
+}
+
+.tooltip.bottom-right::after {
+    top: -14px;
+    left: 10px;
+    border-bottom-color: hsl(var(--card));
+    border-top-color: transparent;
+}
+
+.tooltip.bottom-left {
+    top: calc(100% + 4px);
+    right: -2px;
+}
+
+.tooltip.bottom-left::after {
+    top: -14px;
+    right: 10px;
+    border-bottom-color: hsl(var(--card));
+}
+
+.tooltip.top-right {
+    bottom: calc(100% + 4px);
+    left: -2px;
+}
+
+.tooltip.top-right::after {
+    bottom: -14px;
+    left: 10px;
+    border-top-color: hsl(var(--card));
+    border-bottom-color: transparent;
+}
+
+.tooltip.top-left {
+    bottom: calc(100% + 4px);
+    right: -2px;
+}
+
+.tooltip.top-left::after {
+    bottom: -14px;
+    right: 10px;
+    border-top-color: hsl(var(--card));
+}
+
+/* No animation - instant appearance */
+.tooltip {
+    transition: none !important;
+    animation: none !important;
+}

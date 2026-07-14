@@ -1,0 +1,22 @@
+.wrap { display: flex; flex-direction: column; gap: 16px; }
+.toolbar { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; }
+.tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+.tab {
+  padding: 8px 14px; border-radius: 8px;
+  background: var(--surface); border: 1px solid var(--border);
+  font-size: 13px; font-weight: 500; color: var(--text-muted);
+}
+.tab:hover { color: var(--text); }
+.tabActive { background: var(--brand); color: #fff !important; border-color: var(--brand); }
+.code { font-family: ui-monospace, SFMono-Regular, monospace; font-size: 12.5px; color: var(--brand); }
+.actions { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.select {
+  padding: 6px 8px; border: 1px solid var(--border); border-radius: 7px;
+  background: var(--surface-2); font-size: 12px;
+}
+.btn {
+  padding: 6px 11px; border-radius: 7px;
+  background: var(--surface-2); border: 1px solid var(--border);
+  font-size: 12px; font-weight: 600; color: var(--text);
+}
+.btn:hover { background: #fff; border-color: var(--border-strong); }

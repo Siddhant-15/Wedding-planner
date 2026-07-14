@@ -10,7 +10,7 @@ import {
   Ban,
   CheckCircle
 } from 'lucide-react';
-import Navbar from '@/components/Navbar';
+// import Navbar from "../../navbar/components/Navbar";
 import styles from "../../styles/AdminDashboard.module.css"
 
 const AdminDashboard = () => {
@@ -97,7 +97,7 @@ const AdminDashboard = () => {
 
   return (
     <div className={styles.dashboard}>
-      <Navbar />
+      {/* <Navbar /> */}
 
       <div className={styles.container}>
         {/* Header */}
@@ -181,9 +181,9 @@ const AdminDashboard = () => {
                 <span>{vendor.revenue} Revenue</span>
               </div>
               <div className={styles.vendorActions}>
-                <button><CheckCircle size={14}/> Approve</button>
-                <button><AlertTriangle size={14}/> Flag</button>
-                <button><Ban size={14}/> Suspend</button>
+                <button><CheckCircle size={14} /> Approve</button>
+                <button><AlertTriangle size={14} /> Flag</button>
+                <button><Ban size={14} /> Suspend</button>
               </div>
             </div>
           ))}

@@ -1,0 +1,287 @@
+/* IMPORTANT FIX: Make form fit inside modal properly */
+.card {
+  background: white;
+  border: none;
+  border-radius: 0;
+  padding: 56px 24px 24px;
+  box-shadow: none;
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  font-family: var(--font-body);
+}
+
+/* Header */
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.title {
+  margin: 0;
+  font-size: 1.4rem;
+  color: hsl(var(--foreground));
+}
+
+.subtitle {
+  margin: 4px 0 0;
+  color: hsl(var(--muted-foreground));
+  font-size: 0.9rem;
+}
+
+/* Progress */
+.progressTrack {
+  height: 6px;
+  background: hsl(var(--rose-50));
+  border-radius: 999px;
+  overflow: hidden;
+  margin-bottom: 18px;
+}
+
+.progressFill {
+  height: 100%;
+  background: hsl(var(--brand));
+  border-radius: 999px;
+}
+
+/* Stepper */
+.stepper {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.stepItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+}
+
+.stepDot {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: hsl(var(--rose-50));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+}
+
+.step_active .stepDot {
+  background: hsl(var(--brand));
+  color: white;
+}
+
+.step_done .stepDot {
+  background: hsl(var(--brand));
+  color: white;
+}
+
+/* Form */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+}
+
+.full {
+  grid-column: 1 / -1;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.label {
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.input {
+  height: 42px;
+  padding: 0 12px;
+  border-radius: 8px;
+  border: 1px solid hsl(var(--border));
+  font-size: 0.9rem;
+}
+
+.input:focus {
+  border-color: hsl(var(--brand));
+  box-shadow: 0 0 0 2px hsl(var(--brand) / 0.2);
+}
+
+.textarea {
+  height: auto;
+  padding: 10px;
+}
+
+.error {
+  font-size: 0.75rem;
+  color: hsl(var(--destructive));
+}
+
+/* Footer */
+.footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.btn {
+  height: 42px;
+  padding: 0 16px;
+  border-radius: 8px;
+  font-weight: 600;
+}
+
+.btnPrimary {
+  background: hsl(var(--brand));
+  color: white;
+}
+
+.btnGhost {
+  border: 1px solid hsl(var(--border));
+}
+
+/* SUCCESS */
+.successCard {
+  padding: 60px 24px 24px;
+  /* ✅ avoid close button */
+  text-align: center;
+}
+
+/* MOBILE */
+@media (max-width: 640px) {
+  .card {
+    padding: 48px 16px 16px;
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* =========================
+   THEMED INPUT BASE
+========================= */
+.input {
+  width: 100%;
+  height: 44px;
+  padding: 0 14px;
+  border-radius: 10px;
+  border: 1px solid hsl(var(--border));
+  background: hsl(var(--cream));
+  color: hsl(var(--foreground));
+  font-size: 0.95rem;
+  font-family: inherit;
+  appearance: none;
+  transition: all 0.2s ease;
+}
+
+/* Focus = brand glow */
+.input:focus {
+  border-color: hsl(var(--brand));
+  box-shadow: 0 0 0 3px hsl(var(--brand) / 0.2);
+  background: #fff;
+}
+
+/* =========================
+   SELECT (Dropdown)
+========================= */
+select.input {
+  cursor: pointer;
+  background-image: url("data:image/svg+xml;utf8,<svg fill='%23666' height='20' viewBox='0 0 20 20' width='20' xmlns='http://www.w3.org/2000/svg'><path d='M5 7l5 5 5-5z'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 16px;
+  padding-right: 36px;
+}
+
+/* Dropdown hover */
+select.input:hover {
+  border-color: hsl(var(--brand));
+}
+
+/* =========================
+   DATE INPUT
+========================= */
+input[type="date"].input {
+  position: relative;
+  cursor: pointer;
+}
+
+/* Calendar icon styling */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.7;
+  filter: invert(40%) sepia(80%) saturate(400%) hue-rotate(300deg);
+}
+
+input[type="date"]:hover::-webkit-calendar-picker-indicator {
+  opacity: 1;
+}
+
+/* Remove ugly default UI */
+input[type="date"]::-webkit-inner-spin-button,
+input[type="date"]::-webkit-clear-button {
+  display: none;
+}
+
+/* =========================
+   TIME INPUT
+========================= */
+input[type="time"].input {
+  cursor: pointer;
+}
+
+input[type="time"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.7;
+  filter: invert(40%) sepia(80%) saturate(400%) hue-rotate(300deg);
+}
+
+input[type="time"]:hover::-webkit-calendar-picker-indicator {
+  opacity: 1;
+}
+
+/* =========================
+   PLACEHOLDER STYLE
+========================= */
+.input::placeholder {
+  color: hsl(var(--muted-foreground));
+  opacity: 0.7;
+}
+
+/* =========================
+   HOVER EFFECT
+========================= */
+.input:hover {
+  border-color: hsl(var(--brand) / 0.6);
+}
+
+/* =========================
+   DISABLED
+========================= */
+.input:disabled {
+  background: hsl(var(--muted));
+  cursor: not-allowed;
+}
+
+/* =========================
+   MOBILE IMPROVEMENTS
+========================= */
+@media (max-width: 640px) {
+  .input {
+    height: 42px;
+    font-size: 0.9rem;
+  }
+}

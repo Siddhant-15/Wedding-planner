@@ -1,0 +1,390 @@
+.container {
+  padding: 20px;
+}
+
+.tabs {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  background: var(--surface);
+  padding: 6px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+}
+
+.tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  background: transparent;
+  border: 0;
+  border-radius: 7px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.tab:hover {
+  color: var(--text);
+  background: var(--surface-2);
+}
+
+.tabActive {
+  background: var(--brand);
+  color: #fff !important;
+}
+
+.tabCount {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 1px 7px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.tab:not(.tabActive) .tabCount {
+  background: var(--surface-2);
+  color: var(--text-muted);
+}
+
+.toolbar {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin: 20px 0;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+  gap: 16px;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow);
+}
+
+.imgBox {
+  position: relative;
+  aspect-ratio: 16/10;
+  background: var(--surface-2);
+  overflow: hidden;
+}
+
+.imgBox img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.imgPlaceholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.statusOnImg {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+}
+
+.cardBody {
+  padding: 14px 16px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+
+.category {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--brand);
+  font-weight: 700;
+}
+
+.cardTitle {
+  margin: 0;
+  font-size: 15.5px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.3;
+}
+
+.meta {
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.priceRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 4px;
+}
+
+.priceRow strong {
+  font-size: 15px;
+  color: var(--text);
+}
+
+.dateText {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.cardActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+  margin-top: 8px;
+}
+
+/* Buttons */
+.btn {
+  padding: 6px 11px;
+  border-radius: 7px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.btn:hover {
+  background: #fff;
+  border-color: var(--border-strong);
+}
+
+.success { background: var(--success-50); color: var(--success); border-color: rgba(22,163,74,.2); }
+.success:hover { background: #d6f3df; }
+
+.danger { background: var(--danger-50); color: var(--danger); border-color: rgba(220,38,38,.2); }
+.danger:hover { background: #fbd7d7; }
+
+.warn { background: var(--warning-50); color: var(--warning); border-color: rgba(217,119,6,.2); }
+.warn:hover { background: #ffe9c4; }
+
+/* Detail Modal */
+.detail {
+  max-height: 80vh;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+.detailImg {
+  width: 100%;
+  aspect-ratio: 16/9;
+  object-fit: cover;
+  border-radius: 10px;
+  margin-bottom: 16px;
+}
+
+.detailHead {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.detailTitle {
+  margin: 4px 0 0;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.detailPrice {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 12px;
+}
+
+.desc {
+  color: var(--text);
+  line-height: 1.65;
+  margin: 16px 0 8px;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 12px 0 16px;
+}
+
+.tag {
+  background: var(--brand-50);
+  color: var(--brand);
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.reasonBox {
+  background: var(--warning-50);
+  color: var(--warning);
+  padding: 12px 14px;
+  border-radius: 8px;
+  margin: 16px 0;
+  border: 1px solid rgba(217,119,6,.2);
+  font-size: 13px;
+}
+
+.detailActions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+  margin-top: 16px;
+}
+
+.textarea {
+  width: 100%;
+  resize: vertical;
+  padding: 11px 13px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-family: inherit;
+  outline: none;
+  background: var(--surface-2);
+}
+
+.textarea:focus {
+  border-color: var(--brand);
+  background: #fff;
+}
+
+.mediaGallery {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.videoPlaceholder {
+  padding: 20px;
+  background: #000;
+  color: white;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.error {
+  color: var(--danger);
+  padding: 20px;
+  text-align: center;
+}
+
+.variantCard {
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin-bottom: 10px;
+  background: var(--surface-2);
+}
+
+.mediaGallery {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.videoPlaceholder {
+  padding: 30px 20px;
+  background: #1a1a1a;
+  color: white;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.infoSection {
+  margin: 20px 0;
+  padding: 16px;
+  background: var(--surface-2);
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+
+.mediaItem {
+  position: relative;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.coverBadge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: #10b981;
+  color: white;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.policiesList {
+  margin-top: 8px;
+  padding-left: 20px;
+}
+
+.policiesList li {
+  margin-bottom: 6px;
+  line-height: 1.5;
+}
+
+.mediaItem {
+  position: relative;
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+
+.videoEmbed {
+  border-radius: 10px;
+  overflow: hidden;
+  background: #000;
+}
+
+.coverBadge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: #10b981;
+  color: white;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  z-index: 2;
+}

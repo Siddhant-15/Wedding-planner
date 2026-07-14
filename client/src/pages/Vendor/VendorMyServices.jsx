@@ -1,12 +1,12 @@
 import React from 'react'
 import styles from '../../styles/VendorMyServices.module.css'
-import Navbar from '../../components/Navbar'
+// import Navbar from '../../components/Navbar'
 import VendorServices from '../../components/VendorServices'
 
 const VendorMyServices = () => {
     return (
         <div className={styles.container}>
-            <Navbar />
+            {/* <Navbar /> */}
             <div className={styles.pageWrapper}>
                 <div className={styles.hero}>
                     <h1 className={styles.title}>Wedding Catering</h1>
@@ -15,7 +15,7 @@ const VendorMyServices = () => {
                     </p>
                 </div>
             </div>
-            <VendorServices/>
+            <VendorServices />
         </div>
     )
 }

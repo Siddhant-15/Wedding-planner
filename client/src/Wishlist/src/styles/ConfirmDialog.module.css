@@ -1,0 +1,87 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 70;
+  padding: 16px;
+}
+
+.box {
+  background: #fff;
+  border-radius: 14px;
+  padding: 22px;
+  max-width: 380px;
+  width: 100%;
+  box-shadow: 0 30px 60px rgba(15, 23, 42, 0.25);
+  animation: pop 0.18s ease;
+}
+
+@keyframes pop {
+  from {
+    transform: scale(0.96);
+    opacity: 0;
+  }
+
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.title {
+  margin: 0 0 8px;
+  font-size: 17px;
+  color: #0f172a;
+}
+
+.msg {
+  margin: 0 0 18px;
+  color: #475569;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.btnGhost,
+.btnPrimary {
+  padding: 9px 16px;
+  border-radius: 9px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+
+.btnGhost {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+.btnGhost:hover {
+  background: #e2e8f0;
+}
+
+.btnPrimary {
+  background: #e11d48;
+  color: #fff;
+}
+
+.btnPrimary:hover {
+  background: #be123c;
+}
+
+.danger {
+  background: #dc2626;
+}
+
+.danger:hover {
+  background: #b91c1c;
+}

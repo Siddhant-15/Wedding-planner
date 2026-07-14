@@ -1,0 +1,16 @@
+:root {
+  /* Reuse these tokens or map to your own globals */
+  --brand: 340 75% 55%;
+  --brand-dark: 340 75% 45%;
+  --brand-light: 340 75% 96%;
+  --brand-foreground: 0 0% 100%;
+  --gold: 40 90% 55%;
+  --success: 142 70% 40%;
+  --destructive: 0 75% 55%;
+  --foreground: 222 47% 11%;
+  --muted: 210 16% 95%;
+  --muted-foreground: 215 16% 47%;
+  --border: 214 16% 91%;
+  --background: 0 0% 100%;
+  --card: 0 0% 100%;
+}

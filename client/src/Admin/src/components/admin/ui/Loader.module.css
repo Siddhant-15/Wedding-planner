@@ -1,0 +1,10 @@
+.wrap { display: flex; align-items: center; justify-content: center; gap: 12px; padding: 40px; color: var(--text-muted); }
+.spinner {
+  width: 22px; height: 22px;
+  border: 2.5px solid var(--border);
+  border-top-color: var(--brand);
+  border-radius: 50%;
+  animation: spin .8s linear infinite;
+}
+.label { font-size: 13px; }
+@keyframes spin { to { transform: rotate(360deg); } }

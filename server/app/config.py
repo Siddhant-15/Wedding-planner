@@ -57,6 +57,8 @@ class Settings(BaseSettings):
 
     # Optional: post-validation checks
     def model_post_init(self, __context) -> None:
+        print("DATABASE_URL =", self.DATABASE_URL)
+        print("ASYNC_DATABASE_URL =", self.ASYNC_DATABASE_URL)
         if not self.JWT_SECRET_KEY:
             raise ValueError("JWT_SECRET_KEY is required but not set in .env")
         if not self.JWT_REFRESH_SECRET_KEY:
