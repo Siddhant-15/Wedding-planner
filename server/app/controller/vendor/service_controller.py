@@ -126,7 +126,7 @@ async def create_service_controller(
         version = ServiceVersion(
             service_id=db_service.id,
             version_number=1,
-            status="draft",
+            status="under_review",
             service_name=parsed.service_name,
             description=parsed.description,
             add_line1=parsed.add_line1,

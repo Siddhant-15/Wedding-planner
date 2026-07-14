@@ -128,7 +128,6 @@ export default function VendorServices() {
       images: raw.media?.map((m) => m.media_url) || [],
     };
 
-    console.log("EDIT FORM DATA:", formatted); // 🔍 debug
 
     setEditing(formatted);
     setFormOpen(true);

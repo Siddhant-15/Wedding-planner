@@ -52,6 +52,7 @@ class ServiceStatusEnum(str, enum.Enum):
     live         = "live"
     inactive     = "inactive"
     suspended    = "suspended"
+    needs_revision = "needs_revision"
 
 
 class ServiceVersionStatusEnum(str, enum.Enum):
@@ -61,6 +62,7 @@ class ServiceVersionStatusEnum(str, enum.Enum):
     published    = "published"
     rejected     = "rejected"
     archived     = "archived"
+    needs_revision = "needs_revision"
 
 
 class ServiceTypeEnum(str, enum.Enum):
@@ -79,6 +81,8 @@ class LeadStatusEnum(str, enum.Enum):
     unlocked  = "unlocked"
     contacted = "contacted"
     closed    = "closed"
+    quoted = "quoted"
+    cancel = "cancel"
 
 
 class CustomerLeadStatusEnum(str, enum.Enum):
@@ -89,6 +93,9 @@ class CustomerLeadStatusEnum(str, enum.Enum):
     NEGOTIATION       = "NEGOTIATION"
     BOOKED            = "BOOKED"
     CANCELLED         = "CANCELLED"
+    VENDOR_REVIEWING = "VENDOR_REVIEWING"
+    VENDOR_REJECTED = "VENDOR_REJECTED"
+    
 
 
 class NotificationTypeEnum(str, enum.Enum):

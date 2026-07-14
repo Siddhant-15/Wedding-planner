@@ -141,7 +141,7 @@ async def update_lead_status(
 
         lead.phone_unlocked = True
         lead.status = "unlocked"
-        lead.customer_status = "CONTACT_SHARED"
+        lead.customer_status = "CONTACT_UNLOCKED"
 
         if usage:
             usage.used_count += 1
@@ -161,7 +161,8 @@ async def update_lead_status(
 
     # LOST
     elif action == "lost":
-        lead.status = "lost"
+        lead.status = "cancel"
+        lead.customer_status = "VENDOR_REJECTED"
 
     await db.commit()
 

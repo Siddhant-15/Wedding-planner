@@ -16,9 +16,6 @@ export const authService = {
         try {
             const res = await api.post(ENDPOINTS.AUTH.LOGIN, data);
 
-            console.log("LOGIN RESPONSE:", res.data);
-            console.log("LOGIN RESPONSE:", res.data.access_token);
-
             const token = res.data?.access_token;
 
             if (!token) {

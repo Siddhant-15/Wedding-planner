@@ -11,7 +11,6 @@ import { showToast } from "./toast";
  *  - "create": standalone create modal (used from /wishlist page)
  */
 const WishlistModal = ({ mode, service, suggestedName, onClose }) => {
-  console.log("mode", mode);
   const { wishlists, items, createWishlist, addItem } = useWishlist();
   const [name, setName] = useState(suggestedName || "");
   const [description, setDescription] = useState("");
@@ -63,7 +62,6 @@ const WishlistModal = ({ mode, service, suggestedName, onClose }) => {
 
       // 1. Create wishlist
       if (showCreate) {
-        console.log("Show Create is : ", showCreate);
         if (!name.trim()) {
           setSubmitting(false);
           return;

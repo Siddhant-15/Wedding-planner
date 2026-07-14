@@ -7,7 +7,9 @@ export default function AdminLogin() {
   const { login, isAuthed } = useAdminAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const from = location.state?.from?.pathname || "/admin/dashboard";
+
+  const from =
+    location.state?.from?.pathname || "/admin/dashboard";
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -15,7 +17,7 @@ export default function AdminLogin() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // ✅ FIX: useEffect for navigation
+  // Redirect if already authenticated
   useEffect(() => {
     if (isAuthed) {
       navigate(from, { replace: true });
@@ -32,82 +34,107 @@ export default function AdminLogin() {
     }
 
     setLoading(true);
+
     try {
-      await login({ email: email.trim(), password });
-      // navigation handled by useEffect
+      await login({
+        email: email.trim(),
+        password,
+      });
+
+
+      navigate("/admin/dashboard", {
+        replace: true,
+      });
     } catch (err) {
-      setError(err?.message || "Login failed. Please try again.");
+      setError(
+        err?.message || "Login failed. Please try again."
+      );
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className={styles.page}>
-      <div className={styles.card}>
-        <div className={styles.brandRow}>
-          <div className={styles.logo}>A</div>
-          <div className={styles.brandTitle}>Admin Console</div>
-        </div>
+    <div className="admin-root">
+      <div className={styles.page}>
+        <div className={styles.card}>
+          <div className={styles.brandRow}>
+            <div className={styles.logo}>A</div>
+            <div className={styles.brandTitle}>
+              Admin Console
+            </div>
+          </div>
 
-        <h1 className={styles.heading}>Sign in to your account</h1>
-        <p className={styles.sub}>
-          Enter your credentials to access the admin dashboard.
-        </p>
+          <h1 className={styles.heading}>
+            Sign in to your account
+          </h1>
 
-        <form onSubmit={onSubmit} className={styles.form} noValidate>
-          <label className={styles.field}>
-            <span>Email</span>
-            <input
-              type="email"
-              autoComplete="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="admin@platform.com"
-              disabled={loading}
-            />
-          </label>
+          <p className={styles.sub}>
+            Enter your credentials to access the admin dashboard.
+          </p>
 
-          <label className={styles.field}>
-            <span>Password</span>
-            <div className={styles.pwdWrap}>
+          <form
+            onSubmit={onSubmit}
+            className={styles.form}
+            noValidate
+          >
+            <label className={styles.field}>
+              <span>Email</span>
               <input
-                type={showPwd ? "text" : "password"}
-                autoComplete="current-password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
+                type="email"
+                autoComplete="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="admin@example.com"
                 disabled={loading}
               />
-              <button
-                type="button"
-                className={styles.pwdToggle}
-                onClick={() => setShowPwd((v) => !v)}
-                tabIndex={-1}
+            </label>
+
+            <label className={styles.field}>
+              <span>Password</span>
+
+              <div className={styles.pwdWrap}>
+                <input
+                  type={showPwd ? "text" : "password"}
+                  autoComplete="current-password"
+                  value={password}
+                  onChange={(e) =>
+                    setPassword(e.target.value)
+                  }
+                  placeholder="••••••••"
+                  disabled={loading}
+                />
+
+                <button
+                  type="button"
+                  className={styles.pwdToggle}
+                  onClick={() =>
+                    setShowPwd((prev) => !prev)
+                  }
+                >
+                  {showPwd ? "Hide" : "Show"}
+                </button>
+              </div>
+            </label>
+
+            {error && (
+              <div
+                className={styles.error}
+                role="alert"
               >
-                {showPwd ? "Hide" : "Show"}
-              </button>
-            </div>
-          </label>
+                {error}
+              </div>
+            )}
 
-          {error && (
-            <div className={styles.error} role="alert">
-              {error}
-            </div>
-          )}
-
-          <button
-            type="submit"
-            className={styles.submit}
-            disabled={loading}
-          >
-            {loading ? "Signing in…" : "Sign in"}
-          </button>
-
-          <div className={styles.hint}>
-            Demo: <code>admin@platform.com</code> / <code>admin123</code>
-          </div>
-        </form>
+            <button
+              type="submit"
+              className={styles.submit}
+              disabled={loading}
+            >
+              {loading ? "Signing in..." : "Sign in"}
+            </button>
+          </form>
+        </div>
       </div>
     </div>
   );

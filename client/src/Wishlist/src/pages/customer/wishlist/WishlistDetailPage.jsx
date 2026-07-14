@@ -42,7 +42,6 @@ const WishlistDetailPage = () => {
 
     try {
       const data = await wishlistService.getDetail(id);
-      console.log("Wishlist detail:", data);
 
       setWishlist(data);
       setListMeta({

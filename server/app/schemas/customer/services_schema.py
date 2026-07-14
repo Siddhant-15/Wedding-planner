@@ -35,11 +35,11 @@ class VendorCardSchema(BaseModel):
 
 # ==================== VENUE ====================
 class VenueDetailSchema(BaseModel):
-    venue_type: str = None
-    venue_nature: str = None
-    max_capacity: int = None
-    min_capacity: int = None
-    square_feet: float = None
+    venue_type: str
+    venue_nature: str
+    max_capacity: int
+    min_capacity: int
+    square_feet: float
     parking_capacity: Optional[int] = 0
     venue_policies: Optional[Dict[str, Any]] = None
 

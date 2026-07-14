@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { adminApi } from "../../services/adminApi";
+import { adminService } from "../../../../utils/api/services/adminService";
 import Table from "../../components/admin/ui/Table";
 import StatusBadge from "../../components/admin/ui/StatusBadge";
 import Loader from "../../components/admin/ui/Loader";
@@ -20,57 +20,97 @@ export default function Vendors() {
   const [confirm, setConfirm] = useState(null); // {action, vendor}
 
   const load = async () => {
-    setLoading(true); setError("");
-    try { setVendors(await adminApi.getVendors()); }
-    catch (e) { setError(e.message || "Failed to load vendors."); }
-    finally { setLoading(false); }
+    setLoading(true);
+    setError("");
+
+    try {
+      const response = await adminService.getVendors();
+
+      const vendors = (response.items || []).map((vendor) => ({
+        id: vendor.id,
+        name:
+          `${vendor.first_name || ""} ${vendor.last_name || ""}`.trim(),
+        email: vendor.email,
+        phone: vendor.phone,
+        city: vendor.city,
+        state: vendor.state,
+        status: vendor.verification_status,
+        services: vendor.total_services,
+        joinedAt: vendor.created_at,
+        businessName: vendor.business_name,
+      }));
+
+      setVendors(vendors);
+    } catch (e) {
+      setError(e.message || "Failed to load vendors.");
+    } finally {
+      setLoading(false);
+    }
   };
   useEffect(() => { load(); }, []);
 
   const filtered = useMemo(() => {
-    return vendors.filter((v) => {
-      if (statusFilter !== "all" && v.status !== statusFilter) return false;
-      if (q) {
-        const t = q.toLowerCase();
-        return v.name.toLowerCase().includes(t) || v.email.toLowerCase().includes(t) || v.city.toLowerCase().includes(t);
-      }
-      return true;
-    });
-  }, [vendors, q, statusFilter]);
+  if (!Array.isArray(vendors)) return [];
+
+  return vendors.filter((v) => {
+    if (
+      statusFilter !== "all" &&
+      v.status !== statusFilter
+    ) {
+      return false;
+    }
+
+    if (q) {
+      const t = q.toLowerCase();
+
+      return (
+        v.name?.toLowerCase().includes(t) ||
+        v.email?.toLowerCase().includes(t) ||
+        v.city?.toLowerCase().includes(t)
+      );
+    }
+
+    return true;
+  });
+}, [vendors, q, statusFilter]);
 
   const performAction = async () => {
     if (!confirm) return;
     const { action, vendor } = confirm;
     const map = { verify: "verified", suspend: "suspended", reactivate: "verified" };
     try {
-      await adminApi.updateVendor(vendor.id, { status: map[action] });
+      await adminService.updateVendor(vendor.id, { status: map[action] });
       setVendors((arr) => arr.map((x) => x.id === vendor.id ? { ...x, status: map[action] } : x));
     } catch (e) { alert(e.message); }
     finally { setConfirm(null); }
   };
 
   const columns = [
-    { key: "name", label: "Vendor", render: (r) => (
-      <div className={styles.vendorCell}>
-        <div className={styles.avatar}>{r.name[0]}</div>
-        <div>
-          <div className={styles.name}>{r.name}</div>
-          <div className={styles.sub}>{r.email}</div>
+    {
+      key: "name", label: "Vendor", render: (r) => (
+        <div className={styles.vendorCell}>
+          <div className={styles.avatar}>{r.name[0]}</div>
+          <div>
+            <div className={styles.name}>{r.name}</div>
+            <div className={styles.sub}>{r.email}</div>
+          </div>
         </div>
-      </div>
-    )},
+      )
+    },
     { key: "city", label: "City" },
     { key: "services", label: "Services", render: (r) => <strong>{r.services}</strong> },
     { key: "joinedAt", label: "Joined", render: (r) => formatDate(r.joinedAt) },
     { key: "status", label: "Status", render: (r) => <StatusBadge status={r.status} /> },
-    { key: "actions", label: "Actions", render: (r) => (
-      <div className={styles.actions}>
-        <button className={styles.btn} onClick={() => setView(r)}>View</button>
-        {r.status === "pending" && <button className={`${styles.btn} ${styles.success}`} onClick={() => setConfirm({ action: "verify", vendor: r })}>Verify</button>}
-        {r.status === "verified" && <button className={`${styles.btn} ${styles.danger}`} onClick={() => setConfirm({ action: "suspend", vendor: r })}>Suspend</button>}
-        {r.status === "suspended" && <button className={`${styles.btn} ${styles.success}`} onClick={() => setConfirm({ action: "reactivate", vendor: r })}>Reactivate</button>}
-      </div>
-    )},
+    {
+      key: "actions", label: "Actions", render: (r) => (
+        <div className={styles.actions}>
+          <button className={styles.btn} onClick={() => setView(r)}>View</button>
+          {r.status === "pending" && <button className={`${styles.btn} ${styles.success}`} onClick={() => setConfirm({ action: "verify", vendor: r })}>Verify</button>}
+          {r.status === "verified" && <button className={`${styles.btn} ${styles.danger}`} onClick={() => setConfirm({ action: "suspend", vendor: r })}>Suspend</button>}
+          {r.status === "suspended" && <button className={`${styles.btn} ${styles.success}`} onClick={() => setConfirm({ action: "reactivate", vendor: r })}>Reactivate</button>}
+        </div>
+      )
+    },
   ];
 
   if (loading) return <Loader />;

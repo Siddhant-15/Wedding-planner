@@ -25,7 +25,6 @@ export const WishlistProvider = ({ children }) => {
 
     try {
       const lists = await wishlistApi.getAll();
-      console.log("All lists", lists);
 
       // flatten items from all wishlists
       const allItems = lists.flatMap((w) =>
@@ -157,7 +156,6 @@ export const WishlistProvider = ({ children }) => {
   );
 
   const removeItem = useCallback(async (itemId) => {
-    console.log("Item id", itemId);
     let removedItem = null;
     let wishlistId = null;
 

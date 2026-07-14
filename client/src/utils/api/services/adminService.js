@@ -6,30 +6,26 @@ export const adminService = {
   // =========================
   // AUTH
   // =========================
-  login: async (data) => {
-    try {
-      const res = await api.post(
-        ENDPOINTS.ADMIN.AUTH.LOGIN,
-        data
-      );
+login: async (data) => {
+  try {
+    const res = await api.post(
+      ENDPOINTS.ADMIN.AUTH.LOGIN,
+      data
+    );
 
-      const token = res.data?.access_token;
+    const token = res.data?.access_token;
 
-      if (!token) {
-        throw new Error("Access token not found");
-      }
-
-      localStorage.setItem("admin_token", token);
-
-      return {
-        token,
-        user: res.data.user,
-        raw: res.data,
-      };
-    } catch (error) {
-      throw await handleApiError(error);
+    if (!token) {
+      throw new Error("Access token not found");
     }
-  },
+
+    localStorage.setItem("admin_token", token);
+
+    return res.data;
+  } catch (error) {
+    throw await handleApiError(error);
+  }
+},
 
   logout: () => {
     localStorage.removeItem("admin_token");
@@ -121,6 +117,17 @@ export const adminService = {
     }
   },
 
+  reviewService: async (serviceId, data) => {
+    try {
+      const res = await api.post(
+        `/admin/services/${serviceId}/review`,
+        data
+      );
+      return res.data;
+    } catch (error) {
+      throw await handleApiError(error);
+    }
+  },
   updateService: async (id, payload) => {
     try {
       const res = await api.patch(

@@ -39,7 +39,6 @@ const WishlistButton = ({ service, size = "md", variant = "floating" }) => {
 
     if (saved) {
       const item = getItemForService(service.id);
-      console.log("item", item);
       try {
         const removed = await removeItem(item.id);
         showToast({
@@ -55,12 +54,10 @@ const WishlistButton = ({ service, size = "md", variant = "floating" }) => {
 
     // Not saved yet — branch on wishlist count
     if (wishlists.length === 0) {
-      console.log("wishlists", wishlists);
       setOpen("create-first");
       return;
     }
     if (wishlists.length === 1) {
-      console.log("wishlists", wishlists);
       try {
         if (alreadyExists(service.id, wishlists[0].id)) {
           showToast({ message: "Already in this wishlist" });

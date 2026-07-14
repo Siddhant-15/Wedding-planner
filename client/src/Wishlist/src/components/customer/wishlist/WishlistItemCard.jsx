@@ -25,7 +25,6 @@ const WishlistItemCard = ({
   onUpdateNote,
   onUpdatePriority,
 }) => {
-  console.log(item);
 
   const { service } = item;
   const [menuOpen, setMenuOpen] = useState(false);

@@ -14,7 +14,7 @@ from app.config import settings
 from app.Db.db import startup_db, shutdown_db
 from app.routers.Auth.auth import AuthRouter
 # from app.routers.service import servicerouter
-from app.routers.customer_services import customerservicerouter
+from app.routers.Customer.service_routes import customerservicerouter
 from app.routers.vendors import vendorrouter
 from app.routers.reviews import Reviewrouter
 from app.routers.wishlist_routes import wishlistrouter
@@ -25,6 +25,7 @@ from app.routers.Customer.lead_routes import router as LeadRouter
 from app.routers.Vendor.vendor_leads_routes import router as vendor_leads_router
 from app.routers.review.review_routes import router as ReviewRouter
 from app.routers.Vendor.service_routes import router as ServiceRouter
+from app.routers.Admin.admin import admin_router
 
 
 
@@ -100,6 +101,7 @@ app.include_router(vendor_leads_router, prefix=settings.API_V1_STR)
 app.include_router(notification_ws_router, prefix=settings.API_V1_STR)
 app.include_router(NotificationRouter, prefix=settings.API_V1_STR)
 app.include_router(ServiceRouter, prefix=settings.API_V1_STR)
+app.include_router(admin_router, prefix=settings.API_V1_STR)
 
 # ─── Exception Handlers ─────────────────────────────────────────────────────
 @app.exception_handler(RequestValidationError)

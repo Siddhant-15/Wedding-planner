@@ -43,7 +43,6 @@ export default function Login() {
       if (userType === "vendor") {
         // check onboarding status
         const res = await vendorService.getStatus();
-        console.log("Welcome Vendor", res)
         if (res) {
           navigate("/vendor/dashboard");
         } else {

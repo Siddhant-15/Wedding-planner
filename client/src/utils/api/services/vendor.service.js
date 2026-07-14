@@ -69,7 +69,6 @@ export const vendorService = {
     getStatus: async () => {
         try {
             const response = await api.get(ENDPOINTS.VENDOR.STATUS);
-            console.log("Vendor Status", response.data);
             return response?.data?.onboarding_completed;
         } catch (error) {
             throw await handleApiError(error);

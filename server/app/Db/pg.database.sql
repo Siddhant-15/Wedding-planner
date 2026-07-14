@@ -13,7 +13,8 @@ CREATE TYPE service_status AS ENUM (
     'under_review',
     'live',
     'inactive',
-    'suspended'
+    'suspended',
+    'needs_revision'
 );
 
 CREATE TYPE service_version_status AS ENUM (
@@ -22,7 +23,8 @@ CREATE TYPE service_version_status AS ENUM (
     'approved',
     'published',
     'rejected',
-    'archived'
+    'archived',
+    'needs_revision'
 );
 
 -- Fix #5: service_type as enum (was VARCHAR(50))
@@ -496,6 +498,8 @@ CREATE TABLE venues (
     venue_nature        VARCHAR(20) NOT NULL,
 
     max_capacity        INTEGER NOT NULL,
+    min_capacity        INTEGER NOT NULL,
+    square_feet         NUMERIC(10,2),
     parking_capacity    INTEGER DEFAULT 0,
 
     venue_policies      JSONB NOT NULL DEFAULT '{}'::jsonb,
