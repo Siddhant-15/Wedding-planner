@@ -11,15 +11,19 @@ RUN apt-get update && apt-get install -y \
     libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements from the server directory
 COPY server/requirements.txt .
-
 RUN pip install --upgrade pip
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the entire server directory into the container
 COPY server/ .
+
+# DEBUG
+RUN pwd
+RUN ls -la
+RUN ls -la app
+RUN find app -maxdepth 2 -type d
+RUN find app -maxdepth 2 -type f
 
 EXPOSE 8080
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8080"]
+CMD ["uvicorn","app.main:app","--host","0.0.0.0","--port","8080"]
