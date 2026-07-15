@@ -13,17 +13,17 @@ RUN apt-get update && apt-get install -y \
     libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Python dependencies
+# Install dependencies
 COPY server/requirements.txt .
 RUN pip install --upgrade pip
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy backend source
+# Copy backend
 COPY server/ .
 
-# ==========================
-# DEBUG INFORMATION
-# ==========================
+# ----------------------------
+# DEBUG
+# ----------------------------
 
 RUN echo "===== Current Directory =====" && pwd
 
@@ -31,14 +31,14 @@ RUN echo "===== /app =====" && ls -la /app
 
 RUN echo "===== /app/app =====" && ls -la /app/app
 
-RUN echo "===== Directory Tree =====" && \
-    find /app/app -maxdepth 2 -type d
+RUN echo "===== Directories =====" && \
+    find /app/app -maxdepth 2 -type d | sort
 
 RUN echo "===== Files =====" && \
-    find /app/app -maxdepth 2 -type f
+    find /app/app -maxdepth 2 -type f | sort
 
 RUN echo "===== Python Path =====" && \
-    python -c "import sys; print(sys.path)"
+    python -c "import sys; print('\n'.join(sys.path))"
 
 RUN echo "===== Import app =====" && \
     python -c "import app; print(app.__file__)"
@@ -46,10 +46,7 @@ RUN echo "===== Import app =====" && \
 RUN echo "===== Import app.db =====" && \
     python -c "import app.db; print(app.db.__file__)"
 
-RUN echo "===== Import app.db.db =====" && \
-    python -c "from app.db.db import startup_db; print('SUCCESS')"
-
-# ==========================
+# ----------------------------
 
 EXPOSE 8080
 
