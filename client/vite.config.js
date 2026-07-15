@@ -20,7 +20,8 @@ export default defineConfig({
     strictPort: true,  // Fail if port is occupied
     proxy: {
       '/api': {
-        target: 'http://127.0.0.1:8000',
+        // target: 'http://127.0.0.1:8000',
+        target: 'https://wedding-planner-production-50de.up.railway.app',
         changeOrigin: true,
         secure: false,
       }
