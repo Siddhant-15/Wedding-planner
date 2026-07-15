@@ -29,7 +29,7 @@ from fastapi import APIRouter, Depends, Request, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.db import get_db
-from app.dependencies.adminauth import (
+from app.dependencies.admin_auth import (
     get_current_admin,
     require_reviewer_or_above,
     require_super_admin,
