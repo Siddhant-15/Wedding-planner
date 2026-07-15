@@ -115,7 +115,11 @@ async def get_customer_leads(
     {
         "id": lead.id,
         "service_id": lead.service_id,
-        "service_name": lead.service.service_name,
+        "service_name": (
+            lead.service.current_live_version.service_name
+            if lead.service.current_live_version
+            else None
+        ),
         "vendor_id": lead.vendor_id,
         "vendor_name": lead.vendor.first_name,
         "service_type": lead.service_type,

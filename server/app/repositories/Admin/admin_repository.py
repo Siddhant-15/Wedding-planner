@@ -26,7 +26,7 @@ from app.models.models import (
     VendorKYC,
     VendorSubscription,
 )
-from app.schemas.Admin.service_review import ServiceStatus
+from app.schemas.admin.service_review import ServiceStatus
 
 logger = logging.getLogger(__name__)
 

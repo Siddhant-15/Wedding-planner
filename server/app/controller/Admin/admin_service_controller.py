@@ -33,7 +33,7 @@ from datetime import datetime, timezone
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException
 
-from app.repositories.Admin.admin_repository import (
+from app.repositories.admin.admin_repository import (
     get_all_services_paginated,
     get_dashboard_stats,
     get_service_for_review,
@@ -43,8 +43,8 @@ from app.repositories.Admin.admin_repository import (
     update_service_status
 )
 
-from app.schemas.Admin.service_review import ServiceStatus
-from app.schemas.Admin.service_review import (
+from app.schemas.admin.service_review import ServiceStatus
+from app.schemas.admin.service_review import (
     AdminDashboardStats,
     PaginatedServiceReviews,
     ReviewAction,
@@ -53,7 +53,7 @@ from app.schemas.Admin.service_review import (
     ServiceReviewDetailResponse,
     AdminServiceCard,
 )
-from app.utils.Admin.service_review_helpers import (
+from app.utils.admin.service_review_helpers import (
     build_review_detail,
     build_service_card
 )

@@ -2,8 +2,8 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, update
 from app.models.models import Notification
-from app.Dependencies.Auth import get_current_user
-from app.Db.db import get_db
+from app.dependencies.auth import get_current_user
+from app.db.db import get_db
 
 NotificationRouter = APIRouter(prefix="/notification", tags=["Notifications"])
 

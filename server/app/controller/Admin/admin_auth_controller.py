@@ -18,8 +18,8 @@ from app.core.security import (
     verify_password,
 )
 from app.config import settings
-from app.repositories.Admin.admin_repository import get_admin_by_email, get_admin_by_id, create_admin
-from app.schemas.Admin.auth import AdminLogin, AdminPasswordChange, AdminToken, AdminSignup
+from app.repositories.admin.admin_repository import get_admin_by_email, get_admin_by_id, create_admin
+from app.schemas.admin.auth import AdminLogin, AdminPasswordChange, AdminToken, AdminSignup
 
 logger = logging.getLogger(__name__)
 

@@ -11,21 +11,21 @@ from fastapi.exceptions import RequestValidationError
 from sqlalchemy.exc import SQLAlchemyError
 
 from app.config import settings
-from app.Db.db import startup_db, shutdown_db
-from app.routers.Auth.auth import AuthRouter
+from app.db.db import startup_db, shutdown_db
+from app.routers.auth.auth import AuthRouter
 # from app.routers.service import servicerouter
-from app.routers.Customer.service_routes import customerservicerouter
+from app.routers.customer.service_routes import customerservicerouter
 from app.routers.vendors import vendorrouter
 from app.routers.reviews import Reviewrouter
 from app.routers.wishlist_routes import wishlistrouter
 from app.routers.notification.notification import NotificationRouter
 from app.routers.notification.websocket import router as notification_ws_router
-from app.routers.Vendor.availability_routes import router as availability_router
-from app.routers.Customer.lead_routes import router as LeadRouter
-from app.routers.Vendor.vendor_leads_routes import router as vendor_leads_router
+from app.routers.vendor.availability_routes import router as availability_router
+from app.routers.customer.lead_routes import router as LeadRouter
+from app.routers.vendor.vendor_leads_routes import router as vendor_leads_router
 from app.routers.review.review_routes import router as ReviewRouter
-from app.routers.Vendor.service_routes import router as ServiceRouter
-from app.routers.Admin.admin import admin_router
+from app.routers.vendor.service_routes import router as ServiceRouter
+from app.routers.admin.admin import admin_router
 
 
 

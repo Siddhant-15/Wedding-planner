@@ -19,9 +19,9 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, File, Form, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.Db.db import get_db
-from app.Dependencies.Auth import get_current_user
-from app.controller.Vendor.service_controller import (
+from app.db.db import get_db
+from app.dependencies.auth import get_current_user
+from app.controller.vendor.service_controller import (
     create_service_controller,
     delete_service_controller,
     get_all_services_controller,

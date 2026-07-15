@@ -7,7 +7,7 @@ from sqlalchemy import select
 from fastapi import WebSocket, Query
 
 from app.config import settings
-from app.Db.db import get_db
+from app.db.db import get_db
 from app.models.models import Customer, Vendor
 
 security = HTTPBearer(
