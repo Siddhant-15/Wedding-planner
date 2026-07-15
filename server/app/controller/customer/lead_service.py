@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 
 from app.models.models import (
     Lead,
+    Service,
     VendorUnavailableDate
 )
 
@@ -93,6 +94,7 @@ async def create_lead(
     return lead
 
 
+
 async def get_customer_leads(
     db: AsyncSession,
     user_id: int
@@ -100,48 +102,47 @@ async def get_customer_leads(
     stmt = (
         select(Lead)
         .options(
-            selectinload(Lead.vendor), 
-            selectinload(Lead.service) 
+            selectinload(Lead.vendor),
+            selectinload(Lead.service).selectinload(Service.current_live_version)
         )
         .where(Lead.user_id == user_id)
         .order_by(desc(Lead.created_at))
     )
 
     result = await db.execute(stmt)
-
     leads = result.scalars().all()
 
     return [
-    {
-        "id": lead.id,
-        "service_id": lead.service_id,
-        "service_name": (
-            lead.service.current_live_version.service_name
-            if lead.service.current_live_version
-            else None
-        ),
-        "vendor_id": lead.vendor_id,
-        "vendor_name": lead.vendor.first_name,
-        "service_type": lead.service_type,
-        "name": lead.name,
-        "phone": lead.phone,
-        "email": lead.email,
-        "event_type": lead.event_type,
-        "event_date": lead.event_date,
-        "event_time": lead.event_time,
-        "location": lead.location,
-        "budget_range": lead.budget_range,
-        "guests": lead.guests,
-        "description": lead.description,
-        "status": lead.status,
-        "customer_status": lead.customer_status,
-        "phone_unlocked": lead.phone_unlocked,
-        "created_at": lead.created_at,
-        "updated_at": lead.updated_at,
-    }
-    for lead in leads
-]
-
+        {
+            "id": lead.id,
+            "service_id": lead.service_id,
+            "service_name": (
+                lead.service.current_live_version.service_name
+                if lead.service
+                and lead.service.current_live_version
+                else None
+            ),
+            "vendor_id": lead.vendor_id,
+            "vendor_name": lead.vendor.first_name if lead.vendor else None,
+            "service_type": lead.service_type,
+            "name": lead.name,
+            "phone": lead.phone,
+            "email": lead.email,
+            "event_type": lead.event_type,
+            "event_date": lead.event_date,
+            "event_time": lead.event_time,
+            "location": lead.location,
+            "budget_range": lead.budget_range,
+            "guests": lead.guests,
+            "description": lead.description,
+            "status": lead.status,
+            "customer_status": lead.customer_status,
+            "phone_unlocked": lead.phone_unlocked,
+            "created_at": lead.created_at,
+            "updated_at": lead.updated_at,
+        }
+        for lead in leads
+    ]
 
 async def update_customer_lead(
     db: AsyncSession,
