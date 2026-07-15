@@ -7,9 +7,9 @@ from datetime import datetime
 import logging
 from typing import Optional
 
-from app.Db.db import get_db
+from app.db.db import get_db
 from app.models.models import Customer, Vendor
-from app.Dependencies.Auth import get_current_user
+from app.dependencies.auth import get_current_user
 from app.schemas.profile_settings import UserResponse
 from app.utils.supabase_client import supabase
 

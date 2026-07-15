@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.Db.db import get_db
-from app.Dependencies.Auth import get_current_user
+from app.db.db import get_db
+from app.dependencies.auth import get_current_user
 
-from app.controller.Vendor.vendor_lead_service import (
+from app.controller.vendor.vendor_lead_service import (
     get_vendor_leads,
     update_lead_status
 )

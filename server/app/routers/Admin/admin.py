@@ -28,20 +28,20 @@ from typing import Optional
 from fastapi import APIRouter, Depends, Request, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.Db.db import get_db
-from app.Dependencies.AdminAuth import (
+from app.db.db import get_db
+from app.dependencies.adminauth import (
     get_current_admin,
     require_reviewer_or_above,
     require_super_admin,
 )
 from app.models.models import ServiceVersionStatusEnum
-from app.controller.Admin.admin_auth_controller import (
+from app.controller.admin.admin_auth_controller import (
     admin_change_password_controller,
     admin_login_controller,
     admin_refresh_controller,
     admin_signup_controller
 )
-from app.controller.Admin.admin_service_controller import (
+from app.controller.admin.admin_service_controller import (
     force_submit_for_review_controller,
     get_dashboard_controller,
     get_service_review_detail_controller,
@@ -50,13 +50,13 @@ from app.controller.Admin.admin_service_controller import (
     review_service_controller,
     update_service_status_controller
 )
-from app.controller.Admin.admin_vendor_controller import (
+from app.controller.admin.admin_vendor_controller import (
     get_vendor_detail_controller,
     list_vendors_controller,
     verify_vendor_controller,
 )
-from app.schemas.Admin.auth import AdminLogin, AdminPasswordChange, AdminToken, AdminSignup
-from app.schemas.Admin.service_review import (
+from app.schemas.admin.auth import AdminLogin, AdminPasswordChange, AdminToken, AdminSignup
+from app.schemas.admin.service_review import (
     AdminDashboardStats,
     PaginatedServiceReviews,
     ServiceReviewActionRequest,
@@ -64,7 +64,7 @@ from app.schemas.Admin.service_review import (
     ServiceReviewDetailResponse,
     UpdateServiceStatusRequest
 )
-from app.schemas.Admin.vendor import (
+from app.schemas.admin.vendor import (
     PaginatedVendors,
     VendorDetailResponse,
     VendorVerifyRequest,

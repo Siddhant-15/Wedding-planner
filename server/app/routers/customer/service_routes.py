@@ -4,9 +4,9 @@ from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.Db.db import get_db
-from app.Dependencies.Auth import get_current_user
-from app.controller.Customer.service_controller import ServiceController
+from app.db.db import get_db
+from app.dependencies.auth import get_current_user
+from app.controller.customer.service_controller import ServiceController
 
 customerservicerouter = APIRouter()
 logger = logging.getLogger(__name__)

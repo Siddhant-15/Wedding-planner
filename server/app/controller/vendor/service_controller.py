@@ -44,7 +44,7 @@ from app.models.models import (
     ServiceVersion,
     Vendor,
 )
-from app.repositories.Vendor.service_repository import (
+from app.repositories.vendor.service_repository import (
     get_all_vendor_services,
     get_service_with_relations,
 )
@@ -53,8 +53,8 @@ from app.schemas.services import (
     ServiceCreateResponse,
     ServiceStatusEnum,
 )
-from app.utils.Vendor.media_utils import _upload_media
-from app.utils.Vendor.service_helpers import (
+from app.utils.vendor.media_utils import _upload_media
+from app.utils.vendor.service_helpers import (
     _active_version,
     _add_type_specific,
     _build_service_response,

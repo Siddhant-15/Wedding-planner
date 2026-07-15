@@ -2,7 +2,7 @@
 from typing import List, Dict, Any
 from fastapi import HTTPException, status
 from app.models.models import Service
-from app.repositories.Customer.service_repository import ServiceRepository
+from app.repositories.customer.service_repository import ServiceRepository
 from app.schemas.customer_services import (
     ServiceCardSchema, ServiceDetailResponse, VenueDetailSchema,
     ServiceVariantDetailSchema, VendorCardSchema, UnavailableDateSchema,

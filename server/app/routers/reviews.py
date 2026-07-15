@@ -2,7 +2,7 @@ from sqlalchemy.orm import Session, joinedload
 from sqlalchemy.exc import SQLAlchemyError
 import logging
 
-from app.Db.db import get_db
+from app.db.db import get_db
 from app.models.models import Review, Customer
 from app.schemas.review import ReviewCreate, ReviewResponse, ReviewOut
 

@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, WebSocket, WebSocketDisconnect
-from app.ConnectionManager.manager import ConnectionManager
-from app.Dependencies.Auth import get_current_user_ws
+from app.connectionmanager.manager import ConnectionManager
+from app.dependencies.auth import get_current_user_ws
 
 router = APIRouter(prefix="/notification", tags=["Notifications"])
 manager = ConnectionManager()

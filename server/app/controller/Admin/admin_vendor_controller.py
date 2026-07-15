@@ -11,13 +11,13 @@ import math
 
 from fastapi import HTTPException
 
-from app.repositories.Admin.admin_repository import (
+from app.repositories.admin.admin_repository import (
     count_vendor_services,
     get_vendor_detail,
     get_vendors_paginated,
     set_vendor_verification_status,
 )
-from app.schemas.Admin.vendor import (
+from app.schemas.admin.vendor import (
     PaginatedVendors,
     VendorDetailResponse,
     VendorListItem,

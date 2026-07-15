@@ -10,12 +10,12 @@ import mimetypes
 import json
 import logging
 
-from app.Db.db import get_db
+from app.db.db import get_db
 from app.models.models import (
     Vendor, Service, Venue, Catering, Dj, Photography,
     EventManagement, MakeupArtist, ServiceVariant, ServiceMedia
 )
-from app.Dependencies.Auth import get_current_user
+from app.dependencies.auth import get_current_user
 from app.utils.supabase_client import supabase
 from app.schemas.services import (
     ServiceCreate, ServiceResponse, ServiceCreateResponse, ServiceVariantCreate

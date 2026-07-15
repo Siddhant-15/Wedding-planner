@@ -5,7 +5,7 @@ from sqlalchemy import select
 import logging
 from datetime import datetime, timedelta
 
-from app.Db.db import get_db             # ← changed: use get_db, not get_db_session
+from app.db.db import get_db             # ← changed: use get_db, not get_db_session
 from app.models.models import Customer, Vendor, VendorSubscription
 from app.schemas.auth import (
     CustomerSignup, VendorSignup, UserLogin, Token, ResetPasswordIn
