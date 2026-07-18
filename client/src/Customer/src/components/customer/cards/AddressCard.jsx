@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { MapPin, Copy, Check, ExternalLink } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button } from "../../../../../components/ui/Button.jsx";
 import styles from "../styles/AddressCard.module.css";
 
 export default function AddressCard({
