@@ -71,7 +71,7 @@ app = FastAPI(
 allowed_origins = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
-    # "https://your-production-frontend.com",
+    "https://wedding-planner-beige-sigma.vercel.app",
 ]
 
 if settings.ENVIRONMENT == "development":
