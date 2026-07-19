@@ -1,16 +1,29 @@
-import React from "react";
 import { Link } from "react-router-dom";
 import logo from "@/assets/logo.png";
+
 import styles from "../styles/Brand.module.css";
 
-function Brand({ tagline = "Weddings & Celebrations" }) {
+function Brand() {
   return (
-    <Link to="/" className={styles.brand} aria-label="Mangalam home">
-      <img src={logo} alt="Mangalam" className={styles.logo} />
-      <span className={styles.brandTextWrap}>
-        <span className={styles.brandText}>Mangalam</span>
-        <span className={styles.brandTagline}>{tagline}</span>
-      </span>
+    <Link
+      to="/"
+      className={styles.brand}
+      aria-label="Celebration Basket Home"
+    >
+      <img
+        src={logo}
+        alt="Celebration Basket Logo"
+        className={styles.logo}
+      />
+
+      <span className={styles.divider} />
+
+      <div className={styles.textWrapper}>
+        <span className={styles.title}>Celebration Basket</span>
+        <span className={styles.tagline}>
+          Weddings • Events • Celebrations
+        </span>
+      </div>
     </Link>
   );
 }
