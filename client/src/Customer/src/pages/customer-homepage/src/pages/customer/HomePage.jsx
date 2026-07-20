@@ -4,6 +4,7 @@ import HeroSection from "../../components/customer/home/HeroSection";
 import CategorySection from "../../components/customer/home/CategorySection";
 import ServiceSection from "../../components/customer/home/ServiceSection";
 import CTASection from "../../components/customer/home/CTASection";
+import SiteFooter from "../../components/customer/home/SiteFooter";
 import {
   fetchFeaturedServices,
   fetchPopularServices,
@@ -43,6 +44,7 @@ export default function HomePage({ user }) {
       />
 
       <CTASection />
+      <SiteFooter />
     </div>
   );
 }

@@ -430,7 +430,6 @@ class ServiceMedia(Base):
         # Unique cover per version handled in DB via partial unique index:
         # CREATE UNIQUE INDEX idx_media_unique_cover ON service_media(service_version_id) WHERE is_cover = TRUE
     )
-print(ServiceMedia.__table__.columns.keys())
 
 # =============================================================
 # SECTION 5: SERVICE VARIANTS

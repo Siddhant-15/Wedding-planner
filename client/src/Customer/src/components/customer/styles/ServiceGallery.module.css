@@ -1,0 +1,17 @@
+.serviceGallery {
+  display: grid;
+  grid-template-columns: 70% 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+@media (max-width: 1024px) {
+  .serviceGallery {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+}
+
+.mainGallery, .sideGallery {
+  width: 100%;
+}

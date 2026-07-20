@@ -1,4 +1,4 @@
-import styles from "../styles/SiteFooter.module.css"
+import styles from "./SiteFooter.module.css"
 import { Facebook, Instagram, Twitter, Youtube } from "lucide-react";
 
 export default function SiteFooter() {
@@ -7,7 +7,7 @@ export default function SiteFooter() {
       <div className={styles.container}>
         <div className={styles.topRow}>
           <div>
-            <h2 id="footer-heading" className={styles.brand}>Mangalam</h2>
+            <h2 id="footer-heading" className={styles.brand}>Celebration Basket</h2>
             <p className={styles.tagline}>Elegant weddings & memorable events.</p>
           </div>
           <nav aria-label="Footer" className={styles.links}>
@@ -25,7 +25,7 @@ export default function SiteFooter() {
           </div>
         </div>
         <div className={styles.bottomRow}>
-          <p>© Mangalam 2025</p>
+          <p>© Celebration Basket 2026</p>
         </div>
       </div>
     </footer>

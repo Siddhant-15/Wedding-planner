@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import desc, func, select
 from sqlalchemy.orm import selectinload, joinedload
 from sqlalchemy.dialects import postgresql
+from sqlalchemy.orm import with_loader_criteria
 
 from app.models.models import (
     Service, ServiceVersion, Vendor, ServiceMedia,
@@ -56,6 +57,12 @@ class ServiceRepository:
 
                 joinedload(Service.current_live_version)
                 .joinedload(ServiceVersion.venue_detail),
+
+                with_loader_criteria(
+                    ServiceMedia,
+                    ServiceMedia.is_cover == True,
+                    include_aliases=True,
+                ),
             )
             .where(
                 Service.service_type == service_type,
@@ -138,29 +145,13 @@ class ServiceRepository:
             )
         )
 
-        print("\n================ SQL ================\n")
-        print(
-            query.compile(
-                dialect=postgresql.dialect(),
-                compile_kwargs={"literal_binds": True},
-            )
-        )
-        print("\n=====================================\n")
-
         result = await db.execute(query)
 
         rows = result.unique().scalars().all()
 
-        print("Number of services found:", len(rows))
 
         if rows:
             service = rows[0]
-            print("Service ID:", service.id)
-            print("Current Live Version:", service.current_live_version_id)
-            print("Vendor:", service.vendor_id)
-            print("Media Count:", len(service.current_live_version.media or []))
-            print("Variant Count:", len(service.current_live_version.variants or []))
             return service
 
-        print("No service found.")
         return None

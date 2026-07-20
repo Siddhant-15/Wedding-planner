@@ -60,7 +60,6 @@ class ServiceController:
             db, service_type, skip, limit, city
         )
 
-        print("Service Controller:", services, total)
 
         results = [ServiceController._build_service_card(s) for s in services]
 
@@ -74,7 +73,6 @@ class ServiceController:
         db, service_id: int, current_user: dict
     ) -> ServiceDetailResponse:
         service = await ServiceRepository.get_service_detail(db, service_id)
-        print("this is my service",service)
         
         if not service or not service.current_live_version:
             raise HTTPException(
@@ -85,8 +83,14 @@ class ServiceController:
         version = service.current_live_version
 
         # Images
+
         images = [
-            m.media_url for m in sorted(
+            {
+                'url': m.media_url,
+                'type': m.media_type,
+                'is_cover': bool(m.is_cover),
+            }
+            for m in sorted(
                 version.media or [],
                 key=lambda x: (not x.is_cover, x.display_order or 0)
             )
@@ -127,7 +131,7 @@ class ServiceController:
             venue=venue_data,
             variants=variants_data,
             pincode=version.pincode,
-            metadata=version.metadata_,          # fixed: was metadata_
+            metadata=version.metadata_,   
             featured=False,
             created_at=service.created_at,
             updated_at=service.updated_at,

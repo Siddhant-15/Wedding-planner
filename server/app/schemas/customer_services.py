@@ -159,6 +159,12 @@ class ServiceCardSchema(BaseModel):
         from_attributes = True
 
 
+class ServiceImageSchema(BaseModel):
+    url: str
+    type: str
+    is_cover: bool
+
+
 # ==================== SERVICE DETAIL (Full View) ====================
 class ServiceDetailResponse(ServiceCardSchema):
     long_description: Optional[str] = None
@@ -167,7 +173,7 @@ class ServiceDetailResponse(ServiceCardSchema):
     featured: bool = False
     created_at: datetime
     updated_at: datetime
-
+    images: List[ServiceImageSchema]
     # Vendor full info
     vendor: VendorCardSchema
 

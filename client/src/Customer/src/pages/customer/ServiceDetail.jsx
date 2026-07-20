@@ -2,7 +2,8 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { ArrowLeft, AlertTriangle, Loader2, Tag, Music, Sparkles, ClipboardList, PenSquare, CalendarRange } from "lucide-react";
 
-import ImageGallery from "../../components/customer/gallery/ImageGallery";
+// import ImageGallery from "../../components/customer/gallery/ImageGallery";
+import ServiceGallery from "../../components/customer/gallery/ServiceGallery";
 import VendorCard from "../../components/customer/cards/VendorCard";
 import VariantsCard from "../../components/customer/cards/VariantsCard";
 import AddressCard from "../../components/customer/cards/AddressCard";
@@ -285,7 +286,8 @@ export default function ServiceDetail() {
           </div>
         </header>
 
-        <ImageGallery images={service.images} serviceName={service.name} />
+        {/* <ImageGallery images={service.images} serviceName={service.name} /> */}
+        <ServiceGallery media={service.images} serviceName={service.name} />
 
         <div className={styles.layout}>
           <div className={styles.main}>
