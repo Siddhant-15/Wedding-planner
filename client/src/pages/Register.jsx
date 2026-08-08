@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Eye, EyeOff, Mail, Lock, User, Phone } from 'lucide-react';
-import { useAuth } from "../context/AuthContext"
+import { useAuth } from "../context/AuthContext";
 import { showSuccess, showError } from '../utils/toast';
 import styles from "../styles/pages/Register.module.css";
 import weddingImage from "../assets/slide-1.jpg";
@@ -9,7 +9,7 @@ import weddingImage from "../assets/slide-1.jpg";
 export default function Register() {
   const [searchParams] = useSearchParams();
   const userType = searchParams.get('type') || 'customer';
-  
+
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -18,44 +18,124 @@ export default function Register() {
     password: '',
     confirmPassword: ''
   });
+
+  const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  
+  const [loading, setLoading] = useState(false);
+
   const { register } = useAuth();
   const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    if (formData.password !== formData.confirmPassword) {
-      showError("Passwords do not match", "Password Mismatch");
+  // ---------- Regex ----------
+  const nameRegex = /^[a-zA-Z\s'-]{2,50}$/;          // letters only (no numbers)
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const phoneRegex = /^\d{10}$/;                     // exactly 10 digits
+  const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{8,}$/;
+
+  const validateField = (name, value) => {
+    switch (name) {
+      case 'firstName':
+      case 'lastName':
+        if (!value.trim()) return 'This field is required';
+        if (!nameRegex.test(value.trim())) {
+          return 'Only letters allowed (no numbers). Min 2 characters';
+        }
+        return '';
+
+      case 'email':
+        if (!value.trim()) return 'Email is required';
+        if (!emailRegex.test(value.trim())) return 'Enter a valid email address';
+        return '';
+
+      case 'phone':
+        if (!value.trim()) return 'Phone number is required';
+        if (!phoneRegex.test(value.trim())) {
+          return 'Phone must be exactly 10 digits (numbers only)';
+        }
+        return '';
+
+      case 'password':
+        if (!value) return 'Password is required';
+        if (!passwordRegex.test(value)) {
+          return 'Min 8 chars, 1 uppercase, 1 lowercase, 1 number & 1 special character';
+        }
+        return '';
+
+      case 'confirmPassword':
+        if (!value) return 'Please confirm your password';
+        if (value !== formData.password) return 'Passwords do not match';
+        return '';
+
+      default:
+        return '';
+    }
+  };
+
+  const validateForm = () => {
+    const newErrors = {};
+    Object.keys(formData).forEach((key) => {
+      const error = validateField(key, formData[key]);
+      if (error) newErrors[key] = error;
+    });
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleChange = (e) => {
+    const { id, value } = e.target;
+
+    // Extra protection: block non-digits from phone field while typing
+    if (id === 'phone') {
+      const onlyDigits = value.replace(/\D/g, '').slice(0, 10);
+      setFormData((prev) => ({ ...prev, phone: onlyDigits }));
+      
+      if (errors.phone) {
+        setErrors((prev) => ({
+          ...prev,
+          phone: validateField('phone', onlyDigits)
+        }));
+      }
       return;
     }
-    
+
+    setFormData((prev) => ({ ...prev, [id]: value }));
+
+    // Live clear/update error after first submit
+    if (errors[id]) {
+      setErrors((prev) => ({
+        ...prev,
+        [id]: validateField(id, value)
+      }));
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!validateForm()) {
+      showError('Please fix the errors in the form', 'Validation Failed');
+      return;
+    }
+
     setLoading(true);
-    
     try {
       await register(
-        formData.firstName,
-        formData.lastName,
-        formData.email,
-        formData.phone,
+        formData.firstName.trim(),
+        formData.lastName.trim(),
+        formData.email.trim(),
+        formData.phone.trim(),
         formData.password,
         userType
       );
-      showSuccess(`Welcome to Mangalam!`, "Registration Successful");
-      if (userType === "vendor") {
-        navigate("/vendor/onboarding");
-      } else {
-        navigate("/"); // customer
-      }
+      showSuccess(`Welcome to Mangalam!`, 'Registration Successful');
+      navigate(userType === 'vendor' ? '/vendor/onboarding' : '/');
     } catch (error) {
-      let errMsg = error.response?.data?.detail || error.message || "An unexpected error occurred";
+      let errMsg = error.response?.data?.detail || error.message || 'An unexpected error occurred';
       if (Array.isArray(errMsg)) {
-        errMsg = errMsg.map(e => e.msg).join(", ");
+        errMsg = errMsg.map((e) => e.msg).join(', ');
       }
-      showError(errMsg, "Registration Failed");
+      showError(errMsg, 'Registration Failed');
     } finally {
       setLoading(false);
     }
@@ -63,24 +143,17 @@ export default function Register() {
 
   return (
     <div className={styles.container}>
-      {/* Left side */}
-      <div 
-        className={styles.leftPanel} 
+      {/* Left Panel */}
+      <div
+        className={styles.leftPanel}
         style={{ backgroundImage: `url(${weddingImage})` }}
       >
-        <div className={styles.leftOverlay} />
-        <div className={styles.leftContent}>
-          <h1 className={styles.heading}>
-            Start Your Journey
-            <span className={styles.goldText}>To Forever</span>
-          </h1>
-          <p className={styles.subHeading}>
-            Create your account and discover the perfect wedding services
-          </p>
-        </div>
+        <h1>Start Your Journey</h1>
+        <h2>To Forever</h2>
+        <p>Create your account and discover the perfect wedding services</p>
       </div>
 
-      {/* Right side */}
+      {/* Right Panel */}
       <div className={styles.rightPanel}>
         <div className={styles.formWrapper}>
           <div className={styles.formHeader}>
@@ -88,8 +161,8 @@ export default function Register() {
             <p>Join as a {userType}</p>
           </div>
 
-          <form onSubmit={handleSubmit} className={styles.form}>
-            {/* Name fields */}
+          <form onSubmit={handleSubmit} className={styles.form} noValidate>
+            {/* Name Row */}
             <div className={styles.row}>
               <div className={styles.inputGroup}>
                 <label htmlFor="firstName">First Name</label>
@@ -98,12 +171,15 @@ export default function Register() {
                   <input
                     id="firstName"
                     type="text"
-                    required
                     value={formData.firstName}
-                    onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                    onChange={handleChange}
                     placeholder="First"
+                    className={errors.firstName ? styles.inputError : ''}
                   />
                 </div>
+                {errors.firstName && (
+                  <span className={styles.errorText}>{errors.firstName}</span>
+                )}
               </div>
 
               <div className={styles.inputGroup}>
@@ -113,12 +189,15 @@ export default function Register() {
                   <input
                     id="lastName"
                     type="text"
-                    required
                     value={formData.lastName}
-                    onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                    onChange={handleChange}
                     placeholder="Last"
+                    className={errors.lastName ? styles.inputError : ''}
                   />
                 </div>
+                {errors.lastName && (
+                  <span className={styles.errorText}>{errors.lastName}</span>
+                )}
               </div>
             </div>
 
@@ -130,12 +209,15 @@ export default function Register() {
                 <input
                   id="email"
                   type="email"
-                  required
                   value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  onChange={handleChange}
                   placeholder="Email address"
+                  className={errors.email ? styles.inputError : ''}
                 />
               </div>
+              {errors.email && (
+                <span className={styles.errorText}>{errors.email}</span>
+              )}
             </div>
 
             {/* Phone */}
@@ -146,12 +228,16 @@ export default function Register() {
                 <input
                   id="phone"
                   type="tel"
-                  required
                   value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  placeholder="Your phone number"
+                  onChange={handleChange}
+                  placeholder="10-digit number"
+                  maxLength={10}
+                  className={errors.phone ? styles.inputError : ''}
                 />
               </div>
+              {errors.phone && (
+                <span className={styles.errorText}>{errors.phone}</span>
+              )}
             </div>
 
             {/* Password */}
@@ -162,10 +248,10 @@ export default function Register() {
                 <input
                   id="password"
                   type={showPassword ? 'text' : 'password'}
-                  required
                   value={formData.password}
-                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  onChange={handleChange}
                   placeholder="Password"
+                  className={errors.password ? styles.inputError : ''}
                 />
                 <button
                   type="button"
@@ -175,6 +261,9 @@ export default function Register() {
                   {showPassword ? <EyeOff /> : <Eye />}
                 </button>
               </div>
+              {errors.password && (
+                <span className={styles.errorText}>{errors.password}</span>
+              )}
             </div>
 
             {/* Confirm Password */}
@@ -185,10 +274,10 @@ export default function Register() {
                 <input
                   id="confirmPassword"
                   type={showConfirmPassword ? 'text' : 'password'}
-                  required
                   value={formData.confirmPassword}
-                  onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                  onChange={handleChange}
                   placeholder="Confirm password"
+                  className={errors.confirmPassword ? styles.inputError : ''}
                 />
                 <button
                   type="button"
@@ -198,14 +287,12 @@ export default function Register() {
                   {showConfirmPassword ? <EyeOff /> : <Eye />}
                 </button>
               </div>
+              {errors.confirmPassword && (
+                <span className={styles.errorText}>{errors.confirmPassword}</span>
+              )}
             </div>
 
-            {/* Submit */}
-            <button
-              type="submit"
-              disabled={loading}
-              className={styles.submitBtn}
-            >
+            <button type="submit" disabled={loading} className={styles.submitBtn}>
               {loading ? 'Creating Account...' : 'Create Account'}
             </button>
           </form>
