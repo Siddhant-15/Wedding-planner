@@ -16,9 +16,13 @@ api.interceptors.request.use(
         const isAuthEndpoint = config.url?.startsWith("/auth");
 
         if (!isAuthEndpoint) {
+            const adminToken = localStorage.getItem("admin_token");
             const token = localStorage.getItem("access_token");
-            if (token) {
-                config.headers.Authorization = `Bearer ${token}`;
+
+            const authToken = adminToken || token;
+
+            if (authToken) {
+                config.headers.Authorization = `Bearer ${authToken}`;
             }
         }
 

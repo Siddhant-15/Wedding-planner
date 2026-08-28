@@ -26,28 +26,6 @@ export default function VendorServices() {
     monthlyRevenue: '₹0'
   });
 
-  // const normalizeService = (s) => ({
-  //   id: s.id,
-  //   service_name: s.service_name,
-  //   service_type: s.service_type,
-  //   city: s.city,
-  //   state: s.state,
-  //   is_active: s.is_active,
-  //   rating: s.rating,
-
-  //   // ✅ FIX IMAGES
-  //   media: s.media?.map((m) => m.media_url) || [],
-
-  //   // ✅ FIX AMENITIES
-  //   amenities: s.metadata?.amenities || [],
-
-  //   // ✅ FIX PRICING
-  //   pricing: getPricing(s),
-
-  //   // keep raw if needed later
-  //   raw: s,
-  // });
-
 
 
   useEffect(() => {
@@ -180,7 +158,6 @@ export default function VendorServices() {
   return (
     <div className={styles.page}>
       <div className={styles.container}>
-        {/* <Navbar /> */}
         <header className={styles.header}>
           <div>
             <h1 className={styles.title}>Vendor Dashboard</h1>

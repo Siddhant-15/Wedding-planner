@@ -104,3 +104,69 @@ async def get_current_user_ws(
 
     except JWTError:
         await websocket.close(code=1008)
+
+
+async def get_current_user_optional(
+    credentials: HTTPAuthorizationCredentials | None = Depends(security),
+    db: AsyncSession = Depends(get_db),
+) -> dict | None:
+    """
+    Returns the current user when a valid JWT is provided.
+
+    Returns None when no authentication token is provided.
+
+    Raises 401 when an invalid or expired token is provided.
+    """
+
+    # Guest user
+    if credentials is None:
+        return None
+
+    token = credentials.credentials
+
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+
+    try:
+        payload = jwt.decode(
+            token,
+            settings.JWT_SECRET_KEY,
+            algorithms=[settings.ALGORITHM],
+        )
+
+        email: str | None = payload.get("sub")
+        role: str | None = payload.get("role")
+
+        if email is None or role not in ("customer", "vendor"):
+            raise credentials_exception
+
+    except JWTError:
+        raise credentials_exception
+
+    if role == "customer":
+        stmt = select(Customer).where(Customer.email == email)
+    else:
+        stmt = select(Vendor).where(Vendor.email == email)
+
+    result = await db.execute(stmt)
+    user = result.scalar_one_or_none()
+
+    if user is None:
+        raise credentials_exception
+
+    response = {
+        "id": user.id,
+        "email": user.email,
+        "role": role,
+    }
+
+    if role == "customer":
+        response["is_verified"] = user.is_verified
+
+    elif role == "vendor":
+        response["verification_status"] = user.verification_status
+
+    return response

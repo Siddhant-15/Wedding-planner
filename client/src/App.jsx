@@ -37,7 +37,6 @@ import MakeupArtist from "./Customer/src/pages/customer/MakeupArtist";
 import ServiceDetail from "./Customer/src/pages/customer/ServiceDetail";
 
 import HomeDashboard from "./Customer/src/pages/customer-homepage/src/pages/customer/HomePage";
-import VendorPage from "./Vendor/src/pages/VendorPage";
 import CustomerLayout from "./Customer/src/Layout/CustomerLayout";
 import VendorLayout from "./Vendor/src/Layout/VendorLayout";
 import WishlistsPage from "./Wishlist/src/pages/customer/wishlist/WishlistsPage";
@@ -51,6 +50,20 @@ import ProfileSettings from "./Profile/ProfileSettings";
 import Notification from "./notifications-navbar/src/pages/Notifications";
 import VendorLeads from "./Vendor/src/pages/VendorLeads";
 import VendorAvailability from "./wedding-platform/src/pages/vendor/VendorAvailability";
+
+// ⚠️ ASSUMPTION: VendorServices.jsx lives alongside VendorLeads.jsx at
+// this path, matching the "./Vendor/src/pages/VendorLeads" pattern
+// above. Adjust this import path if the actual location differs.
+import VendorServices from "./Vendor/src/pages/VendorServices";
+
+// Vendor Overview / Analytics / Reviews / Profile / Settings pages.
+// Analytics, Reviews, Profile use mock data for pieces without a
+// backend endpoint yet — see Vendor/src/mock/vendorDashboardMock.js.
+import VendorOverview from "./Vendor/src/pages/VendorOverview";
+import VendorAnalytics from "./Vendor/src/pages/VendorAnalytics";
+import VendorReviews from "./Vendor/src/pages/VendorReviews";
+import VendorProfile from "./Vendor/src/pages/VendorProfile";
+import VendorSettings from "./Vendor/src/pages/VendorSettings";
 
 import Lottie from "lottie-react";
 import loadingAnimation from "@/assets/animations/loading.json";
@@ -185,10 +198,22 @@ function RoleBasedRoutes() {
           </ProtectedRoute>
         }
       >
-        <Route path="/vendor/dashboard" element={<VendorPage />} />
+        <Route path="/vendor/dashboard" element={<VendorOverview />} />
         <Route path="/vendor/notifications" element={<Notification />} />
         <Route path="/vendor/leads" element={<VendorLeads />} />
         <Route path="/vendor/availability" element={<VendorAvailability />} />
+
+        {/* New: dedicated /vendor/services route so the sidebar's
+            "Services" link doesn't have to reuse the /vendor/dashboard
+            path. Mounts the exact same VendorServices component used
+            today — no change to service CRUD behavior. */}
+        <Route path="/vendor/services" element={<VendorServices />} />
+
+        {/* New: sidebar foundation placeholders */}
+        <Route path="/vendor/analytics" element={<VendorAnalytics />} />
+        <Route path="/vendor/reviews" element={<VendorReviews />} />
+        <Route path="/vendor/profile" element={<VendorProfile />} />
+        <Route path="/vendor/settings" element={<VendorSettings />} />
       </Route>
 
       {/* Other Protected */}

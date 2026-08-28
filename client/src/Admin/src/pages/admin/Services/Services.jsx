@@ -6,7 +6,7 @@ import StatusBadge from "../../components/admin/ui/StatusBadge";
 import Modal from "../../components/admin/ui/Modal";
 import SearchInput from "../../components/admin/ui/SearchInput";
 import { formatINR, formatDate, titleCase } from "../../utils/format";
-import ServiceReviewModal from "./Services/ServiceReviewModal";
+import ServiceReviewModal from "./ServiceReviewModal";
 import styles from "./Services.module.css";
 
 // Matches actual ServiceVersion/Service statuses the backend supports.

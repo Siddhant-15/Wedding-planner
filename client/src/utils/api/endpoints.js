@@ -15,6 +15,7 @@ export const ENDPOINTS = {
         UPDATE: (id) => `/services/update/${id}`,
         DELETE: (id) => `/services/delete/${id}`,
         DETAIL: (id) => `/services/detail/${id}`,
+        TRACK_VIEW: (id) => `/services/${id}/view`,
     },
 
     LEADS: {
@@ -35,6 +36,9 @@ export const ENDPOINTS = {
         ONBOARDING: "/vendors/onboarding",
         STATUS: "/vendors/status",
         SAVE_DRAFT: "/vendors/save-draft",
+        DASHBOARD: {
+            KPIS: "/vendor/dashboard/kpis",
+        },  
     },
 
     WISHLIST: {

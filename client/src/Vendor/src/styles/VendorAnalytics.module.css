@@ -1,0 +1,221 @@
+.page {
+  width: 100%;
+  padding: 24px 20px 20px;
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.header h1 {
+  margin: 0 0 4px;
+  font-size: 22px;
+  font-weight: 600;
+  color: hsl(var(--foreground));
+}
+
+.header p {
+  margin: 0;
+  font-size: 13px;
+  color: hsl(var(--muted-foreground));
+}
+
+.rangeTabs {
+  display: flex;
+  gap: 4px;
+}
+
+.rangeTab {
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid hsl(var(--border));
+  background: hsl(var(--background));
+  color: hsl(var(--muted-foreground));
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.rangeTabActive {
+  background: hsl(var(--brand));
+  border-color: hsl(var(--brand));
+  color: hsl(var(--brand-foreground));
+}
+
+.kpiGrid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.kpi {
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: 14px;
+  padding: 16px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.kpiIcon {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  background: hsl(var(--muted));
+  color: hsl(var(--muted-foreground));
+  flex-shrink: 0;
+}
+
+.kpi h4 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: hsl(var(--foreground));
+}
+
+.kpi p {
+  margin: 2px 0 0;
+  font-size: 11.5px;
+  color: hsl(var(--muted-foreground));
+  font-weight: 500;
+}
+
+.mockNote {
+  font-size: 11.5px;
+  color: hsl(var(--muted-foreground));
+  margin: 0 0 24px;
+  font-style: italic;
+}
+
+.card {
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: 14px;
+  padding: 18px;
+  margin-bottom: 16px;
+}
+
+.card h2 {
+  margin: 0 0 14px;
+  font-size: 15px;
+  font-weight: 600;
+  color: hsl(var(--foreground));
+}
+
+.chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 160px;
+}
+
+.bar {
+  flex: 1;
+  background: hsl(var(--brand) / 0.55);
+  border-radius: 3px 3px 0 0;
+  min-height: 6px;
+  transition: height 0.2s ease;
+}
+
+.bar:hover {
+  background: hsl(var(--brand));
+}
+
+.twoCol {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 16px;
+}
+
+.twoCol .card {
+  margin-bottom: 0;
+}
+
+.tableWrap {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.table th {
+  text-align: left;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: hsl(var(--muted-foreground));
+  font-weight: 600;
+  padding: 8px 10px;
+  border-bottom: 1px solid hsl(var(--border));
+  white-space: nowrap;
+}
+
+.table td {
+  padding: 10px;
+  border-bottom: 1px solid hsl(var(--border));
+  color: hsl(var(--foreground));
+  white-space: nowrap;
+}
+
+.table tr:last-child td {
+  border-bottom: none;
+}
+
+.funnel {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.funnelLabel {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12.5px;
+  color: hsl(var(--foreground));
+  margin-bottom: 4px;
+  font-weight: 500;
+}
+
+.funnelTrack {
+  height: 8px;
+  background: hsl(var(--muted));
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.funnelFill {
+  height: 100%;
+  background: hsl(var(--brand));
+  border-radius: 999px;
+  transition: width 0.3s ease;
+}
+
+@media (max-width: 1100px) {
+  .kpiGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 900px) {
+  .twoCol {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 560px) {
+  .kpiGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

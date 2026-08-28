@@ -74,4 +74,16 @@ export const vendorService = {
             throw await handleApiError(error);
         }
     },
+
+    getKPIs: async () => {
+        try {
+            const response = await api.get(
+                ENDPOINTS.VENDOR.DASHBOARD.KPIS
+            );
+
+            return response.data;
+        } catch (error) {
+            throw await handleApiError(error);
+        }
+    },
 };

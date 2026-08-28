@@ -1,0 +1,272 @@
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.statusBadge {
+  font-size: 11.5px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.statusBadge.approved {
+  background: var(--success-50);
+  color: var(--success);
+}
+
+.statusBadge.changes_requested {
+  background: var(--warning-50);
+  color: var(--warning);
+}
+
+.content {
+  color: var(--text);
+  line-height: 1.6;
+  font-size: 14px;
+}
+
+.fieldLabel {
+  margin: 12px 0 4px;
+  font-size: 11.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+  font-weight: 700;
+}
+
+.fieldValue {
+  margin: 0 0 8px;
+  color: var(--text);
+}
+
+.empty {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.changedBadge {
+  display: inline-block;
+  margin-bottom: 12px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--brand-50);
+  color: var(--brand);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.mediaGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 10px;
+}
+
+.mediaItem {
+  position: relative;
+  aspect-ratio: 4/3;
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--surface-2);
+}
+
+.mediaImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.mediaVideo {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  font-size: 12px;
+  background: #000;
+  color: #fff;
+}
+
+.coverBadge {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  background: #10b981;
+  color: #fff;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.variantCard {
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin-bottom: 10px;
+  background: var(--surface-2);
+}
+
+.variantPricing {
+  margin-top: 6px;
+}
+
+.detailGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 6px;
+}
+
+.detailRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+
+.detailKey {
+  color: var(--text-muted);
+}
+
+.detailVal {
+  color: var(--text);
+  text-align: right;
+  word-break: break-word;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.tag {
+  background: var(--brand-50);
+  color: var(--brand);
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.reasonBox {
+  background: var(--warning-50);
+  color: var(--warning);
+  padding: 12px 14px;
+  border-radius: 8px;
+  border: 1px solid rgba(217, 119, 6, 0.2);
+  font-size: 13px;
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.btn {
+  padding: 8px 14px;
+  border-radius: 7px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.success {
+  background: var(--success-50);
+  color: var(--success);
+  border-color: rgba(22, 163, 74, 0.2);
+}
+
+.warn {
+  background: var(--warning-50);
+  color: var(--warning);
+  border-color: rgba(217, 119, 6, 0.2);
+}
+
+.commentBox {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+
+.textarea {
+  width: 100%;
+  resize: vertical;
+  padding: 11px 13px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-family: inherit;
+  outline: none;
+  background: var(--surface-2);
+}
+
+.textarea:focus {
+  border-color: var(--brand);
+  background: #fff;
+}
+
+.commentActions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.saveState {
+  font-size: 11.5px;
+  color: var(--text-muted);
+  margin-left: auto;
+}
+
+@media (max-width: 720px) {
+  .controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .btn {
+    width: 100%;
+    padding: 10px 14px;
+  }
+
+  .saveState {
+    margin-left: 0;
+    text-align: center;
+  }
+}

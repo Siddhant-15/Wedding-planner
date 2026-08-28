@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { ArrowLeft, AlertTriangle, Loader2, Tag, Music, Sparkles, ClipboardList, PenSquare, CalendarRange } from "lucide-react";
 
@@ -33,6 +33,8 @@ export default function ServiceDetail() {
   const [service, setService] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  const viewTrackedRef = useRef(null);
   const [reviews, setReviews] = useState([]);
   const [reviewsLoading, setReviewsLoading] = useState(true);
 
@@ -40,6 +42,7 @@ export default function ServiceDetail() {
   const [isAvailabilityModalOpen, setIsAvailabilityModalOpen] = useState(false);
   const [lead, setLead] = useState(null);
   const [checkingLead, setCheckingLead] = useState(true);
+
   const navigate = useNavigate();
 
   const handleLeadSubmit = async (payload) => {
@@ -87,6 +90,7 @@ export default function ServiceDetail() {
       try {
         setLoading(true);
         setError(null);
+        setService(null);
 
         const res = await customerService.getDetail(id);
 
@@ -108,6 +112,19 @@ export default function ServiceDetail() {
       cancelled = true;
     };
   }, [id]);
+
+  useEffect(() => {
+  if (!service?.id) return;
+
+  if (viewTrackedRef.current === service.id) return;
+
+  const timer = setTimeout(() => {
+    viewTrackedRef.current = service.id;
+    customerService.trackView(service.id);
+  }, 2000);
+
+  return () => clearTimeout(timer);
+}, [service?.id]);
 
   useEffect(() => {
     if (!id || !service?.vendor?.id) return;
@@ -249,15 +266,21 @@ export default function ServiceDetail() {
   }
 
   if (error || !service) {
-    return (
-      <div className={styles.stateWrap} role="alert">
-        <AlertTriangle size={28} className={styles.errorIcon} />
-        <h2>Service unavailable</h2>
-        <p>{error || "We couldn't find this service."}</p>
-        <Link to={`/services/${service.service_type}`} className={styles.backLink}><ArrowLeft size={16} /> Back to services</Link>
-      </div>
-    );
-  }
+  return (
+    <div className={styles.stateWrap} role="alert">
+      <AlertTriangle size={28} className={styles.errorIcon} />
+      <h2>Service unavailable</h2>
+      <p>{error || "We couldn't find this service."}</p>
+
+      <Link
+        to={service?.service_type ? `/services/${service.service_type}` : "/services"}
+        className={styles.backLink}
+      >
+        <ArrowLeft size={16} /> Back to services
+      </Link>
+    </div>
+  );
+}
 
   return (
     <div className={styles.page}>
@@ -382,18 +405,6 @@ export default function ServiceDetail() {
                     Get Quote
                   </button>
 
-                  <Modal
-                    isOpen={isAvailabilityModalOpen}
-                    onClose={() =>
-                      setIsAvailabilityModalOpen(false)
-                    }
-                  >
-                    <LeadForm
-                      vendorName={service.name}
-                      expectedResponseTime="2 hours"
-                      onSubmit={handleLeadSubmit}
-                    />
-                  </Modal>
                 </>
               )}
 

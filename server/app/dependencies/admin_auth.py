@@ -38,6 +38,9 @@ async def get_current_admin(
             detail="Invalid or expired token",
         )
 
+    print("token",token)
+    print("payload",payload)
+
     if getattr(payload, "role", None) != "admin":
         print("Role",getattr(payload, "role", None))
         raise HTTPException(

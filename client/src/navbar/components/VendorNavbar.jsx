@@ -8,7 +8,17 @@ import Brand from "./Brand";
 import Dropdown from "./Dropdown";
 import MobileDrawer from "./MobileDrawer";
 import NotificationBell from "./NotificationBell";
-
+import {
+  LayoutDashboard,
+  Inbox,
+  Briefcase,
+  BarChart3,
+  Star,
+  UserCircle,
+  Settings as SettingsIcon,
+  ChevronsLeft,
+  ChevronsRight,
+} from "lucide-react";
 import { useScrolled, useIsMobile } from "../hooks/useNavbarBehavior";
 import styles from "../styles/VendorNavbar.module.css";
 
@@ -30,31 +40,77 @@ function VendorNavbar() {
         navigate("/");
     }, [logout, navigate]);
 
+    const NAV_ITEMS = [
+    {
+        label: "Overview",
+        to: "/vendor/dashboard",
+        icon: LayoutDashboard,
+        end: true,
+    },
+    {
+        label: "Leads",
+        to: "/vendor/leads",
+        icon: Inbox,
+    },
+    {
+        label: "Services",
+        to: "/vendor/services",
+        icon: Briefcase,
+    },
+    {
+        label: "Analytics",
+        to: "/vendor/analytics",
+        icon: BarChart3,
+    },
+    {
+        label: "Reviews",
+        to: "/vendor/reviews",
+        icon: Star,
+    },
+    {
+        label: "Profile",
+        to: "/vendor/profile",
+        icon: UserCircle,
+    },
+];
+
+const SETTINGS_ITEM = {
+    label: "Settings",
+    to: "/vendor/settings",
+    icon: SettingsIcon,
+};
+
     const navLinks = isCompact
-        ? [
-            { label: "Dashboard", to: "/vendor/dashboard" },
-            { label: "Services", to: "/vendor/services" },
-            { label: "Bookings", to: "/vendor/bookings" },
-        ]
-        : [
-            { label: "Dashboard", to: "/vendor/dashboard" },
-            { label: "My Services", to: "/vendor/services" },
-            { label: "Bookings", to: "/vendor/bookings" },
-            { label: "Analytics", to: "/vendor/analytics" },
-            { label: "Leads", to: "/vendor/leads" },
-        ];
+    ? NAV_ITEMS.filter(({ label }) =>
+        ["Overview", "Services", "Reviews"].includes(label)
+    )
+    : NAV_ITEMS;
 
     const profileItems = [
-        {
-            label: user?.name || "Vendor",
-            desc: user?.email,
-            icon: <span className={styles.avatarSmall}>{initial}</span>,
-        },
-        { divider: true },
-        { label: "Profile Settings", to: "/profile-settings" },
-        { divider: true },
-        { label: "Logout", icon: LogOut, onClick: handleLogout, danger: true },
-    ];
+    {
+        label: user?.name || "Vendor",
+        desc: user?.email,
+        icon: (
+            <span className={styles.avatarSmall}>
+                {initial}
+            </span>
+        ),
+    },
+    { divider: true },
+    {
+        label: "Profile Settings",
+        to: "/profile-settings",
+    },
+    { divider: true },
+    NAV_ITEMS.find(item => item.label === "Profile"),
+    SETTINGS_ITEM,
+    {
+        label: "Logout",
+        icon: LogOut,
+        onClick: handleLogout,
+        danger: true,
+    },
+];
 
     return (
         <>

@@ -1,0 +1,157 @@
+.page {
+  width: 100%;
+  padding: 24px 20px 20px;
+}
+
+.header {
+  margin-bottom: 20px;
+}
+
+.header h1 {
+  margin: 0 0 4px;
+  font-size: 22px;
+  font-weight: 600;
+  color: hsl(var(--foreground));
+}
+
+.header p {
+  margin: 0;
+  font-size: 13px;
+  color: hsl(var(--muted-foreground));
+}
+
+.card {
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: 14px;
+  padding: 18px;
+  margin-bottom: 14px;
+}
+
+.card h2 {
+  margin: 0 0 4px;
+  font-size: 15px;
+  font-weight: 600;
+  color: hsl(var(--foreground));
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 14px 0;
+  border-top: 1px solid hsl(var(--border));
+}
+
+.card h2 + .row {
+  border-top: none;
+  padding-top: 12px;
+}
+
+.row strong {
+  display: block;
+  font-size: 13.5px;
+  color: hsl(var(--foreground));
+  font-weight: 600;
+}
+
+.row p {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: hsl(var(--muted-foreground));
+}
+
+.linkBtn {
+  padding: 7px 14px;
+  border-radius: 8px;
+  border: 1px solid hsl(var(--border));
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.linkBtn:hover {
+  border-color: hsl(var(--brand));
+  color: hsl(var(--brand));
+}
+
+/* Toggle switch */
+.toggle {
+  width: 40px;
+  height: 22px;
+  border-radius: 999px;
+  border: none;
+  background: hsl(var(--muted));
+  position: relative;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s ease;
+}
+
+.toggleOn {
+  background: hsl(var(--brand));
+}
+
+.toggleThumb {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: white;
+  transition: transform 0.15s ease;
+}
+
+.toggleOn .toggleThumb {
+  transform: translateX(18px);
+}
+
+.notice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: hsl(28 90% 40%);
+  background: hsl(38 95% 55% / 0.12);
+  border: 1px solid hsl(38 95% 55% / 0.3);
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin-bottom: 20px;
+}
+
+.dangerCard {
+  border-color: hsl(0 70% 55% / 0.35);
+}
+
+.dangerCard h2 {
+  color: hsl(0 70% 45%);
+}
+
+.dangerBtn {
+  padding: 7px 16px;
+  border-radius: 8px;
+  border: 1px solid hsl(0 70% 55% / 0.4);
+  background: hsl(0 80% 55% / 0.08);
+  color: hsl(0 70% 45%);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.dangerBtn:hover {
+  background: hsl(0 80% 55% / 0.14);
+}
+
+@media (max-width: 480px) {
+  .row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+}

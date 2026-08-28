@@ -65,6 +65,10 @@ class ServiceRepository:
                 ),
             )
             .where(
+
+                Service.status == ServiceStatusEnum.live,
+                Service.is_active.is_(True),
+                Service.deleted_at.is_(None),
                 Service.service_type == service_type,
                 Service.current_live_version_id.isnot(None),
                 ServiceVersion.status == ServiceVersionStatusEnum.published,
@@ -140,6 +144,8 @@ class ServiceRepository:
             )
             .where(
                 Service.id == service_id,
+                Service.status == ServiceStatusEnum.live,
+                Service.is_active.is_(True),
                 Service.deleted_at.is_(None),
                 Service.current_live_version_id.is_not(None),
             )

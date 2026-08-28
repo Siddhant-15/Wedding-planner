@@ -116,7 +116,7 @@ async def create_service_controller(
         db_service = Service(
             vendor_id=vendor_id,
             service_type=parsed.service_type,
-            status=ServiceStatusEnum.draft,
+            status=ServiceStatusEnum.under_review,
             is_active=False,
         )
         db.add(db_service)
