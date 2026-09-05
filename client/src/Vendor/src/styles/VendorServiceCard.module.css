@@ -54,15 +54,61 @@
 .dotActive { width: 16px; background: hsl(var(--background)); }
 
 .badge {
-  position: absolute; top: 10px; right: 10px;
-  padding: 3px 9px;
-  font-size: 11px; font-weight: 600;
-  border-radius: 999px; border: 1px solid transparent;
+  position: absolute;
+  top: 10px;
+  right: 10px;
+
+  padding: 4px 9px;
+
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.2;
+
+  border-radius: 999px;
+  border: 1px solid transparent;
+
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+
+  white-space: nowrap;
 }
-.badgeActive {
-  background: hsl(var(--success) / 0.15);
+
+/* ================= STATUS ================= */
+
+.badgeLive {
+  background: white;
   color: hsl(var(--success));
   border-color: hsl(var(--success) / 0.25);
+}
+
+.badgeUnderReview {
+  background: white;
+  color: hsl(var(--warning));
+  border-color: hsl(var(--warning) / 0.25);
+}
+
+.badgeDraft {
+  background: hsl(var(--muted));
+  color: hsl(var(--muted-foreground));
+  border-color: hsl(var(--border));
+}
+
+.badgeRejected {
+  background: hsl(var(--destructive) / 0.12);
+  color: hsl(var(--destructive));
+  border-color: hsl(var(--destructive) / 0.25);
+}
+
+.badgeArchived {
+  background: hsl(var(--muted));
+  color: hsl(var(--muted-foreground));
+  border-color: hsl(var(--border));
+}
+
+.badgeDefault {
+  background: hsl(var(--muted));
+  color: hsl(var(--muted-foreground));
+  border-color: hsl(var(--border));
 }
 .badgeInactive {
   background: hsl(var(--muted));

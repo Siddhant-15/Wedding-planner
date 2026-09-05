@@ -15,6 +15,7 @@ CREATE TYPE service_status AS ENUM (
     'inactive',
     'suspended',
     'needs_revision'
+    'rejected'
 );
 
 CREATE TYPE service_version_status AS ENUM (

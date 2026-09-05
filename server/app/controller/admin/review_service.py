@@ -570,7 +570,7 @@ async def finalize_review(
 
         # Never unpublish an existing live version on reject.
         if not is_update:
-            service.status = "draft"
+            service.status = "rejected"
 
         action_label = "rejected"
         new_data = {"version_status": "rejected", "service_status": service.status}

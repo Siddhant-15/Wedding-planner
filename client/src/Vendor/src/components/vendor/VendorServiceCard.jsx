@@ -11,8 +11,36 @@ const CATEGORY_LABELS = {
   makeup_artist: "Makeup",
 };
 
+const STATUS_LABELS = {
+  live: "Live",
+  under_review: "Under Review",
+  draft: "Draft",
+  rejected: "Rejected",
+  archived: "Archived",
+};
+
+const STATUS_CLASSES = {
+  live: styles.badgeLive,
+  under_review: styles.badgeUnderReview,
+  draft: styles.badgeDraft,
+  rejected: styles.badgeRejected,
+  archived: styles.badgeArchived,
+};
+
+const formatStatus = (status) => {
+  if (!status) return "Unknown";
+
+  return (
+    STATUS_LABELS[status] ||
+    status
+      .replace(/_/g, " ")
+      .replace(/\b\w/g, (char) => char.toUpperCase())
+  );
+};
+
 export default function VendorServiceCard({ service, onView, onEdit, onDelete }) {
   const [idx, setIdx] = useState(0);
+  console.log("Service:", service.status)
   if (!service) {
     return null; // or skeleton loader
   }
@@ -45,8 +73,11 @@ export default function VendorServiceCard({ service, onView, onEdit, onDelete })
         ) : (
           <div className={styles.placeholder}><ImageOff size={36} /></div>
         )}
-        <span className={`${styles.badge} ${service.is_active ? styles.badgeActive : styles.badgeInactive}`}>
-          {service.is_active ? "Active" : "Inactive"}
+        <span
+          className={`${styles.badge} ${STATUS_CLASSES[service.status] || styles.badgeDefault
+            }`}
+        >
+          {formatStatus(service.status)}
         </span>
       </div>
 

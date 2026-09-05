@@ -114,8 +114,12 @@ def _add_type_specific(
             service_version_id=version_id,
             venue_type=parsed.venue.venue_type,
             venue_nature=parsed.venue.venue_nature,
+
+            min_capacity=parsed.venue.min_capacity,
             max_capacity=parsed.venue.max_capacity,
+            square_feet=parsed.venue.square_feet,
             parking_capacity=parsed.venue.parking_capacity,
+
             venue_policies={
                 "decoration_policy": vp.get("decoration_policy", ""),
                 "catering_policy":   vp.get("catering_policy", ""),
@@ -266,7 +270,9 @@ def _update_type_specific(
             vp  = v.venue_policies or {}
             row.venue_type       = v.venue_type
             row.venue_nature     = v.venue_nature
-            row.max_capacity     = v.max_capacity
+            row.min_capacity     = v.min_capacity
+            row.max_capacity     = v.max_capacity   
+            row.square_feet      = v.square_feet
             row.parking_capacity = v.parking_capacity
             row.venue_policies   = {
                 "decoration_policy": vp.get("decoration_policy", ""),

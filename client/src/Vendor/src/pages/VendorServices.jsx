@@ -10,6 +10,39 @@ import { serviceService } from "../../../utils/api/services/service.service";
 import ServiceStats from "../../../components/VendorServiceStats";
 import { buildServiceFormData } from "../utils/buildServiceFormData";
 import { normalizeService } from "../utils/normalizeService";
+import { apiServiceToFormData } from "../utils/apiServiceToFormData";
+
+function ServiceCardSkeleton() {
+  return (
+    <div className={styles.skeletonCard}>
+      <div className={styles.skeletonImage} />
+
+      <div className={styles.skeletonBody}>
+        <div className={styles.skeletonRow}>
+          <div className={styles.skeletonTag} />
+          <div className={styles.skeletonRating} />
+        </div>
+
+        <div className={styles.skeletonTitle} />
+        <div className={styles.skeletonLocation} />
+
+        <div className={styles.skeletonPrice} />
+
+        <div className={styles.skeletonChips}>
+          <div />
+          <div />
+          <div />
+        </div>
+
+        <div className={styles.skeletonActions}>
+          <div />
+          <div />
+          <div />
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function VendorServices() {
   const [services, setServices] = useState([]);
@@ -18,6 +51,7 @@ export default function VendorServices() {
   const [detailOpen, setDetailOpen] = useState(false);
   const [detail, setDetail] = useState(null);
   const [deleteId, setDeleteId] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   const [stats, setStats] = useState({
     totalServices: 0,
@@ -34,10 +68,22 @@ export default function VendorServices() {
 
   const fetchServices = async () => {
     try {
+      setLoading(true);
+
       const { data } = await serviceService.getAll();
-      setServices(data.map(normalizeService));
+
+      const normalized = data
+        .map(normalizeService)
+        .filter((service) => service.status !== "rejected");
+
+      setServices(normalized);
+
+      return normalized;
     } catch (error) {
       console.error("Failed to fetch services:", error);
+      throw error;
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -55,57 +101,8 @@ export default function VendorServices() {
     setDetailOpen(true);
   };
 
-  const handleEdit = (s) => {
-    const raw = s.raw;
-
-    const formatted = {
-      id: raw.id,
-
-      // ✅ MOST IMPORTANT (form depends on this)
-      service_type: raw.service_type,
-
-      // ✅ BASIC INFO
-      title: raw.service_name,
-      description: raw.description || "",
-
-      // ✅ LOCATION
-      address_line1: raw.add_line1 || "",
-      address_line2: raw.add_line2 || "",
-      area: raw.area || "",
-      city: raw.city || "",
-      state: raw.state || "",
-      country: raw.country || "India",
-      pincode: raw.pincode || "",
-
-      geo_point: {
-        lat: raw.latitude || "",
-        lon: raw.longitude || "",
-      },
-
-      // ✅ TAGS / AMENITIES
-      tags: raw.metadata?.tags || [],
-      amenities: raw.metadata?.amenities || [],
-
-      // ✅ 🔥 VARIANTS (FIXED FOR YOUR API)
-      variants: (raw.variants || []).map((v, i) => ({
-        id: v.id || `${raw.id}-${i}`,
-        variant_name: v.variant_name || "",
-        is_default: v.is_default ?? i === 0,
-
-        pricing_type: v.pricing_type || "",
-
-        // 👇 IMPORTANT: match API structure
-        veg_price: v.pricing?.veg_price ?? "",
-        non_veg_price: v.pricing?.non_veg_price ?? "",
-        price: v.pricing?.base_price ?? "",
-
-        inclusions: v.inclusions || [],
-      })),
-
-      // ✅ IMAGES (VERY IMPORTANT FIX)
-      images: raw.media?.map((m) => m.media_url) || [],
-    };
-
+  const handleEdit = (service) => {
+    const formatted = apiServiceToFormData(service.raw);
 
     setEditing(formatted);
     setFormOpen(true);
@@ -127,24 +124,12 @@ export default function VendorServices() {
       const formData = buildServiceFormData(data);
 
       if (editing) {
-        const { data: updated } = await serviceService.update(
-          editing.id,
-          formData
-        );
-
-        setServices((prev) =>
-          prev.map((s) =>
-            s.id === editing.id ? normalizeService(updated) : s
-          )
-        );
+        await serviceService.update(editing.id, formData);
       } else {
-        const { data: created } = await serviceService.create(formData);
-
-        setServices((prev) => [
-          ...prev,
-          normalizeService(created),
-        ]);
+        await serviceService.create(formData);
       }
+
+      await fetchServices();
 
       setFormOpen(false);
       setEditing(null);
@@ -170,7 +155,13 @@ export default function VendorServices() {
 
         <ServiceStats stats={stats} />
 
-        {services.length > 0 ? (
+        {loading ? (
+          <div className={styles.grid}>
+            {Array.from({ length: 6 }).map((_, index) => (
+              <ServiceCardSkeleton key={index} />
+            ))}
+          </div>
+        ) : services.length > 0 ? (
           <div className={styles.grid}>
             {services.map((s) => (
               <VendorServiceCard

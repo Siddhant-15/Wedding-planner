@@ -8,6 +8,21 @@ export default function useServiceForm(open, initialData, onSubmit) {
   const [formData, setFormData] = useState(createEmptyForm);
 
   useEffect(() => {
+    if (open) {
+      // Prevent background page scrolling
+      document.body.style.overflow = 'hidden';
+    } else {
+      // Restore scrolling
+      document.body.style.overflow = '';
+    }
+
+    // Cleanup when component unmounts
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [open]);
+
+  useEffect(() => {
     if (!open) return;
     setCurrentStep(0);
     setFormData(initialData ? { ...createEmptyForm(), ...initialData } : createEmptyForm());

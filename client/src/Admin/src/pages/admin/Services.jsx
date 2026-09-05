@@ -213,7 +213,7 @@ export default function Services() {
                   </div>
 
                   <div className={styles.priceRow}>
-                    <strong>{formatINR(s.price)}</strong>
+                    {/* <strong>{formatINR(s.price)}</strong> */}
                     <span className={styles.dateText}>Submitted {formatDate(s.createdAt || s.created_at)}</span>
                   </div>
 

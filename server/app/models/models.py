@@ -56,6 +56,7 @@ class ServiceStatusEnum(str, enum.Enum):
     inactive = "inactive"
     suspended = "suspended"
     needs_revision = "needs_revision"
+    rejected = "rejected"
 
 
 class ServiceVersionStatusEnum(str, enum.Enum):

@@ -60,6 +60,7 @@ export const normalizeService = (s) => {
         id: s.id,
         service_name: s.service_name,
         service_type: s.service_type,
+        status: s.status,
         city: s.city,
         state: s.state,
         is_active: s.is_active,

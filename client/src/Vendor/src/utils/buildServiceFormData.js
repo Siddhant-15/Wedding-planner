@@ -159,12 +159,32 @@ export const buildServiceFormData = (formValues) => {
 
     if (serviceType === "venue") {
         payload.venue = {
-            min_capacity: Number(formValues.capacity_min) || 0,
-            max_capacity: Number(formValues.capacity_max) || 0,
+            min_capacity:
+                formValues.min_capacity !== "" &&
+                formValues.min_capacity != null
+                    ? Number(formValues.min_capacity)
+                    : null,
+
+            max_capacity:
+                formValues.max_capacity !== "" &&
+                formValues.max_capacity != null
+                    ? Number(formValues.max_capacity)
+                    : null,
+
             venue_type: formValues.venue_type || "",
             venue_nature: formValues.venue_nature || "",
-            square_feet: Number(formValues.square_feet) || 0,
-            parking_capacity: Number(formValues.parking_capacity) || 0,
+
+            square_feet:
+                formValues.square_feet !== "" &&
+                formValues.square_feet != null
+                    ? Number(formValues.square_feet)
+                    : null,
+
+            parking_capacity:
+                formValues.parking_capacity !== "" &&
+                formValues.parking_capacity != null
+                    ? Number(formValues.parking_capacity)
+                    : null,
 
             venue_policies: {
                 decoration_policy:

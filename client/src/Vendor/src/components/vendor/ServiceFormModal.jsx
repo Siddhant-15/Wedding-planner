@@ -17,10 +17,11 @@ const ServiceFormModal = ({ isOpen, onClose, initialData, onSubmit }) => {
     currentStep, setCurrentStep, formData, submitting,
     updateField, updateGeo, updateVariant, addVariant, removeVariant,
     next, back, submit,
-  } = useServiceForm(isOpen, initialData ?? null, async (data) => {
-    await onSubmit(data);
-    onClose();
-  });
+  } = useServiceForm(
+    isOpen,
+    initialData ?? null,
+    onSubmit
+  );
 
   useEffect(() => {
     const onEsc = (e) => e.key === 'Escape' && onClose();
@@ -65,7 +66,7 @@ const ServiceFormModal = ({ isOpen, onClose, initialData, onSubmit }) => {
             <span className={styles.stepHint}>Step {currentStep + 1} of {FORM_STEPS.length}</span>
             {isLast ? (
               <button type="button" className={styles.btnPrimary} onClick={submit} disabled={submitting}>
-                {submitting ? 'Processing…' : isEdit ? 'Update Service' : 'Publish Service'}
+                {submitting ? 'Processing…' : isEdit ? 'Update & Submit for Review' : 'Submit for Review'}
               </button>
             ) : (
               <button type="button" className={styles.btnPrimary} onClick={next}>Next</button>
