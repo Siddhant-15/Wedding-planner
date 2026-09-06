@@ -195,6 +195,34 @@ def build_service_card(service: Service) -> dict:
 
     vendor = service.vendor
 
+    # Determine status
+    if version and version.status:
+        status = (
+            version.status.value
+            if hasattr(version.status, "value")
+            else str(version.status)
+        )
+    elif service.status:
+        status = (
+            service.status.value
+            if hasattr(service.status, "value")
+            else str(service.status)
+        )
+    else:
+        status = "unknown"
+
+    print(
+        f"""
+SERVICE DEBUG
+-------------
+Service ID      : {service.id}
+Service status  : {service.status}
+Selected version: {version.id if version else None}
+Version status  : {version.status if version else None}
+Final status    : {status}
+"""
+    )
+
     cover_image = None
 
     if version and version.media:
@@ -240,14 +268,7 @@ def build_service_card(service: Service) -> dict:
             else None
         ),
 
-        # CHANGED HERE
-        "status": (
-            version.status.value
-            if version and hasattr(version.status, "value")
-            else str(version.status)
-            if version and version.status is not None
-            else None
-        ),
+        "status": status,
 
         "createdAt": service.created_at,
 
