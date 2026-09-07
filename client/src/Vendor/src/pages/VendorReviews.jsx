@@ -2,7 +2,7 @@ import React from "react";
 import { Star } from "lucide-react";
 
 import { reviewsSummaryMock, reviewsListMock } from "../mock/Vendordashboardmock";
-import styles from "../styles/Vendorreview.module.css";
+import styles from "../styles/VendorReviews.module.css";
 
 function Stars({ count, size = 14 }) {
     return (
