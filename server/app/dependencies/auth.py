@@ -5,10 +5,13 @@ from jose import JWTError, jwt
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from fastapi import WebSocket, Query
+import logging
 
 from app.config import settings
 from app.db.db import get_db
 from app.models.models import Customer, Vendor
+
+logger = logging.getLogger(__name__)
 
 security = HTTPBearer(
     scheme_name="Bearer Token",
@@ -51,7 +54,8 @@ async def get_current_user(
         role: str = payload.get("role")
         if email is None or role not in ("customer", "vendor"):
             raise credentials_exception
-    except JWTError:
+    except JWTError as e:
+        logger.error(f"JWT validation error: {type(e).__name__}: {e}")
         raise credentials_exception
 
     # Lookup user in correct table based on role
