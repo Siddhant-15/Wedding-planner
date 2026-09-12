@@ -1,10 +1,10 @@
+// ServiceReviewModal.jsx
 import { useEffect, useState } from "react";
 import Modal from "../../../components/admin/ui/Modal";
 import Loader from "../../../components/admin/ui/Loader";
 import { adminService } from "../../../../../utils/api/services/adminService";
 import ReviewSidebar from "./ReviewSidebar";
 import ReviewSection from "./ReviewSection";
-import ReviewSummary from "./ReviewSummary";
 import { REVIEW_SECTIONS } from "./reviewSections";
 import styles from "./ServiceReviewModal.module.css";
 
@@ -103,20 +103,31 @@ export default function ServiceReviewModal({ serviceId, isOpen, onClose, onFinal
   };
 
   const activeSectionData = data?.sections?.find((s) => s.section === activeKey);
+  const serviceType = data?.version_data?.detail?.type || "service";
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Review Service" size="xl">
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={
+        data
+          ? `Review · ${data.version_data?.service_name || "Service"} (${serviceType.replace(/_/g, " ")})`
+          : "Review Service"
+      }
+      size="full"
+    >
       {loading ? (
-        <Loader />
+        <div className={styles.centerState}>
+          <Loader />
+        </div>
       ) : error ? (
         <div className={styles.error}>{error}</div>
       ) : data ? (
         <div className={styles.workspace}>
           {data.is_update_to_live_service && (
             <div className={styles.updateBanner}>
-              Update to Live Service — reviewing version{" "}
-              {data.version_number ?? data.version_id}, currently live version stays visible to
-              customers until this is approved.
+              <span className={styles.bannerDot} />
+              Update to live service — reviewing v{data.version_number ?? data.version_id}. Live version stays visible until approved.
             </div>
           )}
 
@@ -139,11 +150,9 @@ export default function ServiceReviewModal({ serviceId, isOpen, onClose, onFinal
             </div>
           </div>
 
-          <div className={styles.summaryRow}>
-            <ReviewSummary sections={data.sections} />
-          </div>
-
-          {finalizeError && <div className={styles.finalizeError}>{finalizeError}</div>}
+          {finalizeError && (
+            <div className={styles.finalizeError}>{finalizeError}</div>
+          )}
 
           <div className={styles.actionBar}>
             <span className={styles.progressLabel}>
@@ -187,23 +196,33 @@ export default function ServiceReviewModal({ serviceId, isOpen, onClose, onFinal
           size="sm"
           footer={
             <>
-              <button onClick={() => setConfirmReject(false)} disabled={finalizing}>
+              <button
+                className={styles.btn}
+                onClick={() => setConfirmReject(false)}
+                disabled={finalizing}
+              >
                 Cancel
               </button>
-              <button onClick={handleRejectConfirm} disabled={finalizing || !rejectReason.trim()}>
+              <button
+                className={`${styles.btn} ${styles.danger}`}
+                onClick={handleRejectConfirm}
+                disabled={finalizing || !rejectReason.trim()}
+              >
                 {finalizing ? "Rejecting…" : "Reject"}
               </button>
             </>
           }
         >
-          <p>
+          <p className={styles.rejectText}>
             Rejecting applies to this version only
-            {data?.is_update_to_live_service ? " — the currently live version stays published." : "."}
+            {data?.is_update_to_live_service
+              ? " — the currently live version stays published."
+              : "."}
           </p>
           <textarea
             className={styles.textarea}
             rows={4}
-            placeholder="Reason for rejection..."
+            placeholder="Reason for rejection (required)…"
             value={rejectReason}
             onChange={(e) => setRejectReason(e.target.value)}
           />
