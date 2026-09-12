@@ -134,12 +134,14 @@ async def login(
 
     access_token, refresh_token = await _create_tokens(form_data.email, form_data.role)
 
+    is_production = settings.ENVIRONMENT != "development"
+
     response.set_cookie(
         key="refresh_token",
         value=refresh_token,
         httponly=True,
-        secure=False if settings.ENVIRONMENT == "development" else True,
-        samesite="lax",
+        secure=is_production,
+        samesite="none" if is_production else "lax",
         max_age=settings.REFRESH_TOKEN_EXPIRE_DAYS * 86400,
         path="/",
     )
