@@ -20,8 +20,8 @@ export default defineConfig({
     strictPort: true,  // Fail if port is occupied
     proxy: {
       '/api': {
-        target: 'http://127.0.0.1:8000',
-        // target: 'https://wedding-planner-wztb.vercel.app',
+        // target: 'http://127.0.0.1:8000',
+        target: 'https://wedding-planner-wztb.vercel.app',
         changeOrigin: true,
         secure: false,
       }
