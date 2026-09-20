@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Plus, Calendar } from "lucide-react";
 import styles from "../styles/VendorServices.module.css";
 import VendorServiceCard from "../components/vendor/VendorServiceCard";
@@ -6,7 +6,6 @@ import VendorServiceDetailsModal from "../components/vendor/VendorServiceDetails
 import ServiceFormModal from "../components/vendor/ServiceFormModal";
 import ConfirmModal from "../components/vendor/ConfirmModal";
 import { serviceService } from "../../../utils/api/services/service.service";
-// import Navbar from "../../../navbar/components/Navbar";
 import ServiceStats from "../../../components/VendorServiceStats";
 import { buildServiceFormData } from "../utils/buildServiceFormData";
 import { normalizeService } from "../utils/normalizeService";
@@ -57,10 +56,8 @@ export default function VendorServices() {
     totalServices: 0,
     activeServices: 0,
     totalBookings: 0,
-    monthlyRevenue: '₹0'
+    monthlyRevenue: "₹0",
   });
-
-
 
   useEffect(() => {
     fetchServices();
@@ -92,18 +89,21 @@ export default function VendorServices() {
       totalServices: services.length,
       activeServices: services.filter((s) => s.is_active).length,
       totalBookings: services.reduce((sum, s) => sum + (s.bookings || 0), 0),
-      monthlyRevenue: "₹0", // update later from API if available
+      monthlyRevenue: "₹0",
     });
   }, [services]);
 
   const handleView = (s) => {
-    setDetail(s.raw); // pass full API data
+    setDetail(s.raw);
     setDetailOpen(true);
   };
 
   const handleEdit = (service) => {
+    const status = (service?.status || service?.raw?.status || "").toLowerCase();
+    if (status !== "live" && status !== "needs_revision" && status !== "draft") {
+      return;
+    }
     const formatted = apiServiceToFormData(service.raw);
-
     setEditing(formatted);
     setFormOpen(true);
   };
@@ -119,26 +119,58 @@ export default function VendorServices() {
     }
   };
 
+  /** Submit / resubmit for review — full validation already done in the form */
   const handleSubmit = async (data) => {
-    try {
-      const formData = buildServiceFormData(data);
+    const formData = buildServiceFormData(data, { saveAsDraft: false });
 
-      if (editing) {
-        await serviceService.update(editing.id, formData);
-      } else {
-        await serviceService.create(formData);
+    if (editing?.id) {
+      await serviceService.update(editing.id, formData);
+    } else {
+      await serviceService.create(formData);
+    }
+
+    await fetchServices();
+    setFormOpen(false);
+    setEditing(null);
+  };
+
+  /** Save incomplete service as draft — permissive validation already done in the form */
+  const handleSaveDraft = async (data) => {
+    const formData = buildServiceFormData(data, { saveAsDraft: true });
+
+    if (editing?.id) {
+      await serviceService.update(editing.id, formData);
+    } else {
+      await serviceService.create(formData);
+    }
+
+    // Refresh list so cards show draft status; keep modal open so vendor can continue
+    const refreshed = await fetchServices();
+
+    // Re-bind editing to the latest API shape (media IDs after first create/update)
+    if (editing?.id && refreshed) {
+      const match = refreshed.find((s) => s.id === editing.id);
+      if (match?.raw) {
+        setEditing(apiServiceToFormData(match.raw));
       }
-
-      await fetchServices();
-
-      setFormOpen(false);
-      setEditing(null);
-    } catch (error) {
-      console.error("Submit failed:", error);
+    } else if (!editing?.id && refreshed?.length) {
+      // Newly created draft — pick the most recent matching title if possible
+      const created = refreshed[0];
+      if (created?.raw) {
+        setEditing(apiServiceToFormData(created.raw));
+      }
     }
   };
 
-  const openCreate = () => { setEditing(null); setFormOpen(true); };
+  const openCreate = () => {
+    setEditing(null);
+    setFormOpen(true);
+  };
+
+  const handleCloseForm = () => {
+    setFormOpen(false);
+    setEditing(null);
+  };
 
   return (
     <div className={styles.page}>
@@ -146,7 +178,9 @@ export default function VendorServices() {
         <header className={styles.header}>
           <div>
             <h1 className={styles.title}>Vendor Dashboard</h1>
-            <p className={styles.subtitle}>Manage your services and track your business growth</p>
+            <p className={styles.subtitle}>
+              Manage your services and track your business growth
+            </p>
           </div>
           <button className={styles.addBtn} onClick={openCreate}>
             <Plus size={16} /> Add Service
@@ -187,9 +221,10 @@ export default function VendorServices() {
 
       <ServiceFormModal
         isOpen={formOpen}
-        onClose={() => setFormOpen(false)}
+        onClose={handleCloseForm}
         initialData={editing}
         onSubmit={handleSubmit}
+        onSaveDraft={handleSaveDraft}
       />
 
       <VendorServiceDetailsModal

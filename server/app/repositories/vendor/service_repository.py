@@ -55,6 +55,7 @@ def _detail_opts(version_attr) -> list:
         # selectinload avoids cartesian explosion for collections
         joinedload(version_attr).selectinload(ServiceVersion.variants),
         joinedload(version_attr).selectinload(ServiceVersion.media),
+        joinedload(version_attr).selectinload(ServiceVersion.review_items),
     ]
 
 

@@ -1,6 +1,15 @@
 import { useState } from "react";
-import { ChevronLeft, ChevronRight, Eye, Pencil, Trash2, MapPin, Star, ImageOff } from "lucide-react";
-import styles from "../../styles/VendorServiceCard.module.css"
+import {
+  ChevronLeft,
+  ChevronRight,
+  Eye,
+  Pencil,
+  Trash2,
+  MapPin,
+  Star,
+  ImageOff,
+} from "lucide-react";
+import styles from "../../styles/VendorServiceCard.module.css";
 
 const CATEGORY_LABELS = {
   venue: "Venue",
@@ -17,6 +26,9 @@ const STATUS_LABELS = {
   draft: "Draft",
   rejected: "Rejected",
   archived: "Archived",
+  needs_revision: "Changes Needed",
+  inactive: "Inactive",
+  suspended: "Suspended",
 };
 
 const STATUS_CLASSES = {
@@ -25,11 +37,13 @@ const STATUS_CLASSES = {
   draft: styles.badgeDraft,
   rejected: styles.badgeRejected,
   archived: styles.badgeArchived,
+  needs_revision: styles.badgeNeedsRevision,
+  inactive: styles.badgeInactive,
+  suspended: styles.badgeDefault,
 };
 
 const formatStatus = (status) => {
   if (!status) return "Unknown";
-
   return (
     STATUS_LABELS[status] ||
     status
@@ -38,52 +52,121 @@ const formatStatus = (status) => {
   );
 };
 
-export default function VendorServiceCard({ service, onView, onEdit, onDelete }) {
+export default function VendorServiceCard({
+  service,
+  onView,
+  onEdit,
+  onDelete,
+}) {
   const [idx, setIdx] = useState(0);
-  console.log("Service:", service.status)
-  if (!service) {
-    return null; // or skeleton loader
-  }
-  const images = service.media || [];
-  const next = (e) => { e.stopPropagation(); setIdx((p) => (p + 1) % images.length); };
-  const prev = (e) => { e.stopPropagation(); setIdx((p) => (p - 1 + images.length) % images.length); };
+
+  if (!service) return null;
+  console.log("FULL SERVICE:", service);
+console.log("SERVICE MEDIA:", service.media);
+console.log(
+  "MEDIA TYPES:",
+  service.media?.map((m) => ({
+    id: m.id,
+    media_url: m.media_url,
+    media_type: m.media_type,
+    is_cover: m.is_cover,
+  }))
+);
+
+  const images = (service.raw?.media || [])
+  .filter(
+    (media) =>
+      media.media_type === "image" &&
+      media.is_cover === true
+  )
+  .sort(
+    (a, b) =>
+      (a.display_order ?? 0) - (b.display_order ?? 0)
+  );
+  const feedback = service.revision_feedback || [];
+  const needsRevision = service.status === "needs_revision";
+
+  const next = (e) => {
+    e.stopPropagation();
+    setIdx((p) => (p + 1) % images.length);
+  };
+  const prev = (e) => {
+    e.stopPropagation();
+    setIdx((p) => (p - 1 + images.length) % images.length);
+  };
+  const EDITABLE_STATUSES = new Set(["live", "needs_revision", "draft"]);
+
+  const editable = EDITABLE_STATUSES.has((service.status || "").toLowerCase());
 
   return (
     <article className={styles.card}>
       <div className={styles.imageWrap}>
-        {images.length > 0 ? (
-          <>
-            <img src={images[idx]} alt={service.service_name} className={styles.image} />
-            {images.length > 1 && (
-              <>
-                <button onClick={prev} className={`${styles.navBtn} ${styles.navLeft}`} aria-label="Previous">
-                  <ChevronLeft size={16} />
-                </button>
-                <button onClick={next} className={`${styles.navBtn} ${styles.navRight}`} aria-label="Next">
-                  <ChevronRight size={16} />
-                </button>
-                <div className={styles.dots}>
-                  {images.map((_, i) => (
-                    <span key={i} className={`${styles.dot} ${i === idx ? styles.dotActive : ""}`} />
-                  ))}
-                </div>
-              </>
-            )}
-          </>
-        ) : (
-          <div className={styles.placeholder}><ImageOff size={36} /></div>
-        )}
-        <span
-          className={`${styles.badge} ${STATUS_CLASSES[service.status] || styles.badgeDefault
-            }`}
-        >
-          {formatStatus(service.status)}
-        </span>
-      </div>
+  {console.log("RENDER IMAGES:", images)}
+
+  {images.length > 0 ? (
+    <>
+      <img
+        src={images[idx]?.media_url}
+        alt={service.service_name}
+        className={styles.image}
+        onLoad={() =>
+          console.log(
+            "IMAGE LOADED:",
+            images[idx]?.media_url
+          )
+        }
+        onError={(e) => {
+          console.error(
+            "IMAGE FAILED:",
+            images[idx]?.media_url,
+            e
+          );
+        }}
+      />
+
+      {images.length > 1 && (
+        <>
+          <button
+            onClick={prev}
+            className={`${styles.navBtn} ${styles.navLeft}`}
+            aria-label="Previous"
+          >
+            <ChevronLeft size={16} />
+          </button>
+
+          <button
+            onClick={next}
+            className={`${styles.navBtn} ${styles.navRight}`}
+            aria-label="Next"
+          >
+            <ChevronRight size={16} />
+          </button>
+
+          <div className={styles.dots}>
+            {images.map((image, i) => (
+              <span
+                key={image.id}
+                className={`${styles.dot} ${
+                  i === idx ? styles.dotActive : ""
+                }`}
+              />
+            ))}
+          </div>
+        </>
+      )}
+    </>
+  ) : (
+    <div className={styles.placeholder}>
+      <ImageOff size={36} />
+    </div>
+  )}
+</div>
 
       <div className={styles.body}>
         <div className={styles.row}>
-          <span className={styles.tag}>{CATEGORY_LABELS[service.service_type] || service.service_type}</span>
+          <span className={styles.tag}>
+            {CATEGORY_LABELS[service.service_type] || service.service_type}
+          </span>
           <span className={styles.rating}>
             <Star size={12} className={styles.starIcon} />
             {service.rating ?? "New"}
@@ -99,6 +182,26 @@ export default function VendorServiceCard({ service, onView, onEdit, onDelete })
             </p>
           )}
         </div>
+
+        {needsRevision && (
+          <button
+            type="button"
+            className={styles.revisionBanner}
+            onClick={onView}
+            aria-label="View requested changes"
+          >
+            <span className={styles.revisionBannerDot} />
+            <div className={styles.revisionBannerText}>
+              <strong>Changes requested</strong>
+              <span>
+                {feedback.length
+                  ? `${feedback.length} section${feedback.length > 1 ? "s" : ""
+                  } need updates — view details`
+                  : "Admin has requested updates — view details"}
+              </span>
+            </div>
+          </button>
+        )}
 
         <div className={styles.pricing}>
           {service.pricing?.isCatering ? (
@@ -124,7 +227,9 @@ export default function VendorServiceCard({ service, onView, onEdit, onDelete })
               {service.pricing.photoVideo && (
                 <div>
                   <p className={styles.priceLabel}>Photo + Video</p>
-                  <p className={styles.priceValue}>{service.pricing.photoVideo}</p>
+                  <p className={styles.priceValue}>
+                    {service.pricing.photoVideo}
+                  </p>
                 </div>
               )}
             </div>
@@ -151,9 +256,11 @@ export default function VendorServiceCard({ service, onView, onEdit, onDelete })
             </div>
           ) : (
             <div className={styles.pricingSingle}>
-              <span className={styles.priceMain}>{service.pricing.price}</span>
-              {service.pricing.label && (
-                <span className={styles.priceUnit}>/ {service.pricing.label}</span>
+              <span className={styles.priceMain}>{service.pricing?.price}</span>
+              {service.pricing?.label && (
+                <span className={styles.priceUnit}>
+                  / {service.pricing.label}
+                </span>
               )}
             </div>
           )}
@@ -162,18 +269,42 @@ export default function VendorServiceCard({ service, onView, onEdit, onDelete })
         {service.amenities?.length > 0 && (
           <div className={styles.amenities}>
             {service.amenities.slice(0, 3).map((a) => (
-              <span key={a} className={styles.chip}>{a}</span>
+              <span key={a} className={styles.chip}>
+                {a}
+              </span>
             ))}
             {service.amenities.length > 3 && (
-              <span className={styles.more}>+{service.amenities.length - 3}</span>
+              <span className={styles.more}>
+                +{service.amenities.length - 3}
+              </span>
             )}
           </div>
         )}
 
         <div className={styles.actions}>
-          <button className={styles.btn} onClick={onView}><Eye size={14} /> View</button>
-          <button className={styles.btn} onClick={onEdit}><Pencil size={14} /> Edit</button>
-          <button className={`${styles.btn} ${styles.btnDanger}`} onClick={onDelete} aria-label="Delete">
+          <button className={styles.btn} onClick={onView}>
+            <Eye size={14} /> View
+          </button>
+          <button
+            type="button"
+            className={styles.btn}
+            onClick={onEdit}
+            disabled={!editable}
+            title={
+              editable
+                ? "Edit service"
+                : `Editing is only available when status is Live or Changes Needed (current: ${formatStatus(service.status)})`
+            }
+            aria-label={editable ? "Edit service" : "Edit unavailable"}
+            aria-disabled={!editable}
+          >
+            <Pencil size={14} /> Edit
+          </button>
+          <button
+            className={`${styles.btn} ${styles.btnDanger}`}
+            onClick={onDelete}
+            aria-label="Delete"
+          >
             <Trash2 size={14} />
           </button>
         </div>

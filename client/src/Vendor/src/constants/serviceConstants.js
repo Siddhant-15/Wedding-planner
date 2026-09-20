@@ -1,4 +1,3 @@
-// src/constants/serviceConstants.js
 export const SERVICE_CATEGORIES = [
   { value: 'venue', label: 'Venue' },
   { value: 'catering', label: 'Catering' },
@@ -58,4 +57,5 @@ export const createEmptyForm = () => ({
   variants: [createEmptyVariant(true)],
   amenities: [],
   images: [],
+  media_links: [],
 });

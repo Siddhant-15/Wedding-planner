@@ -1,19 +1,3 @@
-"""
-app/routers/services.py
-
-Vendor-facing service endpoints.
-API surface is identical to the pre-versioning router — no frontend changes needed.
-
-Routes:
-  POST   /services/create          → create_service_controller
-  GET    /services/get-all         → get_all_services_controller
-  GET    /services/{id}            → get_service_controller
-  PUT    /services/update/{id}     → update_service_controller
-  DELETE /services/delete/{id}     → delete_service_controller  (soft delete)
-"""
-
-from __future__ import annotations
-
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, File, Form, UploadFile
@@ -40,16 +24,23 @@ router = APIRouter(prefix="/services", tags=["services"])
     summary="Create a new service (vendor)",
 )
 async def create_service(
-    data: str                          = Form(..., description="JSON-encoded ServiceCreate payload"),
-    images: List[UploadFile]           = File(default=[], description="Image uploads"),
-    external_media: str                = Form(default="[]", description="JSON list of external media objects"),
-    db: AsyncSession                   = Depends(get_db),
-    current_user: dict                 = Depends(get_current_user),
+    data: str = Form(..., description="JSON-encoded ServiceCreate payload"),
+    images: List[UploadFile] = File(default=[], description="Image uploads"),
+    image_is_cover: List[bool] = Form(
+        default=[],
+        description="Cover flag corresponding to each uploaded image"
+    ),
+    external_media: str = Form(default="[]", description="JSON list of external media objects"),
+    save_as_draft: str = Form(default="false", description="true = draft, false = submit for review"),
+    db: AsyncSession = Depends(get_db),
+    current_user: dict = Depends(get_current_user),
 ):
     return await create_service_controller(
         data=data,
         images=images,
+        image_is_cover=image_is_cover,
         external_media=external_media,
+        save_as_draft=save_as_draft,
         db=db,
         current_user=current_user,
     )
@@ -61,7 +52,7 @@ async def create_service(
     summary="List all services for the authenticated vendor",
 )
 async def get_all_services(
-    db: AsyncSession   = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     current_user: dict = Depends(get_current_user),
 ):
     return await get_all_services_controller(db=db, current_user=current_user)
@@ -74,7 +65,7 @@ async def get_all_services(
 )
 async def get_service(
     id: int,
-    db: AsyncSession   = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     current_user: dict = Depends(get_current_user),
 ):
     return await get_service_controller(service_id=id, db=db, current_user=current_user)
@@ -87,13 +78,26 @@ async def get_service(
 )
 async def update_service(
     id: int,
-    data: str                          = Form(..., description="JSON-encoded ServiceCreate payload"),
-    existing_media: str                = Form(default="[]", description="JSON list of media IDs to retain"),
-    images: List[UploadFile]           = File(default=[], description="New image uploads"),
-    videos: List[UploadFile]           = File(default=[], description="New video uploads"),
-    external_media: str                = Form(default="[]", description="JSON list of external media objects"),
-    db: AsyncSession                   = Depends(get_db),
-    current_user: dict                 = Depends(get_current_user),
+    data: str = Form(..., description="JSON-encoded ServiceCreate payload"),
+    # CRITICAL: default None — not "[]". Omission means keep all media.
+    existing_media: Optional[str] = Form(
+        default=None,
+        description=(
+            'JSON list of media to retain: [23, 24] or '
+            '[{"id": 23, "is_cover": true}, {"id": 24, "is_cover": false}]. '
+            'Omit = keep all. "[]" = clear all.'
+        ),
+    ),
+    images: List[UploadFile] = File(default=[], description="New image uploads"),
+    image_is_cover: List[bool] = Form(
+        default=[],
+        description="Cover flag for each NEW image in `images`, same order. Max 5 covers per service in total.",
+    ),
+    videos: List[UploadFile] = File(default=[], description="New video uploads"),
+    external_media: str = Form(default="[]", description="JSON list of external media objects"),
+    save_as_draft: str = Form(default="false", description="true = draft, false = submit for review"),
+    db: AsyncSession = Depends(get_db),
+    current_user: dict = Depends(get_current_user),
 ):
     return await update_service_controller(
         service_id=id,
@@ -102,8 +106,10 @@ async def update_service(
         images=images,
         videos=videos,
         external_media=external_media,
+        save_as_draft=save_as_draft,
         db=db,
         current_user=current_user,
+        image_is_cover=image_is_cover,
     )
 
 
@@ -114,7 +120,7 @@ async def update_service(
 )
 async def delete_service(
     id: int,
-    db: AsyncSession   = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     current_user: dict = Depends(get_current_user),
 ):
     return await delete_service_controller(

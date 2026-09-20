@@ -527,3 +527,112 @@
     word-break: break-word;
   }
 }
+
+/* =========================
+   IMAGE META
+========================= */
+
+.imageMeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.imageCounters {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.imageCounters span {
+  padding: 4px 8px;
+  border-radius: 7px;
+  background: hsl(var(--muted));
+  color: hsl(var(--muted-foreground));
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+/* =========================
+   COVER CHECKBOX
+========================= */
+
+.coverCheckbox {
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  bottom: 8px;
+
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  padding: 7px 9px;
+
+  border-radius: 8px;
+
+  background: hsl(var(--background) / 0.94);
+
+  color: hsl(var(--foreground));
+
+  font-size: 0.72rem;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  backdrop-filter: blur(6px);
+
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.coverCheckbox:hover {
+  background: hsl(var(--background));
+}
+
+.coverCheckbox input {
+  width: 14px;
+  height: 14px;
+  margin: 0;
+
+  accent-color: hsl(var(--brand));
+
+  cursor: pointer;
+}
+
+.coverCheckbox input:disabled {
+  cursor: not-allowed;
+}
+
+.coverCheckbox input:disabled + svg {
+  opacity: 0.4;
+}
+
+/* =========================
+   COVER BADGE
+========================= */
+
+.coverBadge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+
+  padding: 4px 7px;
+
+  border-radius: 6px;
+
+  background: hsl(var(--brand));
+  color: hsl(var(--brand-foreground));
+
+  font-size: 0.68rem;
+  font-weight: 700;
+}

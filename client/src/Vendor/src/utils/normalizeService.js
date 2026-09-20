@@ -70,7 +70,7 @@ export const normalizeService = (s) => {
         amenities: s.metadata?.amenities || [],
 
         pricing: normalizedPricing,
-
+        revision_feedback: s.revision_feedback ?? null,
         raw: s,
     };
 };

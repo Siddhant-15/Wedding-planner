@@ -14,6 +14,7 @@ import {
   Instagram,
   Globe,
   Plus,
+  Star,
 } from "lucide-react";
 
 import FieldLabel from "../../Common/FieldLabel";
@@ -26,8 +27,7 @@ import styles from "../../../styles/StepAmenitiesImages.module.css";
 
 const MAX_IMAGES = 5;
 
-const MAX_FILE_SIZE =
-  5 * 1024 * 1024; // 5MB
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
 const SUPPORTED_TYPES = [
   "image/jpeg",
@@ -35,13 +35,25 @@ const SUPPORTED_TYPES = [
   "image/webp",
 ];
 
+const FieldError = ({ error, id }) =>
+  error ? (
+    <p
+      id={id}
+      className={formStyles.error}
+      role="alert"
+    >
+      {error}
+    </p>
+  ) : null;
+
 const StepAmenitiesImages = ({
   formData,
   updateField,
+  errors = {},
 }) => {
   const inputRef = useRef(null);
 
-  const [error, setError] =
+  const [localError, setLocalError] =
     useState("");
 
   const [mediaType, setMediaType] =
@@ -74,8 +86,41 @@ const StepAmenitiesImages = ({
     }
   };
 
+  /**
+   * Normalize an image so every image has:
+   * - id
+   * - file (for newly uploaded images)
+   * - preview
+   * - is_cover
+   *
+   * Existing backend images can still be strings.
+   */
+  const normalizeImage = (
+    image,
+    index,
+    shouldBeCover = false
+  ) => {
+    if (typeof image === "string") {
+      return {
+        id: crypto.randomUUID(),
+        url: image,
+        preview: image,
+        is_cover: shouldBeCover,
+      };
+    }
+
+    return {
+      ...image,
+      is_cover:
+        typeof image.is_cover ===
+          "boolean"
+          ? image.is_cover
+          : shouldBeCover,
+    };
+  };
+
   const handleFiles = (e) => {
-    setError("");
+    setLocalError("");
 
     const files = Array.from(
       e.target.files || []
@@ -86,20 +131,29 @@ const StepAmenitiesImages = ({
     const remainingSlots =
       MAX_IMAGES - images.length;
 
+    if (remainingSlots <= 0) {
+      setLocalError(
+        `Maximum ${MAX_IMAGES} images allowed.`
+      );
+
+      e.target.value = "";
+      return;
+    }
+
     const filesToProcess =
       files.slice(0, remainingSlots);
+
+    const validationErrors = [];
 
     if (
       files.length > remainingSlots
     ) {
-      setError(
+      validationErrors.push(
         `Only ${remainingSlots} image(s) allowed.`
       );
     }
 
     const validFiles = [];
-
-    const errors = [];
 
     filesToProcess.forEach(
       (file) => {
@@ -109,8 +163,8 @@ const StepAmenitiesImages = ({
             file.type
           )
         ) {
-          errors.push(
-            `${file.name}: Unsupported format.`
+          validationErrors.push(
+            `${file.name}: Unsupported format. Please use JPG, PNG, or WebP.`
           );
 
           return;
@@ -121,7 +175,7 @@ const StepAmenitiesImages = ({
           file.size >
           MAX_FILE_SIZE
         ) {
-          errors.push(
+          validationErrors.push(
             `${file.name}: File size exceeds 5MB.`
           );
 
@@ -142,7 +196,7 @@ const StepAmenitiesImages = ({
           );
 
         if (alreadyExists) {
-          errors.push(
+          validationErrors.push(
             `${file.name}: Duplicate image.`
           );
 
@@ -156,24 +210,71 @@ const StepAmenitiesImages = ({
             URL.createObjectURL(
               file
             ),
+
+          // If there are no existing images,
+          // the first uploaded image becomes cover.
+          is_cover:
+            images.length === 0 &&
+            validFiles.length === 0,
         });
       }
     );
 
-    if (errors.length) {
-      setError(errors.join(" "));
+    if (validationErrors.length) {
+      setLocalError(
+        validationErrors.join(" ")
+      );
     }
 
     if (validFiles.length) {
-      updateField("images", [
-        ...images,
-        ...validFiles,
-      ]);
+      const existingImages =
+        images.map(
+          (image, index) =>
+            normalizeImage(
+              image,
+              index
+            )
+        );
+
+      const hasCover =
+        existingImages.some(
+          (image) =>
+            image.is_cover === true
+        );
+
+      const newImages =
+        [...existingImages];
+
+      validFiles.forEach(
+        (image) => {
+          // If no cover exists, first new image becomes cover.
+          if (!hasCover && !newImages.some(
+            (img) =>
+              img.is_cover === true
+          )) {
+            image.is_cover = true;
+          }
+
+          newImages.push(image);
+        }
+      );
+
+      updateField(
+        "images",
+        newImages
+      );
     }
 
     e.target.value = "";
   };
 
+  /**
+   * Remove image.
+   *
+   * If the removed image was the cover,
+   * automatically make the first remaining
+   * image the new cover.
+   */
   const removeImage = (idx) => {
     const updated = [...images];
 
@@ -183,7 +284,8 @@ const StepAmenitiesImages = ({
     if (
       typeof imageToRemove !==
       "string" &&
-      imageToRemove?.preview
+      imageToRemove?.preview &&
+      imageToRemove?.file
     ) {
       URL.revokeObjectURL(
         imageToRemove.preview
@@ -192,21 +294,105 @@ const StepAmenitiesImages = ({
 
     updated.splice(idx, 1);
 
+    const normalized =
+      updated.map(
+        (image, index) =>
+          normalizeImage(
+            image,
+            index
+          )
+      );
+
+    // Ensure there is always a cover
+    // if at least one image remains.
+    if (
+      normalized.length > 0 &&
+      !normalized.some(
+        (image) =>
+          image.is_cover === true
+      )
+    ) {
+      normalized[0].is_cover = true;
+    }
+
+    updateField(
+      "images",
+      normalized
+    );
+  };
+
+  /**
+   * Set one image as cover.
+   * All other images automatically become non-cover.
+   */
+  const coverCount = images.filter(
+    (img) =>
+      typeof img !== "string" &&
+      img?.is_cover === true
+  ).length;
+
+  const toggleCoverImage = (index) => {
+    const updated = images.map(
+      (image, imageIndex) => {
+        const normalized = normalizeImage(
+          image,
+          imageIndex
+        );
+
+        if (imageIndex !== index) {
+          return normalized;
+        }
+
+        const currentlyCover =
+          normalized.is_cover === true;
+
+        // Don't allow removing the final cover.
+        if (
+          currentlyCover &&
+          coverCount === 1
+        ) {
+          setLocalError(
+            "At least one cover image is required."
+          );
+          return normalized;
+        }
+
+        // Maximum 5 covers.
+        if (
+          !currentlyCover &&
+          coverCount >= MAX_IMAGES
+        ) {
+          setLocalError(
+            `Maximum ${MAX_IMAGES} cover images allowed.`
+          );
+          return normalized;
+        }
+
+        return {
+          ...normalized,
+          is_cover: !currentlyCover,
+        };
+      }
+    );
+
+    setLocalError("");
     updateField("images", updated);
   };
 
   const handleAddMediaLink = () => {
-    setError("");
+    setLocalError("");
 
     const trimmedUrl =
       mediaUrl.trim();
 
-    if (!trimmedUrl) return;
+    if (!trimmedUrl) {
+      return;
+    }
 
     if (
       trimmedUrl.length > 2000
     ) {
-      setError(
+      setLocalError(
         "URL is too long."
       );
 
@@ -216,7 +402,7 @@ const StepAmenitiesImages = ({
     if (
       !isValidUrl(trimmedUrl)
     ) {
-      setError(
+      setLocalError(
         "Please enter a valid URL."
       );
 
@@ -229,10 +415,13 @@ const StepAmenitiesImages = ({
       url: trimmedUrl,
     };
 
-    updateField("media_links", [
-      ...mediaLinks,
-      newLink,
-    ]);
+    updateField(
+      "media_links",
+      [
+        ...mediaLinks,
+        newLink,
+      ]
+    );
 
     setMediaUrl("");
   };
@@ -288,17 +477,17 @@ const StepAmenitiesImages = ({
     return () => {
       images.forEach((img) => {
         if (
-          typeof img !==
-          "string" &&
-          img?.preview
+          typeof img !== "string" &&
+          img?.preview &&
+          img?.file
         ) {
-          URL.revokeObjectURL(
-            img.preview
-          );
+          URL.revokeObjectURL(img.preview);
         }
       });
     };
-  }, [images]);
+    // Cleanup only when this component unmounts.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div
@@ -339,9 +528,8 @@ const StepAmenitiesImages = ({
         }
       >
         <FieldLabel
-          tooltip={t(
-            "images"
-          )}
+          tooltip={t("images")}
+          required
         >
           <ImageIcon
             size={14}
@@ -355,19 +543,37 @@ const StepAmenitiesImages = ({
           Images
         </FieldLabel>
 
-        <p
-          className={
-            styles.helper
-          }
-        >
-          {images.length}/
-          {MAX_IMAGES} images
-          uploaded
-        </p>
+        <div className={styles.imageMeta}>
+          <p className={styles.helper}>
+            Upload up to {MAX_IMAGES} images. Select the
+            images you want to use as cover images.
+          </p>
+
+          <div className={styles.imageCounters}>
+            <span>
+              {images.length}/{MAX_IMAGES} images
+            </span>
+
+            <span>
+              {coverCount}/{MAX_IMAGES} cover images
+            </span>
+          </div>
+        </div>
 
         <div
-          className={
-            styles.dropzone
+          className={`${styles.dropzone} ${errors.images
+            ? formStyles.inputError
+            : ""
+            }`}
+          aria-invalid={
+            errors.images
+              ? "true"
+              : undefined
+          }
+          aria-describedby={
+            errors.images
+              ? "images-error"
+              : undefined
           }
         >
           <Upload
@@ -413,13 +619,21 @@ const StepAmenitiesImages = ({
           </button>
         </div>
 
-        {error && (
+        {/* REQUIRED IMAGE ERROR */}
+        <FieldError
+          error={errors.images}
+          id="images-error"
+        />
+
+        {/* LOCAL UPLOAD ERROR */}
+        {localError && (
           <p
             className={
-              styles.error
+              formStyles.error
             }
+            role="alert"
           >
-            {error}
+            {localError}
           </p>
         )}
 
@@ -436,7 +650,8 @@ const StepAmenitiesImages = ({
                   typeof img ===
                     "string"
                     ? img
-                    : img.preview;
+                    : img.preview ||
+                    img.url;
 
                 const uniqueKey =
                   typeof img ===
@@ -444,6 +659,12 @@ const StepAmenitiesImages = ({
                     ? `${img}-${i}`
                     : img.id ||
                     i;
+
+                const isCover =
+                  typeof img !==
+                  "string" &&
+                  img.is_cover ===
+                  true;
 
                 return (
                   <div
@@ -463,6 +684,22 @@ const StepAmenitiesImages = ({
                         }`}
                     />
 
+                    {/* COVER BADGE */}
+                    {isCover && (
+                      <span
+                        className={
+                          styles.coverBadge
+                        }
+                      >
+                        <Star
+                          size={11}
+                          fill="currentColor"
+                        />
+                        Cover
+                      </span>
+                    )}
+
+                    {/* REMOVE */}
                     <button
                       type="button"
                       aria-label="Remove image"
@@ -481,41 +718,115 @@ const StepAmenitiesImages = ({
                         }
                       />
                     </button>
+
+                    {/* COVER CHECKBOX */}
+                    <label className={styles.coverCheckbox}>
+                      <input
+                        type="checkbox"
+                        checked={isCover}
+                        disabled={
+                          !isCover &&
+                          coverCount >= MAX_IMAGES
+                        }
+                        onChange={() =>
+                          toggleCoverImage(i)
+                        }
+                      />
+
+                      <Star
+                        size={12}
+                        fill={
+                          isCover
+                            ? "currentColor"
+                            : "none"
+                        }
+                      />
+
+                      <span>Cover image</span>
+                    </label>
                   </div>
                 );
               }
             )}
           </div>
         )}
+
+        {/* COVER VALIDATION */}
+        {images.length > 0 &&
+          !images.some(
+            (img) =>
+              typeof img !==
+              "string" &&
+              img.is_cover ===
+              true
+          ) && (
+            <p
+              className={
+                formStyles.error
+              }
+              role="alert"
+            >
+              At least one image
+              must be selected as
+              the cover image.
+            </p>
+          )}
       </div>
 
       {/* EXTERNAL MEDIA */}
-      <div className={formStyles.section}>
-        <div className={styles.mediaHeader}>
+      <div
+        className={
+          formStyles.section
+        }
+      >
+        <div
+          className={
+            styles.mediaHeader
+          }
+        >
           <FieldLabel>
             <Link2
               size={14}
               style={{
                 marginRight: 4,
-                verticalAlign: "-2px",
+                verticalAlign:
+                  "-2px",
               }}
             />
-            External Media Links
+
+            External Media
+            Links
           </FieldLabel>
 
-          <p className={styles.mediaHelper}>
-            Add YouTube, Instagram, video, or portfolio links
+          <p
+            className={
+              styles.mediaHelper
+            }
+          >
+            Add YouTube,
+            Instagram, video, or
+            portfolio links
           </p>
         </div>
 
         {/* INPUT BAR */}
-        <div className={styles.mediaBar}>
+        <div
+          className={
+            styles.mediaBar
+          }
+        >
           <select
-            value={mediaType}
-            onChange={(e) =>
-              setMediaType(e.target.value)
+            value={
+              mediaType
             }
-            className={styles.mediaSelect}
+            onChange={(e) =>
+              setMediaType(
+                e.target.value
+              )
+            }
+            className={
+              styles.mediaSelect
+            }
           >
             <option value="youtube">
               YouTube
@@ -542,63 +853,122 @@ const StepAmenitiesImages = ({
             type="url"
             value={mediaUrl}
             onChange={(e) =>
-              setMediaUrl(e.target.value)
+              setMediaUrl(
+                e.target.value
+              )
             }
             placeholder="https://example.com"
-            className={styles.mediaInput}
+            className={
+              styles.mediaInput
+            }
           />
 
           <button
             type="button"
-            className={styles.mediaAddBtn}
-            onClick={handleAddMediaLink}
+            className={
+              styles.mediaAddBtn
+            }
+            onClick={
+              handleAddMediaLink
+            }
           >
             <Plus size={15} />
             <span>Add</span>
           </button>
         </div>
 
+        <FieldError
+          error={
+            errors.media_links
+          }
+          id="media-links-error"
+        />
+
         {/* LINK LIST */}
         {mediaLinks.length > 0 && (
-          <div className={styles.mediaGrid}>
-            {mediaLinks.map((item) => (
-              <div
-                key={item.id}
-                className={styles.mediaCard}
-              >
-                <div className={styles.mediaCardLeft}>
-                  <div className={styles.mediaIcon}>
-                    {getMediaIcon(item.type)}
-                  </div>
-
-                  <div className={styles.mediaInfo}>
-                    <span className={styles.mediaType}>
-                      {item.type}
-                    </span>
-
-                    <a
-                      href={item.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className={styles.mediaUrl}
-                    >
-                      {item.url}
-                    </a>
-                  </div>
-                </div>
-
-                <button
-                  type="button"
-                  aria-label="Remove media link"
-                  className={styles.mediaRemoveBtn}
-                  onClick={() =>
-                    removeMediaLink(item.id)
+          <div
+            className={
+              styles.mediaGrid
+            }
+          >
+            {mediaLinks.map(
+              (item) => (
+                <div
+                  key={
+                    item.id
+                  }
+                  className={
+                    styles.mediaCard
                   }
                 >
-                  <Trash2 size={15} />
-                </button>
-              </div>
-            ))}
+                  <div
+                    className={
+                      styles.mediaCardLeft
+                    }
+                  >
+                    <div
+                      className={
+                        styles.mediaIcon
+                      }
+                    >
+                      {getMediaIcon(
+                        item.type
+                      )}
+                    </div>
+
+                    <div
+                      className={
+                        styles.mediaInfo
+                      }
+                    >
+                      <span
+                        className={
+                          styles.mediaType
+                        }
+                      >
+                        {
+                          item.type
+                        }
+                      </span>
+
+                      <a
+                        href={
+                          item.url
+                        }
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={
+                          styles.mediaUrl
+                        }
+                      >
+                        {
+                          item.url
+                        }
+                      </a>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    aria-label="Remove media link"
+                    className={
+                      styles.mediaRemoveBtn
+                    }
+                    onClick={() =>
+                      removeMediaLink(
+                        item.id
+                      )
+                    }
+                  >
+                    <Trash2
+                      size={
+                        15
+                      }
+                    />
+                  </button>
+                </div>
+              )
+            )}
           </div>
         )}
       </div>

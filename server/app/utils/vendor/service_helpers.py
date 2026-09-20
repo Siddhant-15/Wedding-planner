@@ -13,6 +13,7 @@ Public API:
 """
 
 from __future__ import annotations
+from app.controller.vendor import availability_service
 
 import logging
 from typing import List, Optional
@@ -426,6 +427,46 @@ def _col_dict(row, exclude: set[str] | None = None) -> dict:
         if col.name not in exclude
     }
 
+def _status_value(val) -> str:
+    if val is None:
+        return ""
+    return getattr(val, "value", None) or str(val)
+
+
+def _revision_feedback(service: Service) -> list[dict] | None:
+    draft = service.current_draft_version
+    live = service.current_live_version
+    # ────────────────────────────────────────────────────────────────
+
+    candidates = [v for v in (draft, live) if v is not None]
+
+    version = None
+    for v in candidates:
+        if _status_value(v.status) == "needs_revision":
+            version = v
+            break
+
+    if version is None:
+        if _status_value(service.status) != "needs_revision":
+            return None
+        version = draft or live
+
+    if version is None:
+        return None
+
+    items = getattr(version, "review_items", None) or []
+
+    feedback = [
+        {
+            "section": _status_value(item.section),
+            "comment": item.comment,
+        }
+        for item in items
+        if _status_value(item.status) == "changes_requested"
+    ]
+
+    return feedback
+
 
 def _build_service_response(service: Service) -> ServiceResponse:
     """
@@ -583,4 +624,5 @@ def _build_service_response(service: Service) -> ServiceResponse:
         variants=variants_out,
         media=media_out,
         unavailable_dates=service.unavailable_dates or [],
+        revision_feedback=_revision_feedback(service),
     )
