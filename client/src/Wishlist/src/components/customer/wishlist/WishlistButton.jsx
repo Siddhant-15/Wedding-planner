@@ -1,5 +1,8 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useWishlist } from "../../../context/WishlistContext";
+import { useAuth } from "@/context/AuthContext";
+
 import WishlistModal from "./WishlistModal";
 import { showToast } from "./toast";
 import styles from "../../../styles/WishlistButton.module.css";
@@ -12,6 +15,8 @@ import styles from "../../../styles/WishlistButton.module.css";
  *  - variant: "floating" | "inline"
  */
 const WishlistButton = ({ service, size = "md", variant = "floating" }) => {
+  const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
   const {
     wishlists,
     isSaved,
@@ -25,7 +30,7 @@ const WishlistButton = ({ service, size = "md", variant = "floating" }) => {
 
   const [open, setOpen] = useState(false);
   const [bouncing, setBouncing] = useState(false);
-  const saved = isSaved(service.id);
+  const saved = service?.id ? isSaved(service.id) : false;
 
   const triggerBounce = () => {
     setBouncing(true);
@@ -35,19 +40,31 @@ const WishlistButton = ({ service, size = "md", variant = "floating" }) => {
   const handleClick = async (e) => {
     e.preventDefault();
     e.stopPropagation();
+
+    if (!service?.id) return;
+
+    // Unauthenticated handling
+    if (!isAuthenticated) {
+      showToast({ message: "Please log in to save to wishlist", type: "error" });
+      navigate("/login");
+      return;
+    }
+
     triggerBounce();
 
     if (saved) {
       const item = getItemForService(service.id);
-      try {
-        const removed = await removeItem(item.id);
-        showToast({
-          message: "Removed from wishlist",
-          actionLabel: "Undo",
-          onAction: () => restoreItem(removed),
-        });
-      } catch {
-        showToast({ message: "Couldn't remove. Try again.", type: "error" });
+      if (item) {
+        try {
+          const removed = await removeItem(item.id);
+          showToast({
+            message: "Removed from wishlist",
+            actionLabel: "Undo",
+            onAction: () => restoreItem(removed),
+          });
+        } catch {
+          showToast({ message: "Couldn't remove. Try again.", type: "error" });
+        }
       }
       return;
     }
@@ -70,7 +87,7 @@ const WishlistButton = ({ service, size = "md", variant = "floating" }) => {
         showToast({
           message: `Saved to ${wishlists[0].name} ✅`,
           actionLabel: "View",
-          onAction: () => (window.location.href = `/wishlist/${wishlists[0].id}`),
+          onAction: () => navigate(`/customer/wishlist/${wishlists[0].id}`),
         });
       } catch (err) {
         console.error("Failed to add item to wishlist", err);

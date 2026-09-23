@@ -16,20 +16,21 @@ from app.routers.auth.auth import AuthRouter
 # from app.routers.service import servicerouter
 from app.routers.customer.service_routes import customerservicerouter
 from app.routers.vendors import vendorrouter
-from app.routers.reviews import Reviewrouter
 from app.routers.wishlist_routes import wishlistrouter
 from app.routers.notification.notification import NotificationRouter
 from app.routers.notification.websocket import router as notification_ws_router
 from app.routers.vendor.availability_routes import router as availability_router
 from app.routers.customer.lead_routes import router as LeadRouter
 from app.routers.vendor.vendor_leads_routes import router as vendor_leads_router
-from app.routers.review.review_routes import router as ReviewRouter
 from app.routers.vendor.service_routes import router as ServiceRouter
 from app.routers.admin.admin import admin_router
 from app.routers.admin.admin_review_router import admin_review_router
 
 from app.routers.customer.service_view import router as service_view_router
 from app.routers.vendor.dashboard import router as vendor_dashboard_router
+from app.routers.customer.review import router as customer_review_router
+
+
 
 
 
@@ -90,15 +91,11 @@ app.add_middleware(
 
 # ─── Routers ────────────────────────────────────────────────────────────────
 app.include_router(AuthRouter, prefix=settings.API_V1_STR, tags=["auth"])
-# app.include_router(servicerouter, prefix=settings.API_V1_STR)
 app.include_router(customerservicerouter, prefix=settings.API_V1_STR, tags=["customer_services"])
 app.include_router(wishlistrouter, prefix=settings.API_V1_STR)
 app.include_router(vendorrouter, prefix=settings.API_V1_STR)
-app.include_router(Reviewrouter, prefix=settings.API_V1_STR)
 app.include_router(LeadRouter, prefix=settings.API_V1_STR)
-app.include_router(ReviewRouter, prefix=settings.API_V1_STR)
 app.include_router(vendor_leads_router, prefix=settings.API_V1_STR)
-# app.include_router(availability_router, prefix=settings.API_V1_STR)
 app.include_router(notification_ws_router, prefix=settings.API_V1_STR)
 app.include_router(NotificationRouter, prefix=settings.API_V1_STR)
 app.include_router(ServiceRouter, prefix=settings.API_V1_STR)
@@ -107,6 +104,8 @@ app.include_router(admin_review_router, prefix=settings.API_V1_STR)
 
 app.include_router(service_view_router, prefix=settings.API_V1_STR)
 app.include_router(vendor_dashboard_router, prefix=settings.API_V1_STR)
+app.include_router(customer_review_router, prefix=settings.API_V1_STR)
+
 
 # ─── Exception Handlers ─────────────────────────────────────────────────────
 @app.exception_handler(RequestValidationError)

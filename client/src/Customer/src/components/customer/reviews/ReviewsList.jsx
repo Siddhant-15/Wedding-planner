@@ -1,6 +1,4 @@
 import React, { useState } from "react";
-// Default avatar fallback. Replace with your own asset if desired.
-const avatar = "data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 64 64%22><rect width=%2264%22 height=%2264%22 fill=%22%23e5e7eb%22/><circle cx=%2232%22 cy=%2226%22 r=%2212%22 fill=%22%239ca3af%22/><path d=%22M10 60c4-12 12-18 22-18s18 6 22 18z%22 fill=%22%239ca3af%22/></svg>";
 import {
   Star,
   CheckCircle2,
@@ -9,9 +7,13 @@ import {
   Image as ImageIcon,
   SlidersHorizontal,
   MessageSquareQuote,
+  Pencil,
+  Trash2,
 } from "lucide-react";
 import { format } from "date-fns";
 import styles from "../styles/ReviewsList.module.css";
+
+const avatar = "data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 64 64%22><rect width=%2264%22 height=%2264%22 fill=%22%23e5e7eb%22/><circle cx=%2232%22 cy=%2226%22 r=%2212%22 fill=%22%239ca3af%22/><path d=%22M10 60c4-12 12-18 22-18s18 6 22 18z%22 fill=%22%239ca3af%22/></svg>";
 
 /* ---------- Rating Bar ---------- */
 const RatingBar = ({ rating, count, total }) => {
@@ -29,9 +31,10 @@ const RatingBar = ({ rating, count, total }) => {
 };
 
 /* ---------- Review Card ---------- */
-const ReviewCard = ({ review }) => {
+const ReviewCard = ({ review, currentUserId, onEdit, onDelete }) => {
   const [expanded, setExpanded] = useState(false);
   const [helpful, setHelpful] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const text = review.text || review.review_text || "";
   const shouldTruncate = text.length > 320;
@@ -53,6 +56,22 @@ const ReviewCard = ({ review }) => {
     serviceQuality: review.service_quality_rating,
     ambiance: review.ambiance_rating,
     valueForMoney: review.value_for_money_rating,
+  };
+
+  const isOwner =
+    currentUserId &&
+    (String(review.user_id) === String(currentUserId) ||
+      String(review.user?.id) === String(currentUserId));
+
+  const handleDelete = async () => {
+    if (window.confirm("Are you sure you want to delete your review?")) {
+      setIsDeleting(true);
+      try {
+        await onDelete(review.id);
+      } finally {
+        setIsDeleting(false);
+      }
+    }
   };
 
   return (
@@ -99,6 +118,28 @@ const ReviewCard = ({ review }) => {
             </time>
           </div>
         </div>
+
+        {isOwner && (
+          <div className={styles.ownerActions} style={{ marginLeft: "auto", display: "flex", gap: "8px" }}>
+            <button
+              type="button"
+              onClick={() => onEdit(review)}
+              title="Edit review"
+              style={{ background: "none", border: "none", cursor: "pointer", color: "#4f46e5", padding: "4px" }}
+            >
+              <Pencil size={15} />
+            </button>
+            <button
+              type="button"
+              onClick={handleDelete}
+              disabled={isDeleting}
+              title="Delete review"
+              style={{ background: "none", border: "none", cursor: "pointer", color: "#ef4444", padding: "4px" }}
+            >
+              <Trash2 size={15} />
+            </button>
+          </div>
+        )}
       </header>
 
       {/* Event tag */}
@@ -200,22 +241,38 @@ const ReviewCard = ({ review }) => {
 };
 
 /* ---------- Main ---------- */
-export default function ReviewsList({ reviews = [], overallRating, totalReviews }) {
+export default function ReviewsList({
+  reviews = [],
+  overallRating,
+  totalReviews,
+  ratingBreakdown = null,
+  currentUserId = null,
+  onEditReview = () => {},
+  onDeleteReview = () => {},
+}) {
   const [sortBy, setSortBy] = useState("recent");
   const [photosOnly, setPhotosOnly] = useState(false);
   const [showAll, setShowAll] = useState(false);
 
-  const safeReviews = Array.isArray(reviews?.data)
-    ? reviews.data
-    : Array.isArray(reviews)
-      ? reviews
-      : [];
+  const safeReviews = Array.isArray(reviews?.reviews)
+    ? reviews.reviews
+    : Array.isArray(reviews?.data)
+      ? reviews.data
+      : Array.isArray(reviews)
+        ? reviews
+        : [];
 
   const ratingCounts = [0, 0, 0, 0, 0];
-  safeReviews.forEach((r) => {
-    const overall = r.ratings?.overall || r.overall_rating || 0;
-    if (overall >= 1 && overall <= 5) ratingCounts[overall - 1]++;
-  });
+  if (ratingBreakdown && typeof ratingBreakdown === "object") {
+    [1, 2, 3, 4, 5].forEach((num) => {
+      ratingCounts[num - 1] = ratingBreakdown[String(num)] || ratingBreakdown[num] || 0;
+    });
+  } else {
+    safeReviews.forEach((r) => {
+      const overall = r.ratings?.overall || r.overall_rating || 0;
+      if (overall >= 1 && overall <= 5) ratingCounts[overall - 1]++;
+    });
+  }
 
   const filteredReviews = safeReviews
     .filter((r) => !photosOnly || (r.photos?.length ?? 0) > 0)
@@ -233,6 +290,7 @@ export default function ReviewsList({ reviews = [], overallRating, totalReviews 
 
   const displayed = showAll ? filteredReviews : filteredReviews.slice(0, 4);
   const score = overallRating != null ? Number(overallRating) : 0;
+  const totalCount = totalReviews != null ? Number(totalReviews) : safeReviews.length;
 
   return (
     <section className={styles.reviewsContainer}>
@@ -260,9 +318,8 @@ export default function ReviewsList({ reviews = [], overallRating, totalReviews 
             ))}
           </div>
           <p className={styles.reviewCount}>
-            Based on{" "}
-            <strong>{totalReviews || safeReviews.length}</strong> review
-            {(totalReviews || safeReviews.length) !== 1 ? "s" : ""}
+            Based on <strong>{totalCount}</strong> review
+            {totalCount !== 1 ? "s" : ""}
           </p>
         </div>
 
@@ -272,7 +329,7 @@ export default function ReviewsList({ reviews = [], overallRating, totalReviews 
               key={rating}
               rating={rating}
               count={ratingCounts[rating - 1]}
-              total={safeReviews.length}
+              total={totalCount}
             />
           ))}
         </div>
@@ -320,7 +377,13 @@ export default function ReviewsList({ reviews = [], overallRating, totalReviews 
       ) : (
         <div className={styles.reviewsGrid}>
           {displayed.map((review) => (
-            <ReviewCard key={review.id} review={review} />
+            <ReviewCard
+              key={review.id}
+              review={review}
+              currentUserId={currentUserId}
+              onEdit={onEditReview}
+              onDelete={onDeleteReview}
+            />
           ))}
         </div>
       )}

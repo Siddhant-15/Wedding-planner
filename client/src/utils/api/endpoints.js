@@ -38,7 +38,7 @@ export const ENDPOINTS = {
         SAVE_DRAFT: "/vendors/save-draft",
         DASHBOARD: {
             KPIS: "/vendor/dashboard/kpis",
-        },  
+        },
     },
 
     WISHLIST: {
@@ -46,13 +46,14 @@ export const ENDPOINTS = {
         ITEMS: "/wishlists/items",
         ITEM: (itemId) => `/wishlists/items/${itemId}`,
     },
-
     REVIEWS: {
-        GET: (serviceId) => `/reviews/${serviceId}`,
-        CREATE: "/reviews/create-customer-review",
-        UPDATE: (id) => `/reviews/update/${id}`,
-        DELETE: (id) => `/reviews/delete/${id}`,
+        GET: (serviceId) => `/reviews/service/${serviceId}`,
+        MY_REVIEW: (serviceId) => `/reviews/service/${serviceId}/my-review`,
+        CREATE: `/reviews`,
+        UPDATE: (id) => `/reviews/${id}`,
+        DELETE: (id) => `/reviews/${id}`,
     },
+
 
     NOTIFICATIONS: {
         GET_ALL: "/notification/get-all",
@@ -60,22 +61,22 @@ export const ENDPOINTS = {
         MARK_READ: (id) => `/notification/mark-read/${id}`,
     },
     ADMIN: {
-    AUTH: {
-      LOGIN: "/admin/auth/login",
+        AUTH: {
+            LOGIN: "/admin/auth/login",
+        },
+
+        METRICS: "/admin/dashboard/metrics",
+        ACTIVITY: "/admin/dashboard/activity",
+
+        VENDORS: "/admin/vendors",
+        SERVICES: "/admin/services",
+        BOOKINGS: "/admin/bookings",
+        REVIEWS: "/admin/reviews",
+        REPORTS: "/admin/reports",
+
+        CATEGORIES: "/admin/categories",
+        SETTINGS: "/admin/settings",
+
+        ANALYTICS: "/admin/analytics",
     },
-
-    METRICS: "/admin/dashboard/metrics",
-    ACTIVITY: "/admin/dashboard/activity",
-
-    VENDORS: "/admin/vendors",
-    SERVICES: "/admin/services",
-    BOOKINGS: "/admin/bookings",
-    REVIEWS: "/admin/reviews",
-    REPORTS: "/admin/reports",
-
-    CATEGORIES: "/admin/categories",
-    SETTINGS: "/admin/settings",
-
-    ANALYTICS: "/admin/analytics",
-  },
 };

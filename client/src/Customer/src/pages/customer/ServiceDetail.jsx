@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { ArrowLeft, AlertTriangle, Loader2, Tag, Music, Sparkles, ClipboardList, PenSquare, CalendarRange } from "lucide-react";
-
+import { useNavigate } from "react-router-dom";
 // import ImageGallery from "../../components/customer/gallery/ImageGallery";
 import ServiceGallery from "../../components/customer/gallery/ServiceGallery";
 import VendorCard from "../../components/customer/cards/VendorCard";
@@ -24,26 +24,30 @@ import { leadsService } from "../../../../utils/api/services/leads.service";
 import { reviewService } from "../../../../utils/api/services/review.service";
 import { titleCase } from "../../utils/format";
 import styles from "../../styles/ServiceDetail.module.css";
-import { useNavigate } from "react-router-dom";
-
+import { useAuth } from "@/context/AuthContext";
 
 
 export default function ServiceDetail() {
   const { id } = useParams();
+  const { user, isAuthenticated } = useAuth();
   const [service, setService] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   const viewTrackedRef = useRef(null);
   const [reviews, setReviews] = useState([]);
+  const [ratingSummary, setRatingSummary] = useState(null);
+  const [myReview, setMyReview] = useState(null);
   const [reviewsLoading, setReviewsLoading] = useState(true);
 
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+  const [editingReview, setEditingReview] = useState(null);
   const [isAvailabilityModalOpen, setIsAvailabilityModalOpen] = useState(false);
   const [lead, setLead] = useState(null);
   const [checkingLead, setCheckingLead] = useState(true);
 
   const navigate = useNavigate();
+
 
   const handleLeadSubmit = async (payload) => {
     try {
@@ -209,32 +213,44 @@ export default function ServiceDetail() {
     }
   };
 
-  useEffect(() => {
-    let cancelled = false;
+  const fetchReviewsData = async () => {
+    try {
+      setReviewsLoading(true);
+      const res = await reviewService.getAll(id);
+      setReviews(res?.reviews || []);
+      setRatingSummary({
+        average_rating: res?.average_rating ?? service?.rating ?? 0,
+        total_reviews: res?.total_reviews ?? service?.total_reviews ?? 0,
+        rating_breakdown: res?.rating_breakdown ?? null,
+      });
 
-    const loadReviews = async () => {
-      try {
-        setReviewsLoading(true);
-
-        const res = await reviewService.getAll(id);
-
-        if (!cancelled) {
-          // adjust depending on API shape
-          setReviews(res?.reviews || res || []);
-        }
-      } catch (err) {
-        console.error("Failed to load reviews", err);
-      } finally {
-        if (!cancelled) setReviewsLoading(false);
+      if (isAuthenticated && user) {
+        const mine = await reviewService.getMyReview(id);
+        setMyReview(mine);
+      } else {
+        setMyReview(null);
       }
-    };
+    } catch (err) {
+      console.error("Failed to load reviews", err);
+    } finally {
+      setReviewsLoading(false);
+    }
+  };
 
-    if (id) loadReviews();
+  useEffect(() => {
+    if (id) fetchReviewsData();
+  }, [id, isAuthenticated, user]);
 
-    return () => {
-      cancelled = true;
-    };
-  }, [id]);
+  const handleDeleteReview = async (reviewId) => {
+    try {
+      await reviewService.remove(reviewId);
+      setMyReview(null);
+      await fetchReviewsData();
+    } catch (err) {
+      console.error("Failed to delete review", err);
+    }
+  };
+
 
   const renderSpecs = useMemo(() => {
     if (!service) return null;
@@ -343,35 +359,53 @@ export default function ServiceDetail() {
             <div className={styles.reviewsHeader}>
               <h2 className={styles.sectionTitle}>Reviews & Ratings</h2>
               <button
-                onClick={() => setIsReviewModalOpen(true)}
+                onClick={() => {
+                  if (!isAuthenticated) {
+                    navigate("/login");
+                    return;
+                  }
+                  setEditingReview(myReview);
+                  setIsReviewModalOpen(true);
+                }}
                 className={styles.writeReviewBtn}
               >
-                <PenSquare size={16} /> Write a Review
+                <PenSquare size={16} /> {myReview ? "Edit Your Review" : "Write a Review"}
               </button>
             </div>
 
             <ReviewsList
               reviews={reviews}
-              overallRating={service.rating}
-              totalReviews={service.total_reviews}
+              overallRating={ratingSummary?.average_rating ?? service.rating ?? 0}
+              totalReviews={ratingSummary?.total_reviews ?? service.total_reviews ?? 0}
+              ratingBreakdown={ratingSummary?.rating_breakdown}
               loading={reviewsLoading}
+              currentUserId={user?.id}
+              onEditReview={(rev) => {
+                setEditingReview(rev);
+                setIsReviewModalOpen(true);
+              }}
+              onDeleteReview={handleDeleteReview}
             />
 
             <Modal
               isOpen={isReviewModalOpen}
-              onClose={() => setIsReviewModalOpen(false)}
+              onClose={() => {
+                setIsReviewModalOpen(false);
+                setEditingReview(null);
+              }}
             >
               <WriteReviewForm
                 serviceName={service.name}
                 serviceId={id}
-                serviceType={service.service_type}
-                vendorId={service.vendor?.id || ""}
-                onReviewSubmitted={(newReview) => {
-                  setReviews(prev => [newReview, ...prev]);
+                existingReview={editingReview}
+                onReviewSubmitted={async () => {
                   setIsReviewModalOpen(false);
+                  setEditingReview(null);
+                  await fetchReviewsData();
                 }}
               />
             </Modal>
+
           </div>
 
           <aside className={styles.sidebar}>

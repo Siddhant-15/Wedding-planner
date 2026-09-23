@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Star,
   Camera,
@@ -13,7 +13,8 @@ import {
 import styles from "../styles/WriteReviewForm.module.css";
 
 import { reviewService } from "../../../utils/api/services/review.service";
-import { useAuth } from "../../../context/AuthContext";
+import { useAuth } from "@/context/AuthContext";
+
 
 const RATING_LABELS = ["", "Poor", "Fair", "Good", "Very Good", "Excellent"];
 const MAX_TEXT = 1000;
@@ -66,9 +67,10 @@ const RatingCriteria = ({ label, value, onChange, hint }) => {
 export default function WriteReviewForm({
   serviceName,
   serviceId,
+  existingReview = null,
   onReviewSubmitted,
 }) {
-  const { user } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const fileInputRef = useRef(null);
 
   const [form, setForm] = useState({
@@ -83,9 +85,25 @@ export default function WriteReviewForm({
     event_date: new Date().toISOString().split("T")[0],
   });
 
+  useEffect(() => {
+    if (existingReview) {
+      setForm({
+        overallRating: existingReview.overall_rating || existingReview.ratings?.overall || 0,
+        foodBeverageRating: existingReview.food_beverage_rating || existingReview.ratings?.foodBeverage || 0,
+        serviceQualityRating: existingReview.service_quality_rating || existingReview.ratings?.serviceQuality || 0,
+        ambianceRating: existingReview.ambiance_rating || existingReview.ratings?.ambiance || 0,
+        valueForMoneyRating: existingReview.value_for_money_rating || existingReview.ratings?.valueForMoney || 0,
+        title: existingReview.title || "",
+        text: existingReview.review_text || existingReview.text || "",
+        event_type: existingReview.event_type || existingReview.eventType || "General",
+        event_date: existingReview.event_date || existingReview.eventDate || new Date().toISOString().split("T")[0],
+      });
+    }
+  }, [existingReview]);
+
   const [hoveredOverall, setHoveredOverall] = useState(0);
   const [files, setFiles] = useState([]);
-  const [previews, setPreviews] = useState([]);
+  const [previews, setPreviews] = useState(existingReview?.photos || []);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState(null);
 
@@ -119,7 +137,7 @@ export default function WriteReviewForm({
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!user?.id) {
+    if (!isAuthenticated || !user) {
       setSubmitError("Please log in to submit a review.");
       return;
     }
@@ -131,55 +149,50 @@ export default function WriteReviewForm({
     setIsSubmitting(true);
     setSubmitError(null);
 
-    const formData = new FormData();
-    formData.append("service_id", serviceId);
-    formData.append("user_id", user.id.toString());
-    formData.append("overall_rating", form.overallRating.toString());
-
-    if (form.foodBeverageRating > 0)
-      formData.append("food_beverage_rating", form.foodBeverageRating.toString());
-    if (form.serviceQualityRating > 0)
-      formData.append("service_quality_rating", form.serviceQualityRating.toString());
-    if (form.ambianceRating > 0)
-      formData.append("ambiance_rating", form.ambianceRating.toString());
-    if (form.valueForMoneyRating > 0)
-      formData.append("value_for_money_rating", form.valueForMoneyRating.toString());
-
-    formData.append("title", form.title.trim());
-    formData.append("review_text", form.text.trim());
-    formData.append("event_type", form.event_type || "General");
-    if (form.event_date) formData.append("event_date", form.event_date);
-
-    files.forEach((file) => formData.append("photos", file));
-
     try {
-      const response = await reviewService.add(formData);
-      const createdReview = response.data ?? {};
+      let resultReview = null;
 
-      const optimisticReview = {
-        id: createdReview.id || `temp-${Date.now()}`,
-        service_id: serviceId,
-        user_id: user.id,
-        overall_rating: form.overallRating,
-        food_beverage_rating: form.foodBeverageRating,
-        service_quality_rating: form.serviceQualityRating,
-        ambiance_rating: form.ambianceRating,
-        value_for_money_rating: form.valueForMoneyRating,
-        title: form.title.trim(),
-        review_text: form.text.trim(),
-        event_type: form.event_type,
-        event_date: form.event_date,
-        photos: createdReview.photos || previews,
-        created_at: createdReview.created_at || new Date().toISOString(),
-        user: {
-          name: user.name || user.username || "You",
-          avatar: user.avatar || "",
-        },
-        helpful_count: 0,
-        is_verified: false,
-      };
+      if (existingReview?.id) {
+        // Edit mode
+        const patch = {
+          overall_rating: form.overallRating,
+          food_beverage_rating: form.foodBeverageRating || null,
+          service_quality_rating: form.serviceQualityRating || null,
+          ambiance_rating: form.ambianceRating || null,
+          value_for_money_rating: form.valueForMoneyRating || null,
+          title: form.title.trim() || null,
+          review_text: form.text.trim() || null,
+          event_type: form.event_type || "General",
+          event_date: form.event_date || null,
+        };
 
-      onReviewSubmitted?.(optimisticReview);
+        resultReview = await reviewService.update(existingReview.id, patch);
+      } else {
+        // Create mode
+        const formData = new FormData();
+        formData.append("service_id", serviceId);
+        formData.append("overall_rating", form.overallRating.toString());
+
+        if (form.foodBeverageRating > 0)
+          formData.append("food_beverage_rating", form.foodBeverageRating.toString());
+        if (form.serviceQualityRating > 0)
+          formData.append("service_quality_rating", form.serviceQualityRating.toString());
+        if (form.ambianceRating > 0)
+          formData.append("ambiance_rating", form.ambianceRating.toString());
+        if (form.valueForMoneyRating > 0)
+          formData.append("value_for_money_rating", form.valueForMoneyRating.toString());
+
+        if (form.title.trim()) formData.append("title", form.title.trim());
+        if (form.text.trim()) formData.append("review_text", form.text.trim());
+        formData.append("event_type", form.event_type || "General");
+        if (form.event_date) formData.append("event_date", form.event_date);
+
+        files.forEach((file) => formData.append("photos", file));
+
+        resultReview = await reviewService.add(formData);
+      }
+
+      onReviewSubmitted?.(resultReview);
 
       setForm({
         overallRating: 0,
@@ -196,19 +209,7 @@ export default function WriteReviewForm({
       setPreviews([]);
     } catch (err) {
       console.error("Review submission error:", err);
-      let errorMsg = "Failed to submit review. Please try again later.";
-
-      if (err.response?.data?.detail) {
-        if (typeof err.response.data.detail === "string") {
-          errorMsg = err.response.data.detail;
-        } else if (Array.isArray(err.response.data.detail)) {
-          errorMsg = err.response.data.detail.map((d) => d.msg || d).join("\n");
-        }
-      } else if (err.response?.status === 413) {
-        errorMsg = "Files are too large. Please use smaller photos.";
-      } else if (err.response?.status === 422) {
-        errorMsg = "Invalid input. Please check your ratings and fields.";
-      }
+      let errorMsg = err?.detail || err?.message || "Failed to submit review. Please try again later.";
       setSubmitError(errorMsg);
     } finally {
       setIsSubmitting(false);
@@ -224,7 +225,9 @@ export default function WriteReviewForm({
         <span className={styles.eyebrow}>
           <Sparkles size={12} /> Share your experience
         </span>
-        <h3 className={styles.title}>Write a review</h3>
+        <h3 className={styles.title}>
+          {existingReview ? "Edit your review" : "Write a review"}
+        </h3>
         <p className={styles.subtitle}>
           Help others by sharing your honest experience at{" "}
           <span className={styles.serviceName}>{serviceName}</span>
@@ -385,8 +388,9 @@ export default function WriteReviewForm({
               Your review
             </label>
             <span
-              className={`${styles.counter} ${form.text.length > MAX_TEXT - 100 ? styles.counterWarning : ""
-                }`}
+              className={`${styles.counter} ${
+                form.text.length > MAX_TEXT - 100 ? styles.counterWarning : ""
+              }`}
             >
               {form.text.length}/{MAX_TEXT}
             </span>
@@ -403,50 +407,52 @@ export default function WriteReviewForm({
         </div>
 
         {/* Photos */}
-        <div className={styles.field}>
-          <div className={styles.labelRow}>
-            <label className={styles.fieldLabel}>
-              Add photos <span className={styles.optional}>(optional)</span>
-            </label>
-            <span className={styles.counter}>
-              {files.length}/{MAX_PHOTOS}
-            </span>
-          </div>
-
-          <div className={styles.photosContainer}>
-            {previews.map((src, i) => (
-              <div key={i} className={styles.photoPreview}>
-                <img src={src} alt={`Upload ${i + 1}`} className={styles.previewImage} />
-                <button
-                  type="button"
-                  onClick={() => removePhoto(i)}
-                  className={styles.removePhoto}
-                  aria-label="Remove photo"
-                >
-                  <X size={14} />
-                </button>
-              </div>
-            ))}
-
-            {files.length < MAX_PHOTOS && (
-              <label className={styles.uploadBox}>
-                <Camera size={22} className={styles.cameraIcon} />
-                <span className={styles.uploadText}>Upload</span>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  multiple
-                  accept="image/*"
-                  hidden
-                  onChange={handlePhotoChange}
-                />
+        {!existingReview && (
+          <div className={styles.field}>
+            <div className={styles.labelRow}>
+              <label className={styles.fieldLabel}>
+                Add photos <span className={styles.optional}>(optional)</span>
               </label>
-            )}
+              <span className={styles.counter}>
+                {files.length}/{MAX_PHOTOS}
+              </span>
+            </div>
+
+            <div className={styles.photosContainer}>
+              {previews.map((src, i) => (
+                <div key={i} className={styles.photoPreview}>
+                  <img src={src} alt={`Upload ${i + 1}`} className={styles.previewImage} />
+                  <button
+                    type="button"
+                    onClick={() => removePhoto(i)}
+                    className={styles.removePhoto}
+                    aria-label="Remove photo"
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
+              ))}
+
+              {files.length < MAX_PHOTOS && (
+                <label className={styles.uploadBox}>
+                  <Camera size={22} className={styles.cameraIcon} />
+                  <span className={styles.uploadText}>Upload</span>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    hidden
+                    onChange={handlePhotoChange}
+                  />
+                </label>
+              )}
+            </div>
+            <p className={styles.photoHint}>
+              JPG or PNG • Up to {MAX_PHOTOS} photos • Recommended &lt; 5MB each
+            </p>
           </div>
-          <p className={styles.photoHint}>
-            JPG or PNG • Up to {MAX_PHOTOS} photos • Recommended &lt; 5MB each
-          </p>
-        </div>
+        )}
 
         {/* Submit */}
         <button
@@ -457,12 +463,12 @@ export default function WriteReviewForm({
           {isSubmitting ? (
             <>
               <Loader2 className={styles.spinner} size={18} />
-              Submitting…
+              Saving…
             </>
           ) : (
             <>
               <Send size={18} />
-              Submit review
+              {existingReview ? "Update review" : "Submit review"}
             </>
           )}
         </button>

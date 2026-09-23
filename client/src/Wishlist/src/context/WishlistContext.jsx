@@ -7,19 +7,30 @@ import React, {
   useState,
 } from "react";
 import { wishlistService as wishlistApi, suggestNameForService } from "../../../utils/api/services/wishlist.service";
+import { useAuth } from "@/context/AuthContext";
+
 
 const WishlistContext = createContext(null);
 
 export const WishlistProvider = ({ children }) => {
+  const { user, isAuthenticated } = useAuth();
   const [wishlists, setWishlists] = useState([]);
   const [items, setItems] = useState([]); // flat global cache
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   // ------------------------
-  // INITIAL LOAD (OPTIMIZED)
+  // REFRESH / INITIAL LOAD
   // ------------------------
   const refresh = useCallback(async () => {
+    if (!isAuthenticated || !user) {
+      setWishlists([]);
+      setItems([]);
+      setLoading(false);
+      setError(null);
+      return;
+    }
+
     setLoading(true);
     setError(null);
 
@@ -27,26 +38,32 @@ export const WishlistProvider = ({ children }) => {
       const lists = await wishlistApi.getAll();
 
       // flatten items from all wishlists
-      const allItems = lists.flatMap((w) =>
+      const allItems = (lists || []).flatMap((w) =>
         (w.items || []).map((item) => ({
           ...item,
           wishlist_id: w.id,
         }))
       );
 
-      setWishlists(lists);
+      setWishlists(lists || []);
       setItems(allItems);
-
     } catch (e) {
-      setError(e.message || "Failed to load wishlists");
+      console.warn("Wishlist fetch error:", e);
+      // For unauthenticated or network failure, handle gracefully
+      if (e?.status === 401) {
+        setWishlists([]);
+        setItems([]);
+      } else {
+        setError(e?.message || "Failed to load wishlists");
+      }
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [isAuthenticated, user]);
 
   useEffect(() => {
     refresh();
-  }, [refresh]);
+  }, [refresh, user?.id, isAuthenticated]);
 
   // ------------------------
   // HELPERS
@@ -68,9 +85,7 @@ export const WishlistProvider = ({ children }) => {
   // ------------------------
   const createWishlist = useCallback(async (payload) => {
     const w = await wishlistApi.create(payload);
-
-    setWishlists((prev) => [...prev, w]); // ✅ no refresh
-
+    setWishlists((prev) => [...prev, w]);
     return w;
   }, []);
 
@@ -84,11 +99,7 @@ export const WishlistProvider = ({ children }) => {
 
   const deleteWishlist = useCallback(async (id) => {
     await wishlistApi.remove(id);
-
-    // remove wishlist
     setWishlists((prev) => prev.filter((w) => w.id !== id));
-
-    // remove all items belonging to wishlist (IMPORTANT FIX)
     setItems((prev) => prev.filter((i) => i.wishlist_id !== id));
   }, []);
 
@@ -104,7 +115,7 @@ export const WishlistProvider = ({ children }) => {
       service_id: service.id,
       service,
       note: "",
-      priority: 0,
+      priority: "low",
       created_at: new Date().toISOString(),
     };
 
@@ -118,7 +129,7 @@ export const WishlistProvider = ({ children }) => {
 
       const normalized = {
         ...real,
-        service,
+        service: real.service ?? service,
       };
 
       setItems((prev) =>
@@ -129,10 +140,9 @@ export const WishlistProvider = ({ children }) => {
         prev.map((w) =>
           w.id === wishlist_id
             ? {
-              ...w,
-              item_count: (w.item_count || 0) + 1,
-              cover_image: w.cover_image || service.image,
-            }
+                ...w,
+                item_count: (w.items?.length || 0) + 1,
+              }
             : w
         )
       );
@@ -159,7 +169,6 @@ export const WishlistProvider = ({ children }) => {
     let removedItem = null;
     let wishlistId = null;
 
-    // ✅ Optimistic update (safe)
     setItems((prev) => {
       const item = prev.find((i) => i.id === itemId);
       if (item) {
@@ -169,15 +178,14 @@ export const WishlistProvider = ({ children }) => {
       return prev.filter((i) => i.id !== itemId);
     });
 
-    // ✅ Update wishlist count optimistically
     if (wishlistId) {
       setWishlists((prev) =>
         prev.map((w) =>
           w.id === wishlistId
             ? {
-              ...w,
-              item_count: Math.max(0, (w.item_count || 1) - 1),
-            }
+                ...w,
+                item_count: Math.max(0, (w.items?.length || 1) - 1),
+              }
             : w
         )
       );
@@ -187,7 +195,6 @@ export const WishlistProvider = ({ children }) => {
       await wishlistApi.removeItem(itemId);
       return removedItem;
     } catch (e) {
-      // ❌ Rollback BOTH states
       if (removedItem) {
         setItems((prev) => [...prev, removedItem]);
 
@@ -195,14 +202,13 @@ export const WishlistProvider = ({ children }) => {
           prev.map((w) =>
             w.id === wishlistId
               ? {
-                ...w,
-                item_count: (w.item_count || 0) + 1,
-              }
+                  ...w,
+                  item_count: (w.items?.length || 0) + 1,
+                }
               : w
           )
         );
       }
-
       throw e;
     }
   }, []);
@@ -210,7 +216,6 @@ export const WishlistProvider = ({ children }) => {
   const restoreItem = useCallback(
     async (item) => {
       if (!item) return;
-
       return addItem({
         wishlist_id: item.wishlist_id,
         service: item.service,
@@ -221,36 +226,32 @@ export const WishlistProvider = ({ children }) => {
 
   const moveItem = useCallback(async (itemId, target_wishlist_id) => {
     const updated = await wishlistApi.moveItem(itemId, target_wishlist_id);
-
     setItems((prev) =>
       prev.map((i) =>
         i.id === itemId
           ? {
-            ...i,
-            wishlist_id: target_wishlist_id,
-          }
+              ...i,
+              wishlist_id: target_wishlist_id,
+            }
           : i
       )
     );
-
     return updated;
   }, []);
 
   const updateItem = useCallback(async (itemId, patch) => {
     const updated = await wishlistApi.updateItem(itemId, patch);
-
     setItems((prev) =>
       prev.map((i) =>
         i.id === itemId
           ? {
-            ...i,
-            ...updated,
-            service: i.service ?? updated.service, // preserve service always
-          }
+              ...i,
+              ...updated,
+              service: i.service ?? updated.service,
+            }
           : i
       )
     );
-
     return updated;
   }, []);
 
@@ -263,23 +264,18 @@ export const WishlistProvider = ({ children }) => {
       items,
       loading,
       error,
-
       refresh,
-
       isSaved,
       getItemForService,
-
       createWishlist,
       renameWishlist,
       deleteWishlist,
-
       addItem,
       alreadyExists,
       removeItem,
       restoreItem,
       moveItem,
       updateItem,
-
       suggestNameForService,
     }),
     [
@@ -312,7 +308,26 @@ export const WishlistProvider = ({ children }) => {
 export const useWishlist = () => {
   const ctx = useContext(WishlistContext);
   if (!ctx) {
-    throw new Error("useWishlist must be used within WishlistProvider");
+    // Return a safe fallback object for unauthenticated components outside provider
+    return {
+      wishlists: [],
+      items: [],
+      loading: false,
+      error: null,
+      refresh: () => {},
+      isSaved: () => false,
+      getItemForService: () => null,
+      createWishlist: async () => {},
+      renameWishlist: async () => {},
+      deleteWishlist: async () => {},
+      addItem: async () => {},
+      alreadyExists: () => false,
+      removeItem: async () => {},
+      restoreItem: async () => {},
+      moveItem: async () => {},
+      updateItem: async () => {},
+      suggestNameForService,
+    };
   }
   return ctx;
 };

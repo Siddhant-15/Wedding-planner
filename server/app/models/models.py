@@ -1925,10 +1925,16 @@ class Wishlist(Base):
         back_populates="wishlists"
     )
 
-    favorites: Mapped[List["Favorite"]] = relationship(
+    items: Mapped[List["Favorite"]] = relationship(
         back_populates="wishlist",
         cascade="all, delete-orphan",
     )
+
+    @property
+    def favorites(self) -> List["Favorite"]:
+        return self.items
+
+
 
 
 class Favorite(Base):
@@ -1961,8 +1967,9 @@ class Favorite(Base):
     )
 
     wishlist: Mapped["Wishlist"] = relationship(
-        back_populates="favorites"
+        back_populates="items"
     )
+
 
     service: Mapped["Service"] = relationship(
         back_populates="wishlisted_by"

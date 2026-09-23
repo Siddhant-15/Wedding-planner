@@ -25,12 +25,11 @@ const WishlistItemCard = ({
   onUpdateNote,
   onUpdatePriority,
 }) => {
-
-  const { service } = item;
+  const { service } = item || {};
   const [menuOpen, setMenuOpen] = useState(false);
   const [moveOpen, setMoveOpen] = useState(false);
   const [editingNote, setEditingNote] = useState(false);
-  const [note, setNote] = useState(item.note || "");
+  const [note, setNote] = useState(item?.note || "");
   const wrapRef = useRef(null);
 
   useEffect(() => {
@@ -43,7 +42,26 @@ const WishlistItemCard = ({
     return () => document.removeEventListener("mousedown", onDocClick);
   }, []);
 
-  const priority = PRIORITIES.find((p) => p.value === item.priority) || PRIORITIES[1];
+  const priority = PRIORITIES.find((p) => p.value === item?.priority) || PRIORITIES[1];
+
+  if (!service) {
+    return (
+      <article className={styles.card}>
+        <div className={styles.body} style={{ padding: "1.5rem" }}>
+          <h3 className={styles.name}>Service Unavailable</h3>
+          <p className={styles.vendor}>This service is no longer active.</p>
+          <button
+            className={styles.menuDanger}
+            style={{ marginTop: "1rem", cursor: "pointer" }}
+            onClick={() => onRemove?.(item)}
+          >
+            Remove from wishlist
+          </button>
+        </div>
+      </article>
+    );
+  }
+
 
   return (
     <article className={styles.card}>
